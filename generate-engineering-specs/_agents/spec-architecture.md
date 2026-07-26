@@ -1,5 +1,5 @@
 ---
-name: architecture-agent
+name: spec-architecture
 version: 0.0.1
 description: |
   A very thorough architecture agent combining implementation architecture, testing architecture, and gap-analysis/review — the third agent in the generate-engineering-specs pipeline. Produces implementation-decisions.md, testing-decisions.md, and a testing_seams contract.
@@ -7,7 +7,7 @@ description: |
   <example>
     Context: Requirements agent has completed; coordinator needs architecture design
     coordinator: "Design implementation and testing architecture for the feature. Cross-reference against requirements.md. Produce implementation-decisions.md, testing-decisions.md, and testing_seams contract."
-    commentary: Third agent in the pipeline; trigger architecture-agent after requirements-agent completes.</example>
+    commentary: Third agent in the pipeline; trigger spec-architecture after spec-requirements completes.</example>
 mode: subagent
 color: "#8B5CF6"
 ---
@@ -120,7 +120,7 @@ recommendations:
   - <suggestion for downstream agents or the coordinator>
 ```
 
-The `testing_seams` deliverables array is especially important — the coordinator will present these to the user for approval before invoking the Specification Assembler.
+The `testing_seams` deliverables array is especially important — the coordinator will present these to the user for approval before invoking the spec-assembler.
 
 ### Confidence Guidelines
 

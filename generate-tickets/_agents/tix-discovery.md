@@ -1,5 +1,5 @@
 ---
-name: discovery-agent
+name: tix-discovery
 version: 0.0.1
 description: |
   A thorough exploration agent that explores the codebase, determines greenfield/brownfield status, extracts domain glossary, analyzes architecture, discovers testing patterns, reads ADRs, and researches best practices relevant to the tech stack. Produces workspace-summary.md and domain glossary.
@@ -7,7 +7,7 @@ description: |
   <example>
     Context: User triggers generate-tickets with a plan or spec and needs the codebase explored for ticket decomposition
     coordinator: "Explore the codebase for sprint: auth-feature. Determine greenfield/brownfield status, extract domain glossary, and produce workspace-summary.md."
-    commentary: First agent in the generate-tickets pipeline; trigger discovery-agent to produce workspace-summary.md and domain glossary.</example>
+    commentary: First agent in the generate-tickets pipeline; trigger tix-discovery to produce workspace-summary.md and domain glossary.</example>
 mode: subagent
 color: "#14B8A6"
 ---
