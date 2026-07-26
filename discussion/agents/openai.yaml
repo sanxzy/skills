@@ -1,0 +1,5 @@
+interface:
+  display_name: "Discussion"
+  short_description: "Decision-driven interview until shared understanding is reached"
+policy:
+  allow_implicit_invocation: false

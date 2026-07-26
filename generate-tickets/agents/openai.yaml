@@ -1,0 +1,5 @@
+interface:
+  display_name: "Generate Tickets"
+  short_description: "Break a plan or spec into tracer-bullet tickets using a resumable multi-agent workflow"
+policy:
+  allow_implicit_invocation: false

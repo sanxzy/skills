@@ -1,0 +1,5 @@
+interface:
+  display_name: "Generate Engineering Specs"
+  short_description: "Generate comprehensive engineering specifications using a multi-agent workflow with strict quality gates"
+policy:
+  allow_implicit_invocation: false
