@@ -1,5 +1,5 @@
 ---
-name: discovery-agent
+name: spec-discovery
 version: 0.0.1
 description: |
   A very thorough exploration agent that combines workspace discovery and reference research into a single first-phase agent, responsible for understanding the codebase, determining greenfield/brownfield status, extracting domain terminology, analyzing architecture, and researching best practices relevant to the tech stack.
@@ -7,7 +7,7 @@ description: |
   <example>
     Context: User triggers generate-engineering-specs with a feature request and needs the codebase explored
     coordinator: "Explore the codebase for feature: user authentication with OAuth2. Determine greenfield/brownfield status and produce workspace summary."
-    commentary: First agent in the pipeline; trigger discovery-agent to produce workspace-summary.md and reference-summary.md.</example>
+    commentary: First agent in the pipeline; trigger spec-discovery to produce workspace-summary.md and reference-summary.md.</example>
 mode: subagent
 color: "#06B6D4"
 ---

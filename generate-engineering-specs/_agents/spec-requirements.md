@@ -1,5 +1,5 @@
 ---
-name: requirements-agent
+name: spec-requirements
 version: 0.0.1
 description: |
   A specialized requirements analysis agent responsible for producing the Problem Statement, Solution, comprehensive User Stories, edge cases, assumptions, and Out of Scope definition from conversation context and upstream discovery artifacts.
@@ -7,7 +7,7 @@ description: |
   <example>
     Context: Discovery agent has completed; coordinator needs requirements analysis
     coordinator: "Analyze requirements for workspace-summary.md and reference-summary.md. Produce requirements.md with user stories, edge cases, and scope boundaries."
-    commentary: Second agent in the pipeline; trigger requirements-agent after discovery-agent completes.</example>
+    commentary: Second agent in the pipeline; trigger spec-requirements after spec-discovery completes.</example>
 mode: subagent
 color: "#F59E0B"
 ---

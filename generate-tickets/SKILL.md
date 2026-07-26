@@ -17,9 +17,9 @@ The workflow uses a strict three-agent pipeline: **Discovery → Ticket Planning
 
 ## Available Agents
 
-- **discovery-agent** — Explores the codebase, determines greenfield/brownfield, extracts the domain glossary, analyzes architecture, discovers testing patterns, reads ADRs, and researches best practices. Produces `workspace-summary.md` and `domain_glossary`.
-- **ticket-planning-agent** — Decomposes the plan/spec/conversation into tracer-bullet tickets with blocking edges, acceptance criteria, and a dependency graph. Produces `ticket-plan.md` and an inline `tickets` array.
-- **assembler-agent** — Validates the approved ticket breakdown, topologically sorts tickets into dependency order, writes all tickets into a single consolidated `ticket.md` file at the sprint root, and produces an assembly report.
+- **tix-discovery** — Explores the codebase, determines greenfield/brownfield, extracts the domain glossary, analyzes architecture, discovers testing patterns, reads ADRs, and researches best practices. Produces `workspace-summary.md` and `domain_glossary`.
+- **tix-planning** — Decomposes the plan/spec/conversation into tracer-bullet tickets with blocking edges, acceptance criteria, and a dependency graph. Produces `ticket-plan.md` and an inline `tickets` array.
+- **tix-assembler** — Validates the approved ticket breakdown, topologically sorts tickets into dependency order, writes all tickets into a single consolidated `ticket.md` file at the sprint root, and produces an assembly report.
 
 ## Coordinator Instructions
 

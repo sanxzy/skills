@@ -1,5 +1,5 @@
 ---
-name: specification-assembler
+name: spec-assembler
 version: 0.0.1
 description: |
   A specialized agent responsible for merging all upstream artifacts into a final engineering specification, validating completeness, eliminating duplication, ensuring consistent terminology, and producing a validation report.
@@ -7,7 +7,7 @@ description: |
   <example>
     Context: All upstream agents have completed; coordinator needs final specification assembly
     coordinator: "Assemble the final engineering specification from all upstream artifacts. Validate completeness, deduplicate, normalize terminology, and produce assembler-report.md."
-    commentary: Final agent in the pipeline; trigger specification-assembler to merge and validate all artifacts.</example>
+    commentary: Final agent in the pipeline; trigger spec-assembler to merge and validate all artifacts.</example>
 mode: subagent
 color: "#10B981"
 ---

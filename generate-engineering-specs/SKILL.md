@@ -16,10 +16,10 @@ This skill transforms the current conversation context into a complete engineeri
 
 ## Available Agents
 
-- **discovery-agent** — Combines workspace discovery and reference research. Explores the codebase, determines greenfield/brownfield, extracts domain glossary, analyzes architecture, discovers testing patterns, reads ADRs, and researches best practices. Produces `workspace-summary.md` and `reference-summary.md`.
-- **requirements-agent** — Combines requirements analysis and scope review. Produces Problem Statement, Solution, comprehensive User Stories, edge cases, Out of Scope, assumptions, and further notes. Produces `requirements.md`.
-- **architecture-agent** — Combines implementation architecture, testing architecture, and gap-analysis/review. Designs architecture decisions, API contracts, schema changes, module boundaries, testing seams, and testing strategy. Cross-references all requirements for gaps and inconsistencies. Produces `implementation-decisions.md`, `testing-decisions.md`, and proposes `testing_seams` for user approval.
-- **specification-assembler** — Loads all upstream artifacts, validates completeness, removes duplication, normalizes terminology, resolves cross-references, and assembles the final `spec.md` with an accompanying `assembler-report.md`.
+- **spec-discovery** — Combines workspace discovery and reference research. Explores the codebase, determines greenfield/brownfield, extracts domain glossary, analyzes architecture, discovers testing patterns, reads ADRs, and researches best practices. Produces `workspace-summary.md` and `reference-summary.md`.
+- **spec-requirements** — Combines requirements analysis and scope review. Produces Problem Statement, Solution, comprehensive User Stories, edge cases, Out of Scope, assumptions, and further notes. Produces `requirements.md`.
+- **spec-architecture** — Combines implementation architecture, testing architecture, and gap-analysis/review. Designs architecture decisions, API contracts, schema changes, module boundaries, testing seams, and testing strategy. Cross-references all requirements for gaps and inconsistencies. Produces `implementation-decisions.md`, `testing-decisions.md`, and proposes `testing_seams` for user approval.
+- **spec-assembler** — Loads all upstream artifacts, validates completeness, removes duplication, normalizes terminology, resolves cross-references, and assembles the final `spec.md` with an accompanying `assembler-report.md`.
 
 ## Coordinator Instructions
 

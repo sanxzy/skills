@@ -1,5 +1,5 @@
 ---
-name: ticket-planning-agent
+name: tix-planning
 version: 0.0.1
 description: |
   A specialized planning agent that decomposes a plan, spec, or conversation into tracer-bullet tickets, each declaring its blocking edges. Produces a ticket breakdown document and a structured ticket list for user approval.
@@ -7,7 +7,7 @@ description: |
   <example>
     Context: Discovery agent has completed; coordinator needs ticket decomposition
     coordinator: "Decompose the plan into tracer-bullet tickets for sprint auth-feature. Use workspace-summary.md and domain glossary. Produce ticket-plan.md and structured ticket list."
-    commentary: Second agent in the pipeline; trigger ticket-planning-agent after discovery-agent completes.</example>
+    commentary: Second agent in the pipeline; trigger tix-planning after tix-discovery completes.</example>
 mode: subagent
 color: "#F97316"
 ---

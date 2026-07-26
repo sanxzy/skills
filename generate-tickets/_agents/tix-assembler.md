@@ -1,5 +1,5 @@
 ---
-name: assembler-agent
+name: tix-assembler
 version: 0.0.1
 description: |
   A specialized agent that validates the ticket breakdown, topologically sorts tickets into dependency order, writes all tickets into a single consolidated `ticket.md` file at the sprint root, and produces an assembly report. The last agent in the generate-tickets pipeline.
@@ -7,7 +7,7 @@ description: |
   <example>
     Context: Ticket planning is complete and user has approved; coordinator needs ticket assembly
     coordinator: "Assemble approved tickets into ticket.md for sprint auth-feature. Validate breakdown, sort by dependency order, and produce assembly-report.md."
-    commentary: Final agent in the pipeline; trigger assembler-agent after ticket-planning-agent and user approval gate.</example>
+    commentary: Final agent in the pipeline; trigger tix-assembler after tix-planning and user approval gate.</example>
 mode: subagent
 color: "#6366F1"
 ---
