@@ -81,39 +81,42 @@ Complete every investigation step in order. Do NOT begin implementation until al
 
 4. **Read the ticket.md** at `_xzy-ai/sprints/<backlog_name>/ticket.md` for upstream context and dependency information.
 
-5. **Search for related proven implementation patterns** within:
-   - The existing codebase: use grep, glob, and read to find similar components, pages, or UI patterns.
-   - If `wikis_path` is provided, check the Wiki at that path for project-specific documentation and conventions.
+5. **Identify the UI ecosystem.** If the project is a TypeScript TUI, load and apply the `tui-ink-knowledge` skill before implementation. Read relevant reference files for the work. Confirm the installed Ink and React versions before using version-sensitive APIs. If the project is not Ink-based, do not apply Ink-specific APIs; use the skill to identify that boundary and consult the actual framework documentation.
 
-6. **If no sufficiently relevant internal guidance exists**, perform external research:
-   - Use Exa code context search for UI implementation patterns and component examples.
-   - Use Context7 for UI framework and component library documentation.
-   - If Exa returns URLs, follow up with web-fetching rather than repeatedly querying Exa.
+6. **Search for related proven implementation patterns** within:
+    - The existing codebase: use grep, glob, and read to find similar components, pages, or UI patterns.
+    - If `wikis_path` is provided, check the Wiki at that path for project-specific documentation and conventions.
 
-7. **If third-party libraries are required**, verify their latest stable versions using the appropriate package manager:
-   - `npm view`, `pnpm view` for JavaScript/TypeScript
-   - `cargo search` for Rust
-   - Equivalent commands for other ecosystems
+7. **If no sufficiently relevant internal guidance exists**, perform external research:
+    - Use Exa code context search for UI implementation patterns and component examples.
+    - Use Context7 for UI framework and component library documentation.
+    - If Exa returns URLs, follow up with web-fetching rather than repeatedly querying Exa.
 
-8. **If documentation remains insufficient**, inspect installed package source code directly (e.g., `node_modules`, component library source) to understand implementation details before coding.
+8. **If third-party libraries are required**, verify their latest stable versions using the appropriate package manager:
+    - `npm view`, `pnpm view` for JavaScript/TypeScript
+    - `cargo search` for Rust
+    - Equivalent commands for other ecosystems
+
+9. **If documentation remains insufficient**, inspect installed package source code directly (e.g., `node_modules`, component library source) to understand implementation details before coding.
 
 ### Phase 2: Implementation
 
-9. **Classify the work unit as scaffolding or functional.** Judge by the acceptance criteria. If no AC describes observable behavior — only the existence, structure, or shape of files (initial project structure, directories, boilerplate, configuration, placeholders, stubs, empty components, non-functional skeleton code) — the work unit is **scaffolding**. If any AC describes behavior, interaction, business logic, validation, state transitions, error handling, or user-facing functionality, it is **functional**. A work unit mixing both is functional. Verify your classification matches the `work_unit_type` provided by the coordinator — if they disagree, flag it in the report.
+10. **Classify the work unit as scaffolding or functional.** Judge by the acceptance criteria. If no AC describes observable behavior — only the existence, structure, or shape of files (initial project structure, directories, boilerplate, configuration, placeholders, stubs, empty components, non-functional skeleton code) — the work unit is **scaffolding**. If any AC describes behavior, interaction, business logic, validation, state transitions, error handling, or user-facing functionality, it is **functional**. A work unit mixing both is functional. Verify your classification matches the `work_unit_type` provided by the coordinator — if they disagree, flag it in the report.
 
-   **If scaffolding:** skip the Red-Green-Refactor cycle even when TDD mode is active, and write no tests. Proceed directly to step 11. Record the classification and rationale in the report.
+    **If scaffolding:** skip the Red-Green-Refactor cycle even when TDD mode is active, and write no tests. Proceed directly to step 12. Record the classification and rationale in the report.
 
-   **If functional:** the full TDD and test rules below apply.
+    **If functional:** the full TDD and test rules below apply.
 
-10. **If TDD mode is active and the work unit is functional**, follow the Red-Green-Refactor cycle for each acceptance criterion:
+11. **If TDD mode is active and the work unit is functional**, follow the Red-Green-Refactor cycle for each acceptance criterion:
     - **Red**: Write a failing test that defines the expected behavior (component rendering, interaction, state changes).
     - **Green**: Write the minimum code to make the test pass.
     - **Refactor**: Improve code structure, component composition, and design system alignment while keeping tests green.
     - Produce atomic commits for each stage: `[red]`, `[green]`, `[refactor]`.
 
-11. **If Default mode, or the work unit is scaffolding** (see step 9 — regardless of mode), implement the work unit directly with clean, well-structured UI code.
+12. **If Default mode, or the work unit is scaffolding** (see step 10 — regardless of mode), implement the work unit directly with clean, well-structured UI code.
 
-12. **Ensure UI implementation follows project conventions**:
+13. **Ensure UI implementation follows project conventions**:
+
     - Consistent component patterns with existing codebase.
     - Matching file organization and module structure.
     - Adherence to design system tokens and component library.
@@ -121,7 +124,7 @@ Complete every investigation step in order. Do NOT begin implementation until al
     - Responsive behavior matching design specifications.
     - Appropriate state management patterns.
 
-13. **Write or update tests** to cover all acceptance criteria in the work unit — **unless the work unit is pure scaffolding** (see step 9), in which case no tests are required:
+14. **Write or update tests** to cover all acceptance criteria in the work unit — **unless the work unit is pure scaffolding** (see step 10), in which case no tests are required:
     - Component rendering tests.
     - User interaction tests.
     - State management tests.
@@ -129,13 +132,13 @@ Complete every investigation step in order. Do NOT begin implementation until al
 
 ### Phase 3: Reporting
 
-14. **Write the implementation report** using the template at `references/report-templates/dispatch-code-with-ui-worker.md`. Output path:
+15. **Write the implementation report** using the template at `references/report-templates/dispatch-code-with-ui-worker.md`. Output path:
     ```
     _xzy-ai/sprints/<backlog_name>/dispatch/with-ui-worker/report-<NN>.md
     ```
     Where `<NN>` is the numeric part of `work_unit_id`.
 
-15. **The report must include** (per the template — YAML frontmatter + markdown body):
+16. **The report must include** (per the template — YAML frontmatter + markdown body):
     - Frontmatter: `agent`, `work_unit_id`, `report_number`, `status`, `timestamp`, `worker_mode`, `work_unit_type`, `artifacts`, `upstream_reports`
     - Work unit classification (`functional` / `scaffolding`) with rationale, whether TDD was applied, and whether tests were required
     - Work unit details (ID, title, description, mode)
@@ -149,9 +152,9 @@ Complete every investigation step in order. Do NOT begin implementation until al
     - Any deviations from the plan or design with justification
     - Any blockers encountered (request advisor help if needed)
 
-16. **If blocked** and unable to proceed, set `status: blocked` in the frontmatter, fill the Blockers section of the report, and notify the coordinator. Do NOT guess or fabricate solutions.
+17. **If blocked** and unable to proceed, set `status: blocked` in the frontmatter, fill the Blockers section of the report, and notify the coordinator. Do NOT guess or fabricate solutions.
 
-17. **Return only a brief summary** to the coordinator: the report file path, the status (`completed` or `blocked`), and (if blocked) the requested advisor topic. The full report on disk is the handoff document for the review agents and fix cycles.
+18. **Return only a brief summary** to the coordinator: the report file path, the status (`completed` or `blocked`), and (if blocked) the requested advisor topic. The full report on disk is the handoff document for the review agents and fix cycles.
 
 ## Output
 
