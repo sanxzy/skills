@@ -2,12 +2,14 @@
 name: generate-architecture
 version: 0.1.0
 description: |
-  Generate _xzy-ai/architecture.md — the project-level architectural reference that developers and AI agents follow before writing any code. Defines Clean Architecture principles, layering, dependency direction, module responsibilities, directory structure, and an adoption checklist. Supports 11 languages and 10 project types. Use when: "generate architecture rules", "create architecture.md", "set up Clean Architecture", "define project structure", or after initial project scaffolding.
+  Generate _xzy-ai/architecture.md — a principle-driven architectural reference that defines Clean Architecture layering, dependency direction, module responsibilities, directory structure, and an adoption checklist. Advisory-only: prescribes patterns and boundaries, NOT specific filenames or implementation details. Stays valid as the codebase evolves. Supports 11 languages and 10 project types. Use when: "generate architecture rules", "create architecture.md", "set up Clean Architecture", "define project structure", or after initial project scaffolding.
 ---
 
 # Generate Architecture Skill
 
-Generate `_xzy-ai/architecture.md` — a stable, principle-driven architectural reference document. The document defines how code should be organized, not how it currently is. It should remain valid over time as the codebase evolves.
+Generate `_xzy-ai/architecture.md` — a stable, principle-driven architectural reference document. The document defines architectural patterns, layer responsibilities, and boundaries that govern how code should be organized. It should remain valid over time as the codebase evolves.
+
+**Advisory-only output.** This skill produces a principles-based reference — NOT an implementation plan. It must NOT prescribe specific filenames, function signatures, or concrete source files. The document describes **what each layer is for and how they relate**, leaving exact filenames and implementation details to the team. Prescribing specific files (e.g., `generate-package-json.ts`, `scaffold-project.ts`) makes the document outdated the moment the codebase changes.
 
 This is a simple step-by-step coordinator workflow. No agents, no scripts — the coordinator handles everything from language detection to document generation.
 
@@ -36,11 +38,11 @@ The output document has 10 fixed sections:
 | 3 | Architectural Paradigm | FP or OOP — the chosen paradigm's patterns and conventions. |
 | 4 | Layering & Boundaries | What each layer contains, what it must not contain, layer communication rules. |
 | 5 | Dependency Direction | The dependency rule in practice. What can import what. How to enforce. |
-| 6 | Module Responsibilities | Concrete responsibilities per module. What code goes where. |
-| 7 | Project Directory Structure | The proposed directory tree for this specific project. |
+| 6 | Module Responsibilities | Layer responsibilities and patterns. What each layer owns conceptually. |
+| 7 | Project Directory Structure | Principle-driven layer organization showing Clean Architecture structure. Folders with purpose annotations, NOT specific implementation filenames. |
 | 8 | Reference Layout | Annotated reference layout showing idiomatic conventions for this language/framework. |
 | 9 | Code Organization Rules | Naming conventions, file organization, import rules, cross-boundary rules. |
-| 10 | Adoption Checklist | Actionable steps to align with the architecture. How to enforce boundaries. |
+| 10 | Adoption Checklist | Principle-based alignment checks. How to verify and enforce architectural boundaries. |
 
 Each section should be short and scannable — 3 bullet points of essential guidance, plus supporting prose.
 
@@ -225,78 +227,88 @@ Synthesize all collected inputs and reference materials into a complete `archite
    - Always: `LAYOUTS.md` — locate the canonical layout for the selected project type
    - Always: `LANGUAGE-CONVENTIONS.md` — locate language-specific file extensions and conventions
 
-2. **Assemble each section**:
+2. **Assemble each section** (CRITICAL: see Capstone Rule below):
 
-   **Section 1: Overview & Purpose**
-   - One paragraph: what this document is, its role in the project, who should read it.
-   - One paragraph: how to use it — read before writing code, reference during code reviews.
-   - One paragraph: relationship to other docs (design.md, specs).
+    > **CAPSTONE RULE — Advisory-Only Output**
+    > The entire document must be a principle-driven reference. It must NOT prescribe specific implementation filenames, function names, class names, or file paths. The document should remain valid as the codebase evolves. If a section would list a specific filename like `generate-package-json.ts` or `ProjectName.ts`, replace it with a description of the pattern instead (e.g., "domain value objects" or "config generation functions").
 
-   **Section 2: Clean Architecture Principles**
-   - Summarize the four layers from `CLEAN-ARCHITECTURE-PRINCIPLES.md`.
-   - State the dependency rule.
-   - List 3 most relevant anti-patterns for this project type.
+    **Section 1: Overview & Purpose**
+    - One paragraph: what this document is, its role in the project, who should read it.
+    - One paragraph: how to use it — read before writing code, reference during code reviews.
+    - One paragraph: relationship to other docs (design.md, specs).
+    - Add: this document is advisory — it describes architectural principles and patterns, not a file-by-file implementation plan.
 
-   **Section 3: Architectural Paradigm**
-   - If FP: core principles, Result/Either pattern, dependency injection via function parameters, ADTs.
-   - If OOP: SOLID principles, constructor injection, rich domain model, value objects.
-   - Source from `FP-PARADIGM.md` or `OOP-PARADIGM.md`.
+    **Section 2: Clean Architecture Principles**
+    - Summarize the four layers from `CLEAN-ARCHITECTURE-PRINCIPLES.md`.
+    - State the dependency rule.
+    - List 3 most relevant anti-patterns for this project type.
 
-   **Section 4: Layering & Boundaries**
-   - For this project type, what goes in each layer.
-   - What must NOT go in each layer.
-   - How layers communicate (interfaces, DTOs).
+    **Section 3: Architectural Paradigm**
+    - If FP: core principles, Result/Either pattern, dependency injection via function parameters, ADTs.
+    - If OOP: SOLID principles, constructor injection, rich domain model, value objects.
+    - Source from `FP-PARADIGM.md` or `OOP-PARADIGM.md`.
 
-   **Section 5: Dependency Direction**
-   - The import/dependency rules with concrete examples in the project's language.
-   - `domain` imports from nothing.
-   - `application` imports from `domain` only.
-   - `infrastructure` imports from `domain` and `application`.
-   - `presentation` imports from `application` and `infrastructure`.
-   - What happens when rules are violated.
+    **Section 4: Layering & Boundaries**
+    - For this project type, describe what each layer owns conceptually and what must NOT go in each layer.
+    - **Forbidden:** Do NOT list specific filenames or subdirectories. Describe layer responsibilities at the pattern level (e.g., "the domain layer owns immutable value objects and domain predicates"). Do NOT enumerate files like `ProjectName.ts` or `substituteTemplate.ts`.
+    - How layers communicate (interfaces, DTOs, ports).
 
-   **Section 6: Module Responsibilities**
-   - Per-module responsibilities in the project's directory structure.
-   - What each module owns. What it does not own.
-   - Cross-module communication rules.
+    **Section 5: Dependency Direction**
+    - The import/dependency rules with **pattern-level** examples (not file paths). Show the direction rule: `domain ← application ← adapters ← frameworks`.
+    - `domain` imports from nothing.
+    - `application` imports from `domain` only.
+    - `adapters` imports from `domain` and `application`.
+    - `frameworks` imports from everything.
+    - What happens when rules are violated.
+    - **Forbidden:** Do NOT show concrete import paths like `import { ProjectName } from "../../domain/value-objects/ProjectName"`. Instead, describe the pattern: "application layer imports from domain only — never from adapters or frameworks."
 
-   **Section 7: Project Directory Structure**
-   - A concrete directory tree for this specific project.
-   - Use the canonical layout from `LAYOUTS.md` as the base.
-   - Apply language-specific file extensions from `LANGUAGE-CONVENTIONS.md`.
-   - Annotate key directories with their purpose.
-   - For full-stack: include both backend and frontend trees.
+    **Section 6: Module Responsibilities**
+    - Describe what each layer owns conceptually — its domain of responsibility. Do NOT list files.
+    - Structure as prose paragraphs, not bullet lists of filenames. Example format: "The domain layer owns the immutable domain model — entity types, value objects with built-in validation, pure domain predicates, and port interfaces declared as function types or protocol interfaces."
+    - What must NOT go in each layer (e.g., "Domain must NOT contain IO, framework types, or CLI parsing").
+    - Cross-layer communication rules (what can call what).
+    - **Forbidden:** No `<code>` delimited filenames anywhere. No bullet lists like `- value-objects/ — Immutable value objects: ProjectName (with validation)`. Instead: "The domain layer contains immutable value objects with inline validation and pure domain services for config generation."
 
-   **Section 8: Reference Layout**
-   - An annotated reference layout showing idiomatic Clean Architecture conventions for this language/framework.
-   - Use the canonical layout from `LAYOUTS.md`.
-   - Add framework-specific sub-directories (e.g., Express middleware, Spring resources, Hilt modules).
-   - Show file extension conventions.
+    **Section 7: Project Directory Structure**
+    - Show the Clean Architecture directory tree. **Directories and barrel files only.** ❌ `ProjectName.ts` ✅ `value-objects/` with a purpose annotation.
+    - Annotate each directory with its purpose (what kind of code lives there).
+    - Apply language-specific file extensions from `LANGUAGE-CONVENTIONS.md`.
+    - **Only structural marker files are allowed:** `index.ts` / `__init__.py` / `mod.rs` / `lib.rs`.
+    - **Forbidden: ALL individual source filenames.** Even domain type filenames like `types.ts`, `errors.ts`, `result.ts`. The tree must be directories with `# purpose` annotations. After writing the tree, verify: every line in the tree code block must be either a directory (ends with `/`) or a structural marker file (`index.ts`, `__init__.py`, `mod.rs`).
 
-   **Section 9: Code Organization Rules**
-   - Naming conventions: use cases, entities, repositories, controllers.
-   - File organization: one class/function per file, co-location rules.
-   - Import rules: no relative imports crossing layer boundaries. Use path aliases where applicable.
-   - Cross-boundary rules: always map across boundaries. Domain entities ≠ database models ≠ API DTOs.
-   - Tooling recommendations: architecture tests, import linters.
-     - TypeScript/JS: `dependency-cruiser`, `eslint-plugin-import`, `eslint-plugin-boundaries`
-     - Python: `import-linter`
-     - Java/Kotlin: `ArchUnit`
-     - Rust: `cargo-modules` (check), architecture test in `tests/architecture_test.rs`
-     - Go: go-module boundaries enforced by `internal/` package
-     - .NET: `NetArchTest`, `ArchUnitNET`
+    **Section 8: Reference Layout**
+    - Same format as Section 7 — directories with purpose annotations, no individual implementation files.
+    - Use the canonical layout from `LAYOUTS.md`.
+    - Add framework-specific sub-directories with annotations.
+    - **Forbidden: individual source filenames.**
 
-   **Section 10: Adoption Checklist**
-   - Checkable items to align the codebase with the architecture.
-   - Examples:
-     - [ ] Verify all source files follow the directory structure
-     - [ ] Confirm dependency direction — domain imports nothing, application imports domain only
-     - [ ] Add lint rules enforcing architectural boundaries
-     - [ ] Review existing code for layer violations
-     - [ ] Set up architecture tests
-     - [ ] Ensure composition root is in one place
-     - [ ] Verify no ORM types leak into domain layer
-     - [ ] Confirm all entities enforce invariants in constructors
+    **Section 9: Code Organization Rules**
+    - Naming conventions: describe patterns (e.g., "use cases use verb-noun camelCase", "domain types use PascalCase"), NOT specific names.
+    - File organization: one function/type per file, co-location rules.
+    - Import rules: no relative imports crossing layer boundaries. Use path aliases where applicable.
+    - Cross-boundary rules: always map across boundaries. Domain entities ≠ database models ≠ API DTOs.
+    - Tooling recommendations: architecture tests, import linters.
+      - TypeScript/JS: `dependency-cruiser`, `eslint-plugin-import`, `eslint-plugin-boundaries`
+      - Python: `import-linter`
+      - Java/Kotlin: `ArchUnit`
+      - Rust: `cargo-modules` (check), architecture test in `tests/architecture_test.rs`
+      - Go: go-module boundaries enforced by `internal/` package
+      - .NET: `NetArchTest`, `ArchUnitNET`
+    - **Forbidden:** Do NOT list specific function names (no `substituteTemplate`, `scaffoldProject`, `resolveState`). Describe the pattern instead: "Use case functions follow verb-noun naming and return `Result<T, E>`."
+
+    **Section 10: Adoption Checklist**
+    - Principle-based alignment checks — verify the architecture is being followed, not that specific files exist.
+    - Focus on boundary enforcement and pattern adherence.
+    - Examples:
+      - [ ] Verify source code follows the directory structure (layers are respected)
+      - [ ] Confirm dependency direction — domain imports nothing, application imports domain only
+      - [ ] Add lint rules enforcing architectural boundaries (dependency-cruiser, import-linter, ArchUnit)
+      - [ ] Review existing code for layer violations (IO leaking into domain, domain importing frameworks)
+      - [ ] Set up architecture tests that verify dependency direction
+      - [ ] Ensure composition root is in one place (single entry point wires all dependencies)
+      - [ ] Verify no ORM/framework types leak into domain layer
+      - [ ] Confirm entities enforce invariants (not anemic data bags)
+    - **Forbidden:** Do NOT list implementation steps like "Implement `generatePackageJson` in `src/application/generate-package-json.ts`" or "Set up template files with `<% VAR %>` placeholders". These become stale. Focus on what the architecture enforces, not what to build.
 
 **Document format**: Write as markdown with a YAML frontmatter header:
 
@@ -312,7 +324,14 @@ toolchain: <toolchain or null>
 ---
 ```
 
-**Completion**: Full 10-section document generated in memory.
+**Self-check before proceeding:** Re-read the generated document and verify:
+1. No implementation filenames appear in Sections 4, 5, 6, 7, 8, 9, or 10.
+2. The directory tree in Section 7 contains only directories (ending with `/`) and structural markers (`index.ts`, `__init__.py`, `mod.rs`). No `.ts`, `.py`, `.rs` files that are not structural markers.
+3. Section 10's checklist items are pattern-based, not implementation-based.
+4. Section 6 describes layer responsibilities in prose, not as bullet lists of concrete filenames.
+If any violation is found, fix it before writing the document to disk.
+
+**Completion**: Full 10-section document generated in memory and self-checked.
 
 ---
 
@@ -339,6 +358,7 @@ Run validation checks against the written document:
 | 5 | YAML frontmatter valid | Frontmatter is parseable YAML with all required fields | Fix automatically |
 | 6 | Non-empty sections | Each section has substantive content (no "TODO", "TBD") | Report empty sections |
 | 7 | Directory paths valid | All paths use valid characters, no absolute paths | Report invalid paths |
+| 8 | No implementation filenames | No specific source filenames anywhere in Sections 4-10 (e.g., `generate-package-json.ts`, `resolve-config.ts`, `types.ts`, `ProjectName.ts`, `scaffoldProject.ts`). Directory trees in Sections 7/8 contain only directories and structural markers (`index.ts`, `__init__.py`, `mod.rs`). | Report and remove offending filenames |
 
 If validation warnings exist, report them to the user but do not block completion. If critical failures exist (sections missing, paradigm mismatch), regenerate the affected sections before proceeding.
 
@@ -411,3 +431,6 @@ Maximum questions: 7 (greenfield + full-stack + mobile + embedded + overwrite). 
 - **Short reference format** — each section should be scannable. Target ~3 bullet points of essential guidance per section.
 - **Language-specific details** — layouts and code examples must use the correct file extensions and idiomatic patterns.
 - **Atomic write** — write the final document to `.tmp` first, then rename.
+- **Advisory-only output** — the document prescribes architectural principles, patterns, and boundaries. It must NOT prescribe specific implementation filenames (no `generate-package-json.ts`, `scaffold-project.ts`, `types.ts`, `rules.ts`). The document should remain valid as the codebase evolves. Sections 6 and 7 describe layer responsibilities and directory organization — not which files to create.
+- **Directories, not files** — the directory trees in Sections 7 and 8 show folders and their purpose annotations. Only structural marker files (`index.ts`, `__init__.py`, `mod.rs`) are acceptable. Individual source filenames are forbidden because they become stale the moment the codebase changes.
+- **Principle-based checklist** — Section 10's adoption checklist verifies architectural adherence (boundaries, dependency direction, invariant enforcement), not implementation tasks (which specific files to create).
