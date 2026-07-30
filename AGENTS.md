@@ -14,6 +14,6 @@ Skills development repository. Develops, stores, and manages custom skills (agen
 
 ## Agent Naming Conventions
 
-- Each skill's agents use a unique prefix: `spec-` (generate-engineering-specs), `tix-` (generate-tickets), etc.
+- Each skill's agents use a unique prefix: `spec-` (generate-specs), `tix-` (generate-tickets), etc.
 - No `-agent` suffix in agent names.
 - Agent name = filename (without `.md` extension) = `name:` frontmatter field.
