@@ -398,7 +398,7 @@ Next steps:
   - Review the generated architecture.md
   - Share with your team for alignment
   - Run the adoption checklist to align your codebase
-  - Use generate-engineering-specs for feature-level architecture decisions
+  - Use generate-specs for feature-level architecture decisions
 ```
 
 ---

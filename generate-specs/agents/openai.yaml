@@ -1,0 +1,5 @@
+interface:
+  display_name: "Generate Specs"
+  short_description: "Create one finalized engineering spec for one explicitly selected feature"
+policy:
+  allow_implicit_invocation: false

@@ -19,8 +19,8 @@ npx skills add https://github.com/sanxzy/skills.git --skill dispatch-for-impleme
 
 ```mermaid
 flowchart TD
-    discussion["discussion<br/><small>gap analysis</small>"] --> generate-engineering-specs["generate-engineering-specs<br/><small>full spec + quality gates</small>"]
-    generate-engineering-specs --> generate-tickets["generate-tickets<br/><small>tracer-bullet tickets</small>"]
+    discussion["discussion<br/><small>gap analysis</small>"] --> generate-specs["generate-specs<br/><small>one-feature spec + quality gates</small>"]
+    generate-specs --> generate-tickets["generate-tickets<br/><small>tracer-bullet tickets</small>"]
     generate-tickets --> generate-architecture["generate-architecture<br/><small>Clean Architecture rules</small>"]
     generate-tickets --> generate-design-md["generate-design-md<br/><small>design tokens + prose</small>"]
     generate-architecture --> dispatch-for-implementation["dispatch-for-implementation<br/><small>sequential code + review</small>"]
@@ -41,15 +41,15 @@ npx skills add https://github.com/sanxzy/skills.git --skill discussion -a openco
 
 ---
 
-### generate-engineering-specs - No interview. Just synthesis.
+### generate-specs - One feature. One finalized spec.
 
-Takes whatever is in the conversation and produces a rigorous engineering specification: problem statement, user stories, edge cases, implementation architecture, testing seams, and scope boundaries. Four agents run in sequence — discovery, requirements, architecture, assembly — each validating the previous stage's output before proceeding.
+Generates one engineering specification for exactly one explicitly selected feature from conversation context or a `features.md` artifact. A host coordinator resolves the feature, delegates codebase evidence gathering to `spec-scout`, applies quality gates, and writes `_xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/spec.md` with resumable progress and archived revisions.
 
 ```
-npx skills add https://github.com/sanxzy/skills.git --skill generate-engineering-specs -a opencode
+npx skills add https://github.com/sanxzy/skills.git --skill generate-specs -a opencode
 ```
 
-**Agents:** 4 (`discovery-agent`, `requirements-agent`, `architecture-agent`, `specification-assembler`) &nbsp;·&nbsp; **Version:** 0.1.0
+**Agents:** 1 (`spec-scout`) &nbsp;·&nbsp; **Version:** 1.0.0
 
 ---
 
