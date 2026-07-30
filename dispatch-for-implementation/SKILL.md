@@ -1,483 +1,240 @@
 ---
 name: dispatch-for-implementation
 version: 1.0.0
-description: A simpler, stricter implementation coordinator that dispatches work units one at a time to a team of 6 agents with strict required-input contracts. Fully sequential execution with phase-gated review gates. Native integration with generate-tickets ticket.md.
+description: |
+  Dispatch implementation for one plan phase at a time using git worktree isolation and agent review gates. Use when the user asks to implement or dispatch a phase from a `generate-plan` `plan.md`, or to normalize other implementation input into phases and execute the first unfinished phase. Orchestrates dispatch-code-worker, dispatch-code-with-ui-worker, dispatch-acs-reviewer, dispatch-security-quality-reviewer, and dispatch-worker-advisor. Supports `default` and `tdd` worker modes.
 ---
 
-# Skill: dispatch-for-implementation
+# Dispatch For Implementation
 
-## Overview
+This skill coordinates implementation of one phase at a time. It accepts a native `generate-plan` `plan.md` or other implementation input, selects one phase, creates an isolated git worktree for code changes, writes local dispatch artifacts in the main checkout, delegates implementation to a worker, runs review gates, commits approved code when required, merges with `git merge --no-ff`, updates the source plan, and stops unless the original user request explicitly asked to continue.
 
-`dispatch-for-implementation` is a multi-agent implementation coordinator that dispatches work units one at a time to a team of specialized agents with strict required-input contracts.
+The coordinator orchestrates only. It must not implement code, perform codebase discovery, or make product decisions. Workers and reviewers perform all codebase exploration needed for implementation and verification.
 
-It runs **fully sequentially** — one work unit at a time, globally. No concurrent workers, no merge serialization, no worktree conflicts. Each work unit goes through a complete lifecycle: create worktree → implement → 3 review gates → merge → tick → cleanup.
+## Trigger Boundary
 
-The key design differences are:
+Run this skill when the user explicitly asks to implement, dispatch, execute, or continue implementation for:
 
-1. **Fully sequential execution** — one work unit at a time, globally. No concurrent workers.
-2. **Strict delegation** — every agent defines explicit required inputs. If the coordinator delegates without providing all required inputs, the agent **rejects** with a plain-text message listing what's missing.
-3. **Direct checkbox passthrough** — if the user provides a file with `[x]` checked items, those become work units directly without transformation.
-4. **Two input paths** — `ticket.md` from `generate-tickets` is parsed directly (no normalization). All other input types go through a normalization pipeline.
-5. **Lightweight state** — a pure-markdown `progress.md` event log tracks all execution events and issue resolutions.
+- A `generate-plan` `plan.md` at `_xzy-ai/sprints/<backlog>/plans/features/<NNN>/plan.md`.
+- A named phase from an implementation plan.
+- Free-form implementation input that should be normalized into phases.
 
----
+Do not run this skill for:
+
+- Creating specs, plans, tickets, architecture, or design documents.
+- Discussion-only requests.
+- Code review without implementation dispatch.
+- Direct implementation by the main assistant without agent orchestration.
+
+## Core Invariants
+
+1. Use phase terminology everywhere. Do not call phases work units.
+2. One phase is the atomic implementation phase.
+3. Execute phases sequentially, never in parallel.
+4. By default, execute only one phase per invocation.
+5. If the original user request explicitly asks for multiple phases, repeat the same one-phase cycle for the next unfinished phase after each approved merge.
+6. Native `generate-plan` compatibility is first-class: each `## Phase N` section maps to exactly one dispatch phase.
+7. For native plans, skip any phase whose acceptance criteria are all checked.
+8. After a phase is approved and merged, check that phase's acceptance criteria in the source `plan.md`.
+9. Keep git worktree isolation per phase.
+10. Write `assignment.md` and reports in the main checkout under `_xzy-ai/sprints/<backlog>/dispatch/...`, because `_xzy-ai/` may be local-only and not part of git worktree merges.
+11. The coordinator must not perform codebase discovery. Workers and reviewers do their own exploration.
+12. Escalate to the user only for missing inputs, secrets, access, environment facts, or decisions that agents cannot resolve.
+13. Advisor, ACS, and security+quality retry cycles are unlimited until resolved, blocked by missing inputs, or explicitly stopped.
+14. Never commit or merge unapproved code.
+
+## Managed Paths
+
+For backlog `<backlog>` and phase `<NNN>`, this skill manages:
+
+```text
+_xzy-ai/sprints/<backlog>/dispatch/progress.md
+_xzy-ai/sprints/<backlog>/dispatch/assignments/phase-<NNN>/assignment.md
+_xzy-ai/sprints/<backlog>/dispatch/worker/report-<NN>.md
+_xzy-ai/sprints/<backlog>/dispatch/with-ui-worker/report-<NN>.md
+_xzy-ai/sprints/<backlog>/dispatch/reviews/dispatch-acs-reviewer/report-<NN>.md
+_xzy-ai/sprints/<backlog>/dispatch/reviews/dispatch-security-quality-reviewer/report-<NN>.md
+_xzy-ai/sprints/<backlog>/dispatch/advisor/report-<topic>-<NN>.md
+```
+
+The code worktree path is chosen by the coordinator and must be outside these local dispatch artifacts.
+
+## Worker Mode Resolution
+
+Workers support two modes:
+
+- `default`: implement directly with tests for functional behavior.
+- `tdd`: follow Red → Green → Refactor. This is stricter and more time-consuming.
+
+Mode resolution order:
+
+1. Use an explicit mode supplied by the user for the current phase.
+2. If no explicit mode exists, read `_xzy-ai/dispatch-mode.md` when present.
+3. If no default file exists, ask the user to choose `default` or `tdd`.
+4. When the user chooses interactively, ask whether to save the choice to `_xzy-ai/dispatch-mode.md`.
+
+The selected mode applies only to the active phase.
 
 ## Input Handling
 
-### Two Input Paths
+### Native `generate-plan` plan.md
 
-The coordinator uses **two separate code paths** depending on the input:
+A native plan has this path shape:
 
-| Input Type | Path | Description |
-|---|---|---|
-| `ticket.md` from generate-tickets | **Direct Parse** | No normalization. Tickets are parsed into work units directly. |
-| Everything else | **Normalization** | Free-form, checklists, structured plans, barrel plans, task lists, no input. |
+```text
+_xzy-ai/sprints/<backlog>/plans/features/<NNN>/plan.md
+```
 
-### Native: generate-tickets `ticket.md`
-
-When the user provides a path to a `ticket.md` file produced by `generate-tickets`, the coordinator:
-
-1. Reads the file and parses each `## NN — Title` section into a work unit.
-2. Extracts `What to build`, `Blocked by`, `Status`, and acceptance criteria (`- [ ]` items).
-3. Builds a dependency graph from `Blocked by` references.
-4. Derives phases from the dependency graph (see Phase Determination below).
-5. If the user has pre-checked any `[x]` items in the ticket.md, those work units are **skipped** (already done).
-
-The `ticket.md` format from `generate-tickets`:
+It contains phase sections:
 
 ```markdown
-# Tickets — <backlog_name>
+## Phase 1: <Title>
 
-## 01 — Login Form
+**User stories covered**: ...
 
-**What to build:** Users can log in with email and password
+### What to build
 
-**Blocked by:** None — can start immediately
+...
 
-**Status:** ready-for-agent
+### Acceptance criteria
 
-- [ ] Valid credentials log the user in
-- [ ] Invalid credentials show an error
-
----
-
-## 02 — Password Reset
-
-**What to build:** Users can reset their password via email
-
-**Blocked by:** 01-Login Form
-
-**Status:** ready-for-agent
-
-- [ ] User requests password reset
-- [ ] Reset link is emailed
+- [ ] <criterion>
 ```
 
-### Non-Native Inputs (Normalization Path)
+Handling rules:
 
-For inputs that are **not** a `generate-tickets` `ticket.md`, the coordinator uses a normalization pipeline:
+1. Read the source `plan.md`.
+2. Extract backlog name and feature number from the path.
+3. Extract architectural decisions for background.
+4. Extract each `## Phase N` section.
+5. Treat each phase section as exactly one dispatch phase.
+6. Select the first phase whose acceptance criteria are not all checked, unless the user explicitly named a phase.
+7. If all phases are complete, stop with a concise completion summary.
 
-- **Free-form text** — the coordinator derives a single work unit with acceptance criteria.
-- **Checklist** — each checked `[x]` item becomes a work unit; unchecked items are skipped.
-- **Structured plan** — parsed into phases and work units.
-- **Barrel plan** (generate-plan output) — treated as a barrel plan, normalized into phases and work units.
-- **Task list** — each task becomes a work unit.
-- **No input** — the coordinator derives work units from the conversation context.
+### Other input
 
-### generate-plan Input
+For non-native input:
 
-If the user provides `generate-plan` output (barrel plan.md + phase files), it is treated as a **barrel plan** and normalized. This is not the native path — the native path is `generate-tickets` only.
+1. Normalize the input into sequential phases using the same fields: phase number, title, background, what to build, and acceptance criteria.
+2. Do not perform codebase discovery while normalizing.
+3. If the input is ambiguous in ways that affect behavior, load `discussion` and resolve ambiguity before dispatch.
+4. Select the first unfinished normalized phase unless the user explicitly named a phase.
 
----
+## Assignment
 
-## Phase Determination
+Before delegating, write:
 
-Phases are derived from the dependency graph of work units:
+```text
+_xzy-ai/sprints/<backlog>/dispatch/assignments/phase-<NNN>/assignment.md
+```
 
-1. Work units with no blockers form **Phase 1**.
-2. Work units whose blockers are all in Phase 1 form **Phase 2**.
-3. And so on — topological sort by dependency depth.
+Follow [ASSIGNMENT-FORMAT.md](./references/ASSIGNMENT-FORMAT.md).
 
-Phases execute **sequentially** (Phase 1 → Phase 2 → ...). Within a phase, work units are dispatched **one at a time** in dependency order (blockers first).
+`assignment.md` must include:
 
----
+- User background and desired outcome.
+- What already happened in prior planning or dispatch processes.
+- Source plan path when available.
+- Selected worker mode.
+- Phase number and title.
+- Relevant architectural decisions from `plan.md` when available.
+- The exact phase content from `plan.md`: user stories covered, what to build, and acceptance criteria.
+- Prior reports from earlier failed cycles when retrying.
+- Required report output paths.
 
-## Agent Team
+`assignment.md` must not include coordinator-discovered codebase facts.
 
-Six agents, each with explicit required inputs. If the coordinator delegates without all required inputs, the agent **rejects** immediately.
+## Worker Routing
 
-| Agent | Role | Prefix |
+Route the selected phase by scope:
+
+- Use `dispatch-code-with-ui-worker` for any phase with UI surface area: web, mobile, desktop, TUI, embedded UI, cross-platform UI, user interaction, visual design, layout, accessibility, or UI state. This worker owns any backend/API changes required to complete the UI-facing phase.
+- Use `dispatch-code-worker` for non-UI phases: backend, infrastructure, services, libraries, automation, tooling, configuration, data, integrations, scripts, or tests without UI surface area.
+
+If a worker returns `REJECTED: missing inputs`, the coordinator fixes the delegation if possible. If the missing input requires user decisions, secrets, access, or environment facts, ask the user.
+
+If a worker returns `BLOCKED`, send the blocker to `dispatch-worker-advisor`. The advisor researches only and writes an advisor report. Then rerun the same worker with the advisor report. Repeat until resolved or missing inputs require the user.
+
+## Review Gates
+
+After worker completion, run gates in this order:
+
+1. `dispatch-acs-reviewer`
+2. `dispatch-security-quality-reviewer`
+
+### ACS gate
+
+The ACS reviewer verifies full relevant project state against `assignment.md` and the phase acceptance criteria. The diff is useful context, but the ACS reviewer must not review only the diff.
+
+If ACS finds only Minor or Trivial issues, the ACS reviewer fixes them directly in the phase worktree, rechecks the affected criteria, records the direct fixes in its report, and may still approve.
+
+If ACS rejects for Blocker, Critical, or Major findings, send findings to the same worker for fixes, then restart at ACS. Repeat until approved or missing inputs require the user.
+
+### Security + quality gate
+
+The merged reviewer:
+
+- Reviews security and quality together.
+- Scopes security/quality review from the phase diff.
+- Independently runs required project commands itself.
+- Covers linting, type checking, build, formatting, tests, coverage, static analysis, validation commands, dependency/security concerns, secrets, auth/authz, input handling, privacy, logging, config, and other applicable risk domains.
+
+If security+quality finds only Minor or Trivial issues, the reviewer fixes them directly in the phase worktree, reruns affected checks, records the direct fixes in its report, and may still approve.
+
+If security+quality rejects for Blocker, Critical, or Major findings, send findings to the same worker for fixes, then restart at ACS. Repeat until approved or missing inputs require the user.
+
+## Commit and Merge Rules
+
+Use `git merge --no-ff` for approved phase code changes.
+
+### Default mode
+
+1. Worker may leave changes uncommitted.
+2. After ACS and security+quality approve, the coordinator creates the approved phase commit in the phase worktree:
+
+```text
+phase <NNN> [approved] <message>
+```
+
+3. Merge that commit into the main checkout with `git merge --no-ff`.
+
+### TDD mode
+
+Workers may create phase commits before review.
+
+Allowed commit labels:
+
+```text
+phase <NNN> [red] <message>
+phase <NNN> [green] <message>
+phase <NNN> [red-fix] <message>
+phase <NNN> [green-fix] <message>
+```
+
+Refactor is part of the Red → Green → Refactor cycle but is not a commit-message flag.
+
+TDD phase commits are preserved. Do not squash them. After final approval, do not create an extra approval commit unless there are approved uncommitted changes that must be committed before merge.
+
+## Completion
+
+After merge:
+
+1. Update the original `plan.md` by checking the completed phase acceptance criteria when a source plan exists.
+2. Append progress events.
+3. Clean up the phase worktree.
+4. Stop with a concise summary unless the original user request explicitly asked to continue.
+5. If continuing, select the next first unfinished phase and repeat the same workflow.
+
+## Workflow Diagram
+
+See [WORKFLOW.md](./references/WORKFLOW.md).
+
+## Agents
+
+| Agent | Role | Primary output |
 |---|---|---|
-| `dispatch-code-worker` | Implements non-UI work (backend, infrastructure, services, libraries, automation) | dispatch- |
-| `dispatch-code-with-ui-worker` | Implements UI-related work (web, mobile, desktop, TUI, embedded) | dispatch- |
-| `dispatch-acs-reviewer` | Validates implementation correctness against Acceptance Criteria | dispatch- |
-| `dispatch-security-reviewer` | Comprehensive security review across 22 security domains | dispatch- |
-| `dispatch-quality-gate-reviewer` | Validates quality by running linting, type checking, tests, coverage | dispatch- |
-| `dispatch-worker-advisor` | Provides technical guidance when workers are blocked | dispatch- |
-
-### Required Inputs Per Agent
-
-**Workers** (`dispatch-code-worker`, `dispatch-code-with-ui-worker`):
-
-| Input | Description |
-|---|---|
-| `work_unit_id` | The work unit identifier (e.g. "01 — Login Form") |
-| `worktree_path` | Absolute path to the git worktree for this work unit |
-| `backlog_name` | The sprint identifier |
-| `acceptance_criteria` | List of acceptance criteria to implement |
-| `what_it_delivers` | End-to-end behaviour this work unit makes work |
-| `work_unit_type` | `functional` or `scaffolding` |
-| `background_detail` | What the user wants (background context) |
-| `previous_progress_context` | What has been done so far (prior work unit results) |
-
-`dispatch-code-with-ui-worker` additionally requires:
-| `design_path` | Path to design docs (if available) |
-
-**Reviewers** (`dispatch-acs-reviewer`, `dispatch-security-reviewer`, `dispatch-quality-gate-reviewer`):
-
-| Input | Description |
-|---|---|
-| `work_unit_id` | The work unit identifier |
-| `worktree_path` | Absolute path to the git worktree |
-| `backlog_name` | The sprint identifier |
-| `implementation_report_path` | Path to the worker's report file |
-| `acceptance_criteria` | List of acceptance criteria to verify against |
-| `work_unit_type` | `functional` or `scaffolding` (affects review rules) |
-| `previous_review_cycles` | Prior review findings for this work unit |
-
-**Advisor** (`dispatch-worker-advisor`):
-
-| Input | Description |
-|---|---|
-| `work_unit_id` | The work unit identifier |
-| `worktree_path` | Absolute path to the git worktree |
-| `backlog_name` | The sprint identifier |
-| `blocker_description` | What the worker is blocked on |
-| `implementation_report_path` | Path to the worker's report (if any) |
-| `previous_advisor_rounds` | Prior advisor findings for this work unit |
-
-### Rejection Format
-
-When an agent detects missing required inputs, it outputs:
-
-```
-REJECTED: missing required inputs: <input1>, <input2>, ...
-```
-
-The coordinator must fix the delegation and re-invoke the agent.
-
----
-
-## Workflow
-
-### Execution Model
-
-**Fully sequential.** At any point in time, exactly one work unit is being processed. The lifecycle for each work unit is:
-
-```mermaid
-flowchart TD
-    A[Create git worktree<br/>branch: dispatch-WU-NN] --> B[Write work-unit spec<br/>to dispatch/work-unit-spec-NN.md]
-    B --> C[Route to worker<br/>UI keywords → with-ui-worker<br/>else → code-worker]
-    C --> D[Worker implements<br/>TDD if requested<br/>scaffolding exemption if applicable]
-    D --> E[ACS Review]
-    E --> F{ACS Pass?}
-    F -->|No| F1[Worker fixes<br/>restart from ACS]
-    F1 --> E
-    F -->|Yes| G[Security Review]
-    G --> H{Security Pass?}
-    H -->|No| H1[Worker fixes<br/>restart from ACS]
-    H1 --> E
-    H -->|Yes| I[Quality Gate Review]
-    I --> J{Quality Pass?}
-    J -->|No| J1[Worker fixes<br/>restart from ACS]
-    J1 --> E
-    J -->|Yes| K[Merge worktree<br/>to main --no-ff]
-    K --> L[Tick [x] in ticket.md<br/>update Status to done]
-    L --> M[Cleanup worktree]
-    M --> N[Log to progress.md]
-```
-
-**Review cycle rules:**
-- **Max 3 cycles** per review gate. If a gate fails 3 times, escalate to user.
-- **Restart-from-ACS**: After any review failure and fix, restart from the ACS review.
-- **Last Loop Rule**: If a review returns APPROVED with only Minor/Trivial findings, delegate fixes to the worker without another reviewer cycle.
-
-### Step-by-Step Workflow
-
-#### Step 1: Startup & Mode Detection
-
-1. Determine `backlog_name` from input.
-2. Determine input path(s) and type.
-3. Check if input is a `generate-tickets` `ticket.md` → Direct Parse path.
-4. Otherwise → Normalization path.
-5. Write initial `progress.md` event log.
-
-#### Step 2: Git Initialization
-
-1. If no git repo exists: `git init` + empty commit.
-2. Create `_xzy-ai/sprints/<backlog>/dispatch/` directory.
-
-#### Step 3: Input Processing
-
-**Direct Parse path (ticket.md):**
-1. Parse tickets from `ticket.md`.
-2. Build dependency graph from `Blocked by` references.
-3. Skip tickets with `[x]` checked (already done).
-4. Derive phases from dependency depth.
-
-**Normalization path:**
-1. Detect input structure (checklist, free-form, barrel plan, etc.).
-2. Normalize into work units with acceptance criteria.
-3. Derive phases from work unit dependencies.
-
-#### Step 4: Phase Execution Loop
-
-For each phase (in order):
-
-```
-For each work_unit in phase (in dependency order):
-    1. Create worktree
-    2. Write spec file
-    3. Delegate to worker
-    4. Run review gates (ACS → Security → Quality)
-    5. Merge to main
-    6. Tick ticket.md + update status
-    7. Cleanup worktree
-    8. Log event to progress.md
-```
-
-#### Step 5: Worker Delegation
-
-1. Determine worker type:
-   - If work unit contains UI keywords (web, mobile, UI, component, view, page, form, dashboard, interface) → `dispatch-code-with-ui-worker`
-   - Otherwise → `dispatch-code-worker`
-2. Write work-unit spec file to `dispatch/work-unit-spec-<NN>.md`.
-3. Invoke the worker with all required inputs.
-4. If the worker returns `REJECTED` (missing inputs), fix and re-invoke.
-
-#### Step 6: Review Gate Sequence
-
-For each work unit, after the worker completes:
-
-1. **ACS Review** — `dispatch-acs-reviewer` validates implementation against acceptance criteria.
-   - Scaffolding exemption: no missing-test findings on scaffolding work units.
-2. **Security Review** — `dispatch-security-reviewer` evaluates 22 security domains.
-   - Scaffolding exemption does NOT apply to security review.
-3. **Quality Gate** — `dispatch-quality-gate-reviewer` runs linting, type checking, tests, coverage.
-   - Scaffolding exemption: coverage not enforced on scaffolding work units, but all other gates still apply.
-
-**Review cycle rules:**
-
-- **Max 3 cycles** per review gate. If a gate fails 3 times, escalate to user.
-- **Restart-from-ACS**: After any review failure and fix, restart from the ACS review (not from the review that rejected). This ensures the full implementation still satisfies every AC after changes.
-- **Last Loop Rule**: If a review returns APPROVED with only Minor/Trivial findings, delegate those fixes to the worker without another reviewer cycle. The worker writes a follow-up report confirming fixes were applied. The coordinator reads it before proceeding.
-
-#### Step 7: Merge
-
-1. `git checkout main`
-2. `git merge --no-ff <worktree-branch>`
-3. If merge conflict → escalate to user.
-
-#### Step 8: Tick & Update
-
-1. In `ticket.md` (or normalized plan), tick `[x]` on all acceptance criteria for this work unit.
-2. Update ticket `Status` to `done`.
-3. Log completion event to `progress.md`.
-
-#### Step 9: Worktree Cleanup
-
-1. `git worktree remove <worktree-path> --force`
-2. `git worktree prune`
-3. `git branch -D <worktree-branch>`
-
-#### Step 10: Worker Blocking & Advisor
-
-If a worker returns BLOCKED:
-
-1. Log the blocker to `progress.md`.
-2. Invoke `dispatch-worker-advisor` with the blocker description and previous context.
-3. The advisor returns guidance (not implementation).
-4. The coordinator presents the advisor's guidance to the worker.
-5. The worker retries with the guidance.
-6. If still blocked after 3 advisor rounds, escalate to user.
-
-#### Step 11: Completion
-
-When all work units across all phases are complete:
-
-1. Log final event to `progress.md`.
-2. Print summary: work units completed, reviews passed, issues resolved.
-3. Done.
-
----
-
-## State Management
-
-### progress.md
-
-A **pure markdown** event log at `_xzy-ai/sprints/<backlog>/dispatch/progress.md`.
-
-Format:
-
-```markdown
-# Dispatch Progress Log — <backlog_name>
-
-## Events
-
-- [2026-07-26T10:00:00Z] STARTED — Phase 1, Work Unit 01 — Login Form
-- [2026-07-26T10:15:00Z] WORKER_DONE — dispatch-code-worker completed
-- [2026-07-26T10:20:00Z] ACS_REVIEW_PASS — All acceptance criteria verified
-- [2026-07-26T10:25:00Z] SECURITY_REVIEW_PASS — No findings
-- [2026-07-26T10:30:00Z] QUALITY_GATE_PASS — All checks passed
-- [2026-07-26T10:35:00Z] MERGED — Worktree merged to main
-- [2026-07-26T10:36:00Z] COMPLETED — Work Unit 01
-
-## Issues
-
-- [2026-07-26T10:40:00Z] BLOCKED — Worker stuck on JWT library version
-  - [2026-07-26T10:45:00Z] RESOLVED — Advisor recommended upgrading to v9
-```
-
-### ticket.md Updates
-
-The coordinator updates `ticket.md` (or the normalized plan file) as work progresses:
-
-- `Status: ready-for-agent` → `Status: in-progress` when dispatched
-- `Status: in-progress` → `Status: done` after merge to main
-- Acceptance criteria checkboxes ticked `[x]` after merge
-
-### Worktree Naming
-
-```
-Branch: dispatch-<backlog>-WU-<NN>
-Path: .worktrees/dispatch-<backlog>-WU-<NN>
-```
-
----
-
-## Crash Recovery
-
-On startup, the coordinator:
-
-1. Scans for stale worktrees (`.worktrees/dispatch-*`).
-2. Reads `progress.md` to determine the last completed event.
-3. Presents the user with three options:
-   - **Resume** — continue from the last completed work unit.
-   - **Abort** — stop execution, leave worktrees intact for manual cleanup.
-   - **Restart** — delete all worktrees and start over.
-
----
-
-## Scaffolding Exemption
-
-- **Scaffolding work units**: Pure scaffolding (setting up project structure, build tooling, CI pipeline) — no TDD, no tests.
-- **Functional work units**: Full requirements — TDD in TDD mode, tests required, red-green-refactor.
-- **Misclassification**: If a work unit is marked scaffolding but actually requires functional implementation, this is a **Blocker**.
-
-Scaffolding exemption applies to:
-- `dispatch-code-worker` / `dispatch-code-with-ui-worker`: skip TDD/tests
-- `dispatch-acs-reviewer`: suppress missing-test findings
-- `dispatch-quality-gate-reviewer`: suppress coverage enforcement
-
-Scaffolding exemption does **NOT** apply to:
-- `dispatch-security-reviewer`: all work units get full security review
-
----
-
-## Constraints
-
-| # | Constraint |
-|---|---|
-| 1 | Fully sequential — one work unit at a time, globally. No concurrent workers. |
-| 2 | Each agent defines explicit required inputs. Missing inputs → REJECTED. |
-| 3 | 3 review gates per work unit: ACS → Security → Quality. Max 3 cycles each. |
-| 4 | After any review failure + fix, restart from ACS review. |
-| 5 | Last Loop Rule: Minor/Trivial findings on APPROVED reviews → delegate to worker. |
-| 6 | Merge with `--no-ff` after all reviews pass. |
-| 7 | Tick `[x]` in ticket.md only after merge to main. |
-| 8 | Artifacts stored under `_xzy-ai/sprints/<backlog>/dispatch/`. |
-| 9 | Worktrees at `.worktrees/dispatch-<backlog>-WU-<NN>`. |
-| 10 | progress.md is a pure markdown event log. |
-| 11 | Native input: generate-tickets ticket.md (direct parse). |
-| 12 | generate-plan input: treated as barrel plan (normalization path). |
-| 13 | Scaffolding exemption does not apply to security review. |
-| 14 | Git auto-init if no repo exists. |
-| 15 | Wiki discovery: pass `wikis_path` if `<cwd>/wikis` exists. |
-
----
-
-## Agent Reference
-
-### dispatch-code-worker
-
-Implements non-UI work (backend, infrastructure, services, libraries, automation). Supports Default and TDD modes. Reads the work-unit spec file from disk. Writes an implementation report.
-
-**Required Inputs:** `work_unit_id`, `worktree_path`, `backlog_name`, `acceptance_criteria`, `what_it_delivers`, `work_unit_type`, `background_detail`, `previous_progress_context`
-
-**Output:** Report file at `dispatch/worker/report-<NN>.md` + stdout summary.
-
-### dispatch-code-with-ui-worker
-
-Implements UI-related work (web, mobile, desktop, TUI, embedded). Same process as code-worker plus design alignment and accessibility compliance (WCAG).
-
-**Required Inputs:** All of `dispatch-code-worker` + `design_path` (optional but recommended)
-
-**Output:** Report file at `dispatch/with-ui-worker/report-<NN>.md` + stdout summary.
-
-### dispatch-acs-reviewer
-
-Validates implementation correctness against Acceptance Criteria. Independently verifies by investigating actual source code, not trusting reports alone.
-
-**Required Inputs:** `work_unit_id`, `worktree_path`, `backlog_name`, `implementation_report_path`, `acceptance_criteria`, `work_unit_type`, `previous_review_cycles`
-
-**Output:** Report file at `dispatch/reviews/dispatch-acs-reviewer/report-<NN>.md` + stdout summary.
-
-### dispatch-security-reviewer
-
-Comprehensive security review across 22 security domains (OWASP Top 10, API Security, ASVS, WSTG, etc.).
-
-**Required Inputs:** Same as ACS reviewer.
-
-**Output:** Report file at `dispatch/reviews/dispatch-security-reviewer/report-<NN>.md` + stdout summary.
-
-### dispatch-quality-gate-reviewer
-
-Validates implementation quality by running linting, type checking, compilation, formatting, tests, coverage, static analysis.
-
-**Required Inputs:** Same as ACS reviewer.
-
-**Output:** Report file at `dispatch/reviews/dispatch-quality-gate-reviewer/report-<NN>.md` + stdout summary.
-
-### dispatch-worker-advisor
-
-Provides technical guidance when workers are blocked. Never performs implementation.
-
-**Required Inputs:** `work_unit_id`, `worktree_path`, `backlog_name`, `blocker_description`, `implementation_report_path`, `previous_advisor_rounds`
-
-**Output:** Report file at `dispatch/advisor/report-<topic>-<NN>.md` + stdout summary.
-
----
-
-## Report Files as Canonical Artifacts
-
-Each completed agent produces a **report file** that is the canonical record of its output. Reports are stored under `_xzy-ai/sprints/<backlog>/dispatch/`.
-
-| Agent | Report Path |
-|---|---|
-| code-worker | `dispatch/worker/report-<NN>.md` |
-| code-with-ui-worker | `dispatch/with-ui-worker/report-<NN>.md` |
-| acs-reviewer | `dispatch/reviews/dispatch-acs-reviewer/report-<NN>.md` |
-| security-reviewer | `dispatch/reviews/dispatch-security-reviewer/report-<NN>.md` |
-| quality-gate-reviewer | `dispatch/reviews/dispatch-quality-gate-reviewer/report-<NN>.md` |
-| worker-advisor | `dispatch/advisor/report-<topic>-<NN>.md` |
-
-Report numbering is **per-role** (worker report-001, acs-reviewer report-001, etc.). On fix cycles, the report number increments.
-
----
-
-## References
-
-- [Progress Log Format](references/PROGRESS-LOG.md) — Event log format and issue tracking
-- [Report Templates](references/report-templates/) — Templates for each agent's report
-- [Work Unit Spec Format](references/WORK-UNIT-SPEC.md) — Format of the spec file written before worker delegation
-- [Scaffolding Exemption](references/SCAFFOLDING-EXEMPTION.md) — Detailed rules and examples
+| `dispatch-code-worker` | Implements non-UI phase scope. | `_xzy-ai/sprints/<backlog>/dispatch/worker/report-<NN>.md` |
+| `dispatch-code-with-ui-worker` | Implements UI-related phase scope, including needed backend/API changes. | `_xzy-ai/sprints/<backlog>/dispatch/with-ui-worker/report-<NN>.md` |
+| `dispatch-acs-reviewer` | Verifies implementation correctness against assignment and acceptance criteria. | `_xzy-ai/sprints/<backlog>/dispatch/reviews/dispatch-acs-reviewer/report-<NN>.md` |
+| `dispatch-security-quality-reviewer` | Runs security review and quality gates from the phase diff. | `_xzy-ai/sprints/<backlog>/dispatch/reviews/dispatch-security-quality-reviewer/report-<NN>.md` |
+| `dispatch-worker-advisor` | Researches blockers and provides guidance without implementing. | `_xzy-ai/sprints/<backlog>/dispatch/advisor/report-<topic>-<NN>.md` |

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Dispatch For Implementation"
+  short_description: "Implement one plan phase through worker and review gates"
+policy:
+  allow_implicit_invocation: false
