@@ -1,0 +1,5 @@
+interface:
+  display_name: "Generate Plan"
+  short_description: "Create one tracer-bullet implementation plan for one explicitly selected feature"
+policy:
+  allow_implicit_invocation: false
