@@ -1,0 +1,5 @@
+interface:
+  display_name: "Generate Features"
+  short_description: "Create finalized feature backlogs from product and codebase context"
+policy:
+  allow_implicit_invocation: false
