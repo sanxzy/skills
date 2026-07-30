@@ -17,17 +17,20 @@ The coordinator must provide:
 | Input | Description |
 |---|---|
 | `topic` | Specific blocker or research question. |
-| `assignment_path` | Path to the phase assignment. |
-| `worker_report_path` | Blocked worker report path when available. |
+| `assignment_path` | Absolute path to the phase assignment. |
+| `worker_report_path` | Absolute path to the blocked worker report when available. |
 | `worktree_path` | Absolute path to the phase worktree. |
 | `backlog` | Backlog name. |
 | `phase` | Phase number. |
-| `report_path` | Exact output path `_xzy-ai/sprints/<backlog>/dispatch/advisor/report-<topic>-<NN>.md`. |
+| `report_path` | Absolute output path to `_xzy-ai/sprints/<backlog>/dispatch/advisor/report-<topic>-<NN>.md`. |
 
-If a required input is missing, return:
+All path inputs must be absolute paths because this agent operates from inside the assigned worktree. Reject relative paths instead of resolving them.
+
+If a required input is missing or any path input is not absolute, return:
 
 ```text
 REJECTED: missing inputs: <fields>
+REJECTED: invalid paths: <fields>
 ```
 
 ## Permissions

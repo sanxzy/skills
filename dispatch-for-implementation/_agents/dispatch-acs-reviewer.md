@@ -16,18 +16,21 @@ The coordinator must provide:
 
 | Input | Description |
 |---|---|
-| `assignment_path` | Path to the phase assignment. |
-| `implementation_report_path` | Worker report path. |
+| `assignment_path` | Absolute path to the phase assignment. |
+| `implementation_report_path` | Absolute path to the worker report. |
 | `worktree_path` | Absolute path to the phase worktree. |
 | `backlog` | Backlog name. |
 | `phase` | Phase number. |
-| `report_path` | Exact output path `_xzy-ai/sprints/<backlog>/dispatch/reviews/dispatch-acs-reviewer/report-<NN>.md`. |
-| `previous_review_reports` | Optional prior ACS/security+quality reports for retry cycles. |
+| `report_path` | Absolute output path to `_xzy-ai/sprints/<backlog>/dispatch/reviews/dispatch-acs-reviewer/report-<NN>.md`. |
+| `previous_review_reports` | Optional absolute paths to prior ACS/security+quality reports for retry cycles. |
 
-If a required input is missing, return:
+All path inputs must be absolute paths because this agent operates from inside the assigned worktree. Reject relative paths instead of resolving them.
+
+If a required input is missing or any path input is not absolute, return:
 
 ```text
 REJECTED: missing inputs: <fields>
+REJECTED: invalid paths: <fields>
 ```
 
 ## Review Scope

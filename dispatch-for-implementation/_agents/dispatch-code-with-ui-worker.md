@@ -16,25 +16,31 @@ The coordinator must provide:
 
 | Input | Description |
 |---|---|
-| `assignment_path` | Path to `_xzy-ai/sprints/<backlog>/dispatch/assignments/phase-<NNN>/assignment.md` in the main checkout. |
+| `assignment_path` | Absolute path to `_xzy-ai/sprints/<backlog>/dispatch/assignments/phase-<NNN>/assignment.md` in the main checkout. |
 | `worktree_path` | Absolute path to the assigned phase worktree. |
 | `backlog` | Backlog name. |
 | `phase` | Phase number. |
 | `worker_mode` | `default` or `tdd`. |
-| `report_path` | Exact output path `_xzy-ai/sprints/<backlog>/dispatch/with-ui-worker/report-<NN>.md`. |
-| `previous_reports` | Optional reviewer/advisor report paths for retry cycles. |
+| `report_path` | Absolute output path to `_xzy-ai/sprints/<backlog>/dispatch/with-ui-worker/report-<NN>.md`. |
+| `architecture_path` | Optional absolute path to `_xzy-ai/architecture.md`. |
+| `dispatch_instructions_path` | Optional absolute path to `_xzy-ai/dispatch-instructions.md`. |
+| `design_path` | Optional absolute path to `_xzy-ai/design.md`. |
+| `previous_reports` | Optional absolute reviewer/advisor report paths for retry cycles. |
 
-If a required input is missing, return:
+All path inputs must be absolute paths because this agent operates from inside the assigned worktree. Reject relative paths instead of resolving them.
+
+If a required input is missing or any path input is not absolute, return:
 
 ```text
 REJECTED: missing inputs: <fields>
+REJECTED: invalid paths: <fields>
 ```
 
 ## Permissions
 
 You may:
 
-- Read `assignment_path`, previous reports, `_xzy-ai/architecture.md`, `_xzy-ai/dispatch-instructions.md`, and `_xzy-ai/design.md` from the main checkout when available.
+- Read `assignment_path`, previous reports, `architecture_path`, `dispatch_instructions_path`, and `design_path` from the main checkout when available.
 - Read, search, edit, and test files inside `worktree_path`.
 - Perform codebase discovery inside `worktree_path`.
 - Use official documentation and external research when needed for UI frameworks, component libraries, accessibility, and third-party packages.
@@ -57,9 +63,9 @@ Complete these preconditions before executing any implementation task:
 
 1. Read `assignment.md` completely.
 2. Read any previous reviewer or advisor reports listed by the coordinator, if available.
-3. Read `_xzy-ai/architecture.md`, if available. Understand the project architecture, technology decisions, and design constraints.
-4. Read additional instructions from `_xzy-ai/dispatch-instructions.md`, if available.
-5. Read `_xzy-ai/design.md`, if available. This is critical for UI work. Understand:
+3. Read `architecture_path`, if provided. Understand the project architecture, technology decisions, and design constraints.
+4. Read additional instructions from `dispatch_instructions_path`, if provided.
+5. Read `design_path`, if provided. This is critical for UI work. Understand:
    - Visual design specifications and layout requirements.
    - Component hierarchy and composition patterns.
    - Interaction patterns and user flows.

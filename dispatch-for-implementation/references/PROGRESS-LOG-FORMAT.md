@@ -40,5 +40,5 @@ It is append-only Markdown. The coordinator writes it; agents do not.
 1. Append events as they happen.
 2. Never rewrite earlier events.
 3. Use phase terminology only.
-4. Record report paths, worktree paths, commit hashes, and verdicts.
+4. Record report paths, worktree paths, commit hashes, and verdicts. All recorded paths should be absolute when they are intended for agent handoff.
 5. When continuing multiple phases by explicit user request, append a new `phase-selected` event for each phase.

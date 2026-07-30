@@ -18,8 +18,11 @@ The assignment is the authoritative handoff from coordinator to worker and revie
 **Phase:** `<NNN>`
 **Worker mode:** `default | tdd`
 **Worker:** `dispatch-code-worker | dispatch-code-with-ui-worker`
-**Source plan:** `<path or none>`
+**Source plan:** `<absolute path or none>`
 **Worktree:** `<absolute path>`
+**Architecture:** `<absolute path or none>`
+**Dispatch instructions:** `<absolute path or none>`
+**Design:** `<absolute path or none>`
 **Status:** `assigned | retry`
 
 ## User background
@@ -55,10 +58,10 @@ The assignment is the authoritative handoff from coordinator to worker and revie
 
 ## Required report paths
 
-- Worker report: `<path>`
-- ACS review report: `<path>`
-- Security+quality review report: `<path>`
-- Advisor report directory: `<path>`
+- Worker report: `<absolute path>`
+- ACS review report: `<absolute path>`
+- Security+quality review report: `<absolute path>`
+- Advisor report directory: `<absolute path>`
 
 ## Coordinator constraints
 
@@ -71,7 +74,8 @@ The assignment is the authoritative handoff from coordinator to worker and revie
 ## Rules
 
 1. Preserve phase wording from `plan.md` where available.
-2. Do not add coordinator-discovered codebase facts.
-3. Include enough background for workers and reviewers to understand the phase without reopening the full conversation.
-4. Keep unresolved questions out of the assignment. Resolve missing behavior through discussion before dispatch.
-5. On retries, keep the original phase content unchanged and add reviewer/advisor report paths under `Retry context`.
+2. Use absolute paths for every source, worktree, report, retry, and reference path.
+3. Do not add coordinator-discovered codebase facts.
+4. Include enough background for workers and reviewers to understand the phase without reopening the full conversation.
+5. Keep unresolved questions out of the assignment. Resolve missing behavior through discussion before dispatch.
+6. On retries, keep the original phase content unchanged and add reviewer/advisor report paths under `Retry context`.

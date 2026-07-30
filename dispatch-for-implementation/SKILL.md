@@ -59,6 +59,8 @@ _xzy-ai/sprints/<backlog>/dispatch/advisor/report-<topic>-<NN>.md
 
 The code worktree path is chosen by the coordinator and must be outside these local dispatch artifacts.
 
+All paths passed to dispatch agents must be absolute paths. Agents operate from inside the assigned worktree, so relative paths to main-checkout artifacts are invalid.
+
 ## Worker Mode Resolution
 
 Workers support two modes:
