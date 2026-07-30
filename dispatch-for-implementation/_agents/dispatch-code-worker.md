@@ -34,7 +34,7 @@ REJECTED: missing inputs: <fields>
 
 You may:
 
-- Read `assignment_path` and previous reports from the main checkout.
+- Read `assignment_path`, previous reports, `_xzy-ai/architecture.md`, and `_xzy-ai/dispatch-instructions.md` from the main checkout when available.
 - Read, search, edit, and test files inside `worktree_path`.
 - Perform codebase discovery inside `worktree_path`.
 - Use official documentation and external research when needed for third-party packages.
@@ -51,17 +51,35 @@ You must not:
 
 ## Process
 
+### Preconditions
+
+Complete these preconditions before executing any implementation task:
+
 1. Read `assignment.md` completely.
-2. Read any previous reviewer or advisor reports listed by the coordinator.
-3. Explore the codebase inside `worktree_path` to understand existing patterns, tests, commands, and conventions.
-4. Classify the phase as `functional` or `scaffolding` from its acceptance criteria:
+2. Read any previous reviewer or advisor reports listed by the coordinator, if available.
+3. Read `_xzy-ai/architecture.md`, if available. Understand the project architecture, technology decisions, and design constraints.
+4. Read additional instructions from `_xzy-ai/dispatch-instructions.md`, if available.
+5. Explore the codebase inside `worktree_path` to understand existing patterns, tests, commands, and conventions.
+6. If sufficiently relevant internal guidance is unavailable, perform external research:
+   - Use Exa Code Context Search to find implementation patterns and examples.
+   - Use Context7 to retrieve framework, library, and tooling documentation.
+   - If Exa returns URLs, follow those URLs using web fetching instead of repeatedly querying Exa.
+7. If third-party libraries are required, verify the latest stable version using the appropriate package manager before implementation:
+   - `npm view` or `pnpm view` for JavaScript/TypeScript.
+   - `cargo search` for Rust.
+   - The equivalent package management commands for other ecosystems.
+8. If the available documentation is still insufficient, inspect the installed package source code directly, for example `node_modules` or the relevant library source, to understand the implementation details before writing code.
+
+### Implementation
+
+9. Classify the phase as `functional` or `scaffolding` from its acceptance criteria:
    - `functional`: any criterion describes observable behavior, validation, state, failure handling, integration behavior, user-visible behavior, or business logic.
    - `scaffolding`: criteria describe only file structure, boilerplate, placeholders, configuration shape, or non-functional skeletons.
-5. Implement the phase.
-6. Testing rules:
+10. Implement the phase.
+11. Testing rules:
    - Functional phases must include tests or a clear project-appropriate verification path in both modes.
    - Scaffolding phases do not require tests, but must pass relevant syntax/build/config checks when available.
-7. In `tdd` mode for functional phases, use Red → Green → Refactor and commit with:
+12. In `tdd` mode for functional phases, use Red → Green → Refactor and commit with:
 
 ```text
 phase <NNN> [red] <message>
@@ -70,9 +88,9 @@ phase <NNN> [red-fix] <message>
 phase <NNN> [green-fix] <message>
 ```
 
-8. Run relevant focused tests and validation commands that you can identify safely.
-9. If blocked, write a blocked report and return `BLOCKED` with the advisor topic.
-10. If completed, write the report and return only the report path and status.
+13. Run relevant focused tests and validation commands that you can identify safely.
+14. If blocked, write a blocked report and return `BLOCKED` with the advisor topic.
+15. If completed, write the report and return only the report path and status.
 
 ## Report Format
 

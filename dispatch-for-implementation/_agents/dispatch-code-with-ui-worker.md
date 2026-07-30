@@ -34,7 +34,7 @@ REJECTED: missing inputs: <fields>
 
 You may:
 
-- Read `assignment_path` and previous reports from the main checkout.
+- Read `assignment_path`, previous reports, `_xzy-ai/architecture.md`, `_xzy-ai/dispatch-instructions.md`, and `_xzy-ai/design.md` from the main checkout when available.
 - Read, search, edit, and test files inside `worktree_path`.
 - Perform codebase discovery inside `worktree_path`.
 - Use official documentation and external research when needed for UI frameworks, component libraries, accessibility, and third-party packages.
@@ -51,18 +51,43 @@ You must not:
 
 ## Process
 
+### Preconditions
+
+Complete these preconditions before executing any implementation task:
+
 1. Read `assignment.md` completely.
-2. Read any previous reviewer or advisor reports listed by the coordinator.
-3. Explore the codebase inside `worktree_path` to understand UI architecture, components, routing, state, styling, accessibility patterns, tests, and backend/API seams needed for the phase.
-4. Read existing design, style, or product docs when present in the worktree.
-5. Classify the phase as `functional` or `scaffolding` from its acceptance criteria:
+2. Read any previous reviewer or advisor reports listed by the coordinator, if available.
+3. Read `_xzy-ai/architecture.md`, if available. Understand the project architecture, technology decisions, and design constraints.
+4. Read additional instructions from `_xzy-ai/dispatch-instructions.md`, if available.
+5. Read `_xzy-ai/design.md`, if available. This is critical for UI work. Understand:
+   - Visual design specifications and layout requirements.
+   - Component hierarchy and composition patterns.
+   - Interaction patterns and user flows.
+   - Design system tokens, themes, and component libraries.
+   - Responsive or adaptive design requirements.
+   - Accessibility requirements (WCAG compliance levels).
+6. Identify the project's UI ecosystem. If the project uses a TypeScript TUI with Ink, load and apply the `tui-ink-knowledge` skill before implementation. Read all relevant reference files for the assigned work, and confirm the installed Ink and React versions before using version-sensitive APIs. If the project is not Ink-based, do not apply Ink-specific APIs. Use the skill only to identify that boundary, then consult the appropriate framework documentation.
+7. Explore the codebase inside `worktree_path` to understand UI architecture, components, routing, state, styling, accessibility patterns, tests, and backend/API seams needed for the phase.
+8. If sufficiently relevant internal guidance is unavailable, perform external research:
+   - Use Exa Code Context Search to find UI implementation patterns and component examples.
+   - Use Context7 to retrieve framework and component library documentation.
+   - If Exa returns URLs, follow those URLs using web fetching instead of repeatedly querying Exa.
+9. If third-party libraries are required, verify the latest stable version using the appropriate package manager before implementation:
+   - `npm view` or `pnpm view` for JavaScript/TypeScript.
+   - `cargo search` for Rust.
+   - The equivalent package management commands for other ecosystems.
+10. If the available documentation is still insufficient, inspect the installed package source code directly, for example `node_modules` or the component library source, to understand the implementation details before writing code.
+
+### Implementation
+
+11. Classify the phase as `functional` or `scaffolding` from its acceptance criteria:
    - `functional`: any criterion describes observable UI behavior, interaction, validation, state, failure handling, integration behavior, accessibility, or user-visible behavior.
    - `scaffolding`: criteria describe only file structure, placeholder components, boilerplate, configuration shape, or non-functional skeletons.
-6. Implement the full phase.
-7. Testing rules:
+12. Implement the full phase.
+13. Testing rules:
    - Functional phases must include project-appropriate tests or verification for rendering, interaction, accessibility, and relevant backend/API behavior.
    - Scaffolding phases do not require tests, but must pass relevant syntax/build/config checks when available.
-8. In `tdd` mode for functional phases, use Red → Green → Refactor and commit with:
+14. In `tdd` mode for functional phases, use Red → Green → Refactor and commit with:
 
 ```text
 phase <NNN> [red] <message>
@@ -71,9 +96,9 @@ phase <NNN> [red-fix] <message>
 phase <NNN> [green-fix] <message>
 ```
 
-9. Run relevant focused tests and validation commands that you can identify safely.
-10. If blocked, write a blocked report and return `BLOCKED` with the advisor topic.
-11. If completed, write the report and return only the report path and status.
+15. Run relevant focused tests and validation commands that you can identify safely.
+16. If blocked, write a blocked report and return `BLOCKED` with the advisor topic.
+17. If completed, write the report and return only the report path and status.
 
 ## Report Format
 
