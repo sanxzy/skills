@@ -3,7 +3,7 @@
 The coordinator writes one assignment per phase to:
 
 ```text
-_xzy-ai/sprints/<backlog>/dispatch/assignments/phase-<NNN>/assignment.md
+_xzy-ai/sprints/<backlog>/dispatch/<NNN>/assignments/phase-<phase>/assignment.md
 ```
 
 The assignment is the authoritative handoff from coordinator to worker and reviewers. It is written in the main checkout, not inside the phase worktree.

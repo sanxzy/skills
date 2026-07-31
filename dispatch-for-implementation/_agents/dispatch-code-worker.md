@@ -16,12 +16,12 @@ The coordinator must provide:
 
 | Input | Description |
 |---|---|
-| `assignment_path` | Absolute path to `_xzy-ai/sprints/<backlog>/dispatch/assignments/phase-<NNN>/assignment.md` in the main checkout. |
+| `assignment_path` | Absolute path to `_xzy-ai/sprints/<backlog>/dispatch/<NNN>/assignments/phase-<phase>/assignment.md` in the main checkout. |
 | `worktree_path` | Absolute path to the assigned phase worktree. |
 | `backlog` | Backlog name. |
 | `phase` | Phase number. |
 | `worker_mode` | `default` or `tdd`. |
-| `report_path` | Absolute output path to `_xzy-ai/sprints/<backlog>/dispatch/worker/report-<NN>.md`. |
+| `report_path` | Absolute output path to `_xzy-ai/sprints/<backlog>/dispatch/<NNN>/worker/report-<NN>.md`. |
 | `architecture_path` | Optional absolute path to `_xzy-ai/architecture.md`. |
 | `dispatch_instructions_path` | Optional absolute path to `_xzy-ai/dispatch-instructions.md`. |
 | `previous_reports` | Optional absolute reviewer/advisor report paths for retry cycles. |

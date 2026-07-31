@@ -21,7 +21,7 @@ The coordinator must provide:
 | `worktree_path` | Absolute path to the phase worktree. |
 | `backlog` | Backlog name. |
 | `phase` | Phase number. |
-| `report_path` | Absolute output path to `_xzy-ai/sprints/<backlog>/dispatch/reviews/dispatch-acs-reviewer/report-<NN>.md`. |
+| `report_path` | Absolute output path to `_xzy-ai/sprints/<backlog>/dispatch/<NNN>/reviews/dispatch-acs-reviewer/report-<NN>.md`. |
 | `previous_review_reports` | Optional absolute paths to prior ACS/security+quality reports for retry cycles. |
 
 All path inputs must be absolute paths because this agent operates from inside the assigned worktree. Reject relative paths instead of resolving them.

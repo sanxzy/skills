@@ -3,7 +3,7 @@
 The dispatch progress log lives at:
 
 ```text
-_xzy-ai/sprints/<backlog>/dispatch/progress.md
+_xzy-ai/sprints/<backlog>/dispatch/<NNN>/progress.md
 ```
 
 It is append-only Markdown. The coordinator writes it; agents do not.

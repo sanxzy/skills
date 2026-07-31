@@ -23,7 +23,7 @@ The coordinator must provide:
 | `base_ref` | Main checkout ref or commit used as the diff base. |
 | `backlog` | Backlog name. |
 | `phase` | Phase number. |
-| `report_path` | Absolute output path to `_xzy-ai/sprints/<backlog>/dispatch/reviews/dispatch-security-quality-reviewer/report-<NN>.md`. |
+| `report_path` | Absolute output path to `_xzy-ai/sprints/<backlog>/dispatch/<NNN>/reviews/dispatch-security-quality-reviewer/report-<NN>.md`. |
 | `previous_review_reports` | Optional absolute paths to prior security+quality reports for retry cycles. |
 
 All path inputs must be absolute paths because this agent operates from inside the assigned worktree. Reject relative paths instead of resolving them.

@@ -37,7 +37,7 @@ Do not run this skill for:
 7. For native plans, skip any phase whose acceptance criteria are all checked.
 8. After a phase is approved and merged, check that phase's acceptance criteria in the source `plan.md`.
 9. Keep git worktree isolation per phase.
-10. Write `assignment.md` and reports in the main checkout under `_xzy-ai/sprints/<backlog>/dispatch/...`, because `_xzy-ai/` may be local-only and not part of git worktree merges.
+10. Write `assignment.md` and reports in the main checkout under `_xzy-ai/sprints/<backlog>/dispatch/<NNN>/...`, because `_xzy-ai/` may be local-only and not part of git worktree merges.
 11. The coordinator must not perform codebase discovery. Workers and reviewers do their own exploration.
 12. Escalate to the user only for missing inputs, secrets, access, environment facts, or decisions that agents cannot resolve.
 13. Advisor, ACS, and security+quality retry cycles are unlimited until resolved, blocked by missing inputs, or explicitly stopped.
@@ -45,16 +45,16 @@ Do not run this skill for:
 
 ## Managed Paths
 
-For backlog `<backlog>` and phase `<NNN>`, this skill manages:
+For backlog `<backlog>` and feature `<NNN>`, this skill manages:
 
 ```text
-_xzy-ai/sprints/<backlog>/dispatch/progress.md
-_xzy-ai/sprints/<backlog>/dispatch/assignments/phase-<NNN>/assignment.md
-_xzy-ai/sprints/<backlog>/dispatch/worker/report-<NN>.md
-_xzy-ai/sprints/<backlog>/dispatch/with-ui-worker/report-<NN>.md
-_xzy-ai/sprints/<backlog>/dispatch/reviews/dispatch-acs-reviewer/report-<NN>.md
-_xzy-ai/sprints/<backlog>/dispatch/reviews/dispatch-security-quality-reviewer/report-<NN>.md
-_xzy-ai/sprints/<backlog>/dispatch/advisor/report-<topic>-<NN>.md
+_xzy-ai/sprints/<backlog>/dispatch/<NNN>/progress.md
+_xzy-ai/sprints/<backlog>/dispatch/<NNN>/assignments/phase-<phase>/assignment.md
+_xzy-ai/sprints/<backlog>/dispatch/<NNN>/worker/report-<NN>.md
+_xzy-ai/sprints/<backlog>/dispatch/<NNN>/with-ui-worker/report-<NN>.md
+_xzy-ai/sprints/<backlog>/dispatch/<NNN>/reviews/dispatch-acs-reviewer/report-<NN>.md
+_xzy-ai/sprints/<backlog>/dispatch/<NNN>/reviews/dispatch-security-quality-reviewer/report-<NN>.md
+_xzy-ai/sprints/<backlog>/dispatch/<NNN>/advisor/report-<topic>-<NN>.md
 ```
 
 The code worktree path is chosen by the coordinator and must be outside these local dispatch artifacts.
@@ -127,7 +127,7 @@ For non-native input:
 Before delegating, write:
 
 ```text
-_xzy-ai/sprints/<backlog>/dispatch/assignments/phase-<NNN>/assignment.md
+_xzy-ai/sprints/<backlog>/dispatch/<NNN>/assignments/phase-<phase>/assignment.md
 ```
 
 Follow [ASSIGNMENT-FORMAT.md](./references/ASSIGNMENT-FORMAT.md).
@@ -235,8 +235,8 @@ See [WORKFLOW.md](./references/WORKFLOW.md).
 
 | Agent | Role | Primary output |
 |---|---|---|
-| `dispatch-code-worker` | Implements non-UI phase scope. | `_xzy-ai/sprints/<backlog>/dispatch/worker/report-<NN>.md` |
-| `dispatch-code-with-ui-worker` | Implements UI-related phase scope, including needed backend/API changes. | `_xzy-ai/sprints/<backlog>/dispatch/with-ui-worker/report-<NN>.md` |
-| `dispatch-acs-reviewer` | Verifies implementation correctness against assignment and acceptance criteria. | `_xzy-ai/sprints/<backlog>/dispatch/reviews/dispatch-acs-reviewer/report-<NN>.md` |
-| `dispatch-security-quality-reviewer` | Runs security review and quality gates from the phase diff. | `_xzy-ai/sprints/<backlog>/dispatch/reviews/dispatch-security-quality-reviewer/report-<NN>.md` |
-| `dispatch-worker-advisor` | Researches blockers and provides guidance without implementing. | `_xzy-ai/sprints/<backlog>/dispatch/advisor/report-<topic>-<NN>.md` |
+| `dispatch-code-worker` | Implements non-UI phase scope. | `_xzy-ai/sprints/<backlog>/dispatch/<NNN>/worker/report-<NN>.md` |
+| `dispatch-code-with-ui-worker` | Implements UI-related phase scope, including needed backend/API changes. | `_xzy-ai/sprints/<backlog>/dispatch/<NNN>/with-ui-worker/report-<NN>.md` |
+| `dispatch-acs-reviewer` | Verifies implementation correctness against assignment and acceptance criteria. | `_xzy-ai/sprints/<backlog>/dispatch/<NNN>/reviews/dispatch-acs-reviewer/report-<NN>.md` |
+| `dispatch-security-quality-reviewer` | Runs security review and quality gates from the phase diff. | `_xzy-ai/sprints/<backlog>/dispatch/<NNN>/reviews/dispatch-security-quality-reviewer/report-<NN>.md` |
+| `dispatch-worker-advisor` | Researches blockers and provides guidance without implementing. | `_xzy-ai/sprints/<backlog>/dispatch/<NNN>/advisor/report-<topic>-<NN>.md` |
