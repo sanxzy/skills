@@ -6,7 +6,7 @@ The canonical scout report lives at:
 _xzy-ai/sprints/<backlog_name>/plans/features/<NNN>/scouts/round-<RRR>/<topic>.md
 ```
 
-`plan-scout` reports are technical evidence artifacts. They may include concrete file paths, symbols, tests, commands, and line references. The final `plan.md` must not leak brittle file paths, function names, concrete signatures, code snippets, scout citations, or command transcripts.
+`plan-scout` reports are technical evidence artifacts. They may include concrete file paths, symbols, tests, commands, and line references. The final `plan.md` must not leak brittle file paths outside the canonical repository-relative `references/` scope, function names, concrete signatures, code snippets, scout citations, or command transcripts.
 
 ## Required Structure
 

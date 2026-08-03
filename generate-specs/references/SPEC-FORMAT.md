@@ -10,9 +10,18 @@ It becomes canonical current output only after the host writes it, re-reads it, 
 
 ## Purpose
 
-`spec.md` communicates the complete final behavior contract for exactly one feature. It must be independently understandable without reopening the source conversation, scout reports, source code, or progress log.
+`spec.md` communicates the complete final behavior contract for exactly one feature. It must be independently understandable without reopening the source conversation, scout reports, or progress log; it may rely on the specific read-only reference files cited under the canonical `references/` path rule.
 
-The spec may include module-level, interface-level, data-contract, API-contract, and testing-seam decisions, but it must not include source file paths, concrete function signatures, code snippets, scout citations, unresolved alternatives, or open questions.
+The spec may include module-level, interface-level, data-contract, API-contract, and testing-seam decisions, but it must not include concrete function signatures, code snippets, scout citations, unresolved alternatives, or open questions.
+
+## File Path References
+
+The spec may contain repository-relative file paths only in the canonical form `references/<path>` (for example `references/legacy-payments/src/service.ts`), referencing files inside the single top-level `references/` directory at the repository root. Such paths must:
+
+- Use forward slashes and start with exactly `references/` — no leading `./` or `/`, and no `.` or `..` segments.
+- Resolve to an existing regular file, not a directory. Symlinks are allowed only when they resolve to a regular file within `references/`.
+
+Qualifying `references/` paths are permitted inline anywhere content warrants them, including context, stories, and implementation guidance. All other file paths — absolute paths, `./references/...`, anything outside repository-root `references/`, and directory paths — remain prohibited. `references/` is read-only input: the generator and scouts never create, modify, move, rename, or delete files under it. A `references/` path that does not resolve is a format and durability defect; the spec remains valid while the cited `references/` files are preserved.
 
 ## Required Structure
 
@@ -86,7 +95,7 @@ Rules:
 
 Describe the unmet need or undesirable current state from the actor's perspective. Keep it focused on the one selected feature.
 
-Do not describe implementation tasks, repository evidence, files, or generation process.
+Do not describe implementation tasks, repository evidence, or generation process. Qualifying `references/` paths may be included when needed to identify reference material.
 
 ### Solution
 
@@ -137,10 +146,10 @@ Rules:
 
 Record decided implementation-relevant contracts at durable prose level. Acceptable content includes:
 
-- Module or component responsibilities without file paths.
+- Module or component responsibilities without file paths (except qualifying `references/` paths).
 - Interface responsibilities without concrete signatures.
 - Data contracts and schema behavior without code snippets.
-- API contracts without concrete source references.
+- API contracts without concrete source references (except qualifying `references/` paths).
 - State transitions.
 - Integration behavior.
 - Permission, security, privacy, reliability, and failure-handling decisions.
@@ -150,7 +159,7 @@ Rules:
 
 1. Record one decided contract, not alternatives.
 2. Label decisions as proposed when greenfield mode means no existing implementation evidence exists.
-3. Do not include source file paths.
+3. Do not include source file paths except qualifying `references/` paths.
 4. Do not include concrete function signatures.
 5. Do not include code snippets.
 6. Do not cite scout reports.
@@ -171,7 +180,7 @@ Rules:
 1. Prefer existing seams over new seams.
 2. Prefer the highest usable seam.
 3. Test external behavior, not implementation details.
-4. Do not include source file paths or concrete test filenames.
+4. Do not include source file paths or concrete test filenames, except qualifying `references/` paths.
 5. Do not include commands unless needed as durable testing-contract prose; avoid repository-specific command transcripts.
 6. Do not leave testing alternatives unresolved.
 
@@ -190,7 +199,7 @@ Use only for:
 - Known cross-feature dependencies by identifier or title.
 - Non-blocking observations that do not change behavior, scope, interfaces, data, failure handling, or testing seams.
 
-Do not include artifact paths, scout-report citations, repository evidence, generation-process narration, open questions, tentative choices, or unresolved options.
+Except for qualifying `references/` paths, do not include artifact paths, scout-report citations, repository evidence, generation-process narration, open questions, tentative choices, or unresolved options.
 
 ## Cross-feature Dependency Rules
 
@@ -216,12 +225,12 @@ Keep the following tokens unchanged:
 
 Before finalization, confirm that a reader can understand the selected feature's complete final behavior without access to:
 
-- Source code.
-- File paths.
+- Source code, except the specific files cited by qualifying `references/` paths.
+- File paths, except the specific `references/` paths cited in the spec.
 - Scout reports.
 - Progress logs.
 - The original conversation.
 - Implementation plans.
 - Tickets.
 
-If implementation changes while the intended behavior remains the same, `spec.md` should remain accurate.
+If implementation changes while the intended behavior remains the same, `spec.md` should remain accurate. The spec remains accurate while the specific files cited under `references/` are preserved.
