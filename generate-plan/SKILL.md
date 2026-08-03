@@ -43,7 +43,7 @@ Do not run it for:
 7. Never write source code, tests, configuration, dependencies, lockfiles, or unrelated artifacts.
 8. Always overwrite canonical `plan.md` on successful generation; do not create revisions.
 9. Always write and verify the canonical current plan at `plan.md`.
-10. Keep final `plan.md` durable and free of brittle source paths, concrete function names, concrete signatures, code snippets, command transcripts, scout citations, unresolved alternatives, and open questions.
+10. Keep final `plan.md` durable and free of file paths outside the canonical repository-relative `references/` scope, concrete function names, concrete signatures, code snippets, command transcripts, scout citations, unresolved alternatives, and open questions. Qualifying `references/` paths must resolve to existing regular files under the repository-root `references/` directory.
 
 ## Managed Paths
 
@@ -323,7 +323,7 @@ The final plan must:
 5. Use tracer-bullet vertical slices.
 6. Include `**User stories covered**`, `### What to build`, and `### Acceptance criteria` for every phase.
 7. Preserve stable story identifiers such as `US001` when available.
-8. Describe durable implementation guidance without brittle source references.
+8. Describe durable implementation guidance without brittle source references, except qualifying `references/` paths that resolve to existing regular files under the repository-root `references/` directory.
 9. Order phases by prerequisites and natural user journey.
 10. Keep the plan independently understandable.
 
@@ -359,9 +359,10 @@ Before writing `plan.md`, verify all of the following:
 
 - Required sections and headings match `PLAN-FORMAT.md`.
 - Phase numbers are continuous.
-- No source file paths, concrete function signatures, function names, code snippets, command transcripts, scout-report citations, or progress citations appear in `plan.md`.
+- No file paths appear in `plan.md` except qualifying repository-relative `references/` paths that resolve to existing regular files under the repository-root `references/` directory.
+- No concrete function signatures, function names, code snippets, command transcripts, scout-report citations, or progress citations appear.
 - No unresolved alternatives or open questions appear.
-- The plan remains understandable without source code, scout reports, progress logs, or the original conversation.
+- The plan remains understandable without source code, scout reports, progress logs, or the original conversation, except for the specific `references/` files it cites.
 
 If a check fails:
 
@@ -415,7 +416,7 @@ Do not repeat the plan in chat.
 5. Do not write source code, tests, configuration, dependencies, lockfiles, or unrelated artifacts.
 6. Overwrite canonical `plan.md` only after quality gate; do not create revisions.
 7. Preserve all scout reports and progress history.
-8. Keep `plan.md` free of file paths, concrete function signatures, function names, code snippets, command transcripts, scout citations, unresolved alternatives, and open questions.
+8. Keep `plan.md` free of file paths except qualifying repository-relative `references/` paths that resolve to existing regular files under the repository-root `references/` directory; keep it free of concrete function signatures, function names, code snippets, command transcripts, scout citations, unresolved alternatives, and open questions.
 9. Only the main host writes feature `progress.md`.
 10. Do not exceed five scout invocations per wave, three waves, or fifteen invocations per authorized discovery cycle.
 11. Treat the active working tree, including uncommitted changes, as current state.

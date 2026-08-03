@@ -6,7 +6,7 @@ Every `spec-scout` writes one canonical technical evidence report to:
 _xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/scouts/round-<RRR>/<topic>.md
 ```
 
-The report exists for analysis, auditability, and resume. It may contain implementation details and source references, but those details must not be copied into the finalized `spec.md` as file paths, concrete function signatures, code snippets, or scout citations.
+The report exists for analysis, auditability, and resume. It may contain implementation details and source references, but those details must not be copied into the finalized `spec.md` as file paths outside the canonical repository-relative `references/` scope, concrete function signatures, code snippets, or scout citations.
 
 ## Required Template
 

@@ -254,7 +254,7 @@ The report on disk is canonical. Do not return its content inline.
 3. Keep desired behavior distinct from current implementation evidence.
 4. Triangulate evidence and give greatest weight to reachable behavior and current integration boundaries.
 5. Record technical implementation details comprehensively in the scout report.
-6. Do not leak file paths, concrete signatures, function names, code snippets, command transcripts, or scout citations into `plan.md`; you never write that artifact.
+6. Do not leak file paths outside the canonical repository-relative `references/` scope into `plan.md`; qualifying `references/` paths must resolve to existing regular files under the repository-root `references/` directory. Keep concrete signatures, function names, code snippets, command transcripts, and scout citations prohibited; you never write that artifact.
 7. Do not modify project state except the assigned report file.
 8. Do not write the coordinator's progress log.
 9. Do not leave the repository root.

@@ -328,8 +328,8 @@ Rules:
 - Include Given/When/Then acceptance criteria under each user story.
 - Describe one decided contract.
 - Do not include unresolved alternatives, open questions, or tentative choices.
-- Do not include source file paths, scout citations, concrete function signatures, or code snippets.
-- Use logical source provenance only in Further Notes.
+- Do not include file paths except qualifying repository-relative `references/` paths that resolve to existing regular files under the repository-root `references/` directory. Keep concrete function signatures, scout citations, and code snippets prohibited.
+- Use logical source provenance only in Further Notes; qualifying `references/` paths may identify read-only reference material inline where relevant.
 - For cross-feature dependencies, specify only the selected feature's observable contract and required dependency interaction; do not redefine the dependent feature.
 
 ### Step 10: Apply the quality gate
@@ -371,9 +371,10 @@ Before writing `spec.md`, verify all of the following:
 - Title follows `# F<NNN> — <Feature Title>`.
 - Exactly seven required top-level sections are present in order.
 - User story and acceptance-criteria identifiers are continuous.
-- No source file paths, concrete function signatures, or code snippets appear.
-- No scout-report citations or repository evidence appear in `spec.md`.
-- The spec remains understandable without source code, scout reports, progress logs, or the original conversation.
+- No file paths appear except qualifying repository-relative `references/` paths that resolve to existing regular files under the repository-root `references/` directory.
+- No concrete function signatures or code snippets appear.
+- No scout-report citations appear; repository evidence appears only as qualifying `references/` paths.
+- The spec remains understandable without source code, scout reports, progress logs, or the original conversation, except for the specific `references/` files it cites.
 
 If a check fails:
 
@@ -437,7 +438,7 @@ Do not repeat the spec in chat.
 6. Do not create alternate draft specs.
 7. Do not maintain a backlog-level spec manifest.
 8. Preserve all scout reports, revisions, and progress history.
-9. Keep `spec.md` free of file paths, concrete function signatures, code snippets, scout citations, unresolved alternatives, and open questions.
+9. Keep `spec.md` free of file paths except qualifying repository-relative `references/` paths that resolve to existing regular files under the repository-root `references/` directory; keep it free of concrete function signatures, code snippets, scout citations, unresolved alternatives, and open questions.
 10. Only the main host writes feature `progress.md`.
 11. Do not exceed five scout invocations per wave, three waves, or fifteen invocations per authorized discovery cycle.
 12. Treat the active working tree, including uncommitted changes, as current state.

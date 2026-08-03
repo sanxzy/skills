@@ -10,9 +10,18 @@ It becomes canonical current output after the host writes it, re-reads it, verif
 
 ## Purpose
 
-`plan.md` communicates a practical multi-phase implementation plan for exactly one feature. It must be independently understandable without reopening the source conversation, scout reports, source code, or progress log.
+`plan.md` communicates a practical multi-phase implementation plan for exactly one feature. It must be independently understandable without reopening the source conversation, scout reports, or progress log; it may rely on the specific read-only reference files cited under the canonical `references/` path rule.
 
 The plan uses tracer-bullet vertical slices: each phase delivers a narrow, complete, verifiable path through all relevant integration layers. It should read like the existing `to-plan` output while fitting the `_xzy-ai` sprint artifact structure.
+
+## File Path References
+
+The plan may contain repository-relative file paths only in the canonical form `references/<path>` (for example `references/legacy-payments/src/service.ts`), referencing files inside the single top-level `references/` directory at the repository root. Such paths must:
+
+- Use forward slashes and start with exactly `references/` — no leading `./` or `/`, and no `.` or `..` segments.
+- Resolve to an existing regular file, not a directory. Symlinks are allowed only when they resolve to a regular file within `references/`.
+
+Qualifying `references/` paths are permitted inline anywhere content warrants them, including context, stories, and implementation guidance. All other file paths — absolute paths, `./references/...`, anything outside repository-root `references/`, and directory paths — remain prohibited. `references/` is read-only input: the generator and scouts never create, modify, move, rename, or delete files under it. A `references/` path that does not resolve is a format and durability defect; the plan remains valid while the cited `references/` files are preserved.
 
 ## Required Structure
 
@@ -21,7 +30,7 @@ Use exactly these top-level sections in this order after the title:
 ```markdown
 # Plan: F<NNN> — <Feature Title>
 
-> Source: <spec path, conversation, or logical source>
+> Source: <durable logical source identifier>
 
 ## Architectural decisions
 
@@ -84,10 +93,10 @@ Rules:
 
 ### Source
 
-Use one Markdown blockquote immediately after the title:
+Use one Markdown blockquote immediately after the title. Use a durable logical source identifier rather than a file path:
 
 ```markdown
-> Source: _xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/spec.md
+> Source: feature F003 specification
 ```
 
 When generated from clarified conversation only, use a durable logical source such as:
@@ -96,7 +105,7 @@ When generated from clarified conversation only, use a durable logical source su
 > Source: clarified conversation for F003
 ```
 
-Do not cite scout reports or progress logs in the final plan.
+Do not cite scout reports, progress logs, or source file paths in the final plan. Qualifying repository-relative `references/` paths remain permitted under the File Path References rule.
 
 ### Architectural decisions
 
@@ -114,7 +123,7 @@ Rules:
 
 1. Keep decisions durable and contract-level.
 2. Include stable product or system names when useful.
-3. Do not include source file paths, concrete function signatures, code snippets, or scout citations.
+3. Do not include file paths except qualifying `references/` paths; keep concrete function signatures, code snippets, and scout citations prohibited.
 4. Do not include unresolved alternatives or open questions.
 5. Label decisions as proposed when greenfield mode means no existing implementation evidence exists.
 
@@ -145,7 +154,7 @@ Rules:
 5. Order prerequisite slices first, then follow the natural user journey.
 6. Each phase should cut through every relevant layer needed for that slice, such as schema, domain behavior, API, UI, integration, and tests, without listing the plan as layer-by-layer tasks.
 7. A phase may mention durable routes, models, contracts, or data shapes from the architectural decisions.
-8. Do not include brittle implementation details such as exact files, function names, concrete signatures, code snippets, or command transcripts.
+8. Do not include brittle implementation details such as exact files outside the canonical `references/` scope, function names, concrete signatures, code snippets, or command transcripts.
 9. Do not include tasks unrelated to the selected feature.
 
 ### User stories covered
@@ -184,10 +193,10 @@ Keep the following tokens unchanged:
 
 Before finalization, confirm that a reader can understand the implementation sequence without access to:
 
-- Source code.
-- File paths.
+- Source code, except the specific files cited by qualifying `references/` paths.
+- File paths, except the specific `references/` paths cited in the plan.
 - Scout reports.
 - Progress logs.
 - The original conversation.
 
-If implementation file organization changes while the intended behavior and stable contracts remain the same, `plan.md` should remain useful.
+If implementation file organization changes while the intended behavior and stable contracts remain the same, `plan.md` should remain useful. The plan remains useful while the specific files cited under `references/` are preserved.
