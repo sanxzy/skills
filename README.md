@@ -23,8 +23,10 @@ flowchart TD
     generate-specs --> generate-tickets["generate-tickets<br/><small>tracer-bullet tickets</small>"]
     generate-tickets --> generate-architecture["generate-architecture<br/><small>Clean Architecture rules</small>"]
     generate-tickets --> generate-design-md["generate-design-md<br/><small>design tokens + prose</small>"]
-    generate-architecture --> dispatch-for-implementation["dispatch-for-implementation<br/><small>sequential code + review</small>"]
+    generate-architecture --> dispatch-for-implementation["dispatch-for-implementation<br/><small>agent-orchestrated code + review</small>"]
     generate-design-md --> dispatch-for-implementation
+    generate-architecture --> implement["implement<br/><small>direct host-driven code</small>"]
+    generate-design-md --> implement
 ```
 
 ## Skills
@@ -91,13 +93,25 @@ npx skills add https://github.com/sanxzy/skills.git --skill generate-design-md -
 
 ### dispatch-for-implementation - Build it, review it, merge it.
 
-The end of the pipeline. Takes a `ticket.md` and runs every work unit through a strict 6-agent sequence: worker implementation → ACS review → security review → quality gate → merge. Fully sequential — one work unit at a time, globally. Workers reject incomplete instructions. Reviewers independently verify source code, never trust reports. Nothing merges without passing all three gates.
+The agent-orchestrated implementation path. Takes a `ticket.md` and runs every work unit through a strict worker and review sequence with worktree isolation. Reviewers independently verify source code, security, and quality before merge.
 
 ```
 npx skills add https://github.com/sanxzy/skills.git --skill dispatch-for-implementation -a opencode
 ```
 
 **Agents:** 6 (`dispatch-code-worker`, `dispatch-code-with-ui-worker`, `dispatch-acs-reviewer`, `dispatch-security-reviewer`, `dispatch-quality-gate-reviewer`, `dispatch-worker-advisor`) &nbsp;·&nbsp; **Version:** 1.0.0
+
+---
+
+### implement - Direct implementation, no orchestration.
+
+The host-driven implementation path. Takes a `generate-plan` `plan.md` or free-form input, selects one phase, and implements it directly in the current checkout without worktrees, bundled agents, or independent review gates. It asks for `default` or `tdd` mode on each invocation, requires a clean working tree, runs normal project verification, and commits the completed phase. This intentionally does not use `dispatch-for-implementation`'s persisted mode file.
+
+```
+npx skills add https://github.com/sanxzy/skills.git --skill implement -a opencode
+```
+
+**Agents:** 0 — host implements directly &nbsp;·&nbsp; **Version:** 1.0.0
 
 ---
 
