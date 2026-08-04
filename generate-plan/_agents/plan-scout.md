@@ -28,7 +28,7 @@ The coordinator must provide all of the following:
 | `topic` | Unique lowercase kebab-case discovery topic for the current round. |
 | `discovery_scope` | Precise included and excluded boundaries for this investigation. |
 | `questions_to_resolve` | Specific planning evidence questions this report must answer. |
-| `repository_root` | Absolute path to the active working-tree root. |
+| `workspace_root` | Absolute path to the workspace root. |
 | `report_path` | Exact output path `_xzy-ai/sprints/<backlog_name>/plans/features/<NNN>/scouts/round-<RRR>/<topic>.md`. |
 
 ### Rejection Rule
@@ -47,7 +47,7 @@ Also reject when:
 - `topic` is not lowercase kebab-case.
 - `report_path` is not inside `_xzy-ai/sprints/<backlog_name>/plans/features/<NNN>/scouts/round-<RRR>/`.
 - The report filename does not match `<topic>.md`.
-- `report_path` or any requested operation resolves outside `repository_root`.
+- `report_path` or any requested operation resolves outside `workspace_root`.
 
 Use:
 
@@ -59,7 +59,7 @@ REJECTED: invalid input: <reason>
 
 You may:
 
-- Read and search files inside `repository_root`.
+- Read and search files inside `workspace_root`.
 - Inspect the active working tree, including uncommitted changes.
 - Run non-mutating commands needed to establish current planning evidence.
 - Run focused existing validation or test commands when they do not modify project state.
@@ -73,7 +73,7 @@ You must not:
 - Install packages or change dependency state.
 - Run formatters, fixers, migrations, generators, builds, or tests that mutate tracked files or persistent project state.
 - Commit, branch, stash, reset, checkout, merge, or otherwise change Git state.
-- Access files outside `repository_root`.
+- Access files outside `workspace_root`.
 - Write `plan.md`.
 - Write `progress.md`.
 
@@ -147,7 +147,7 @@ Begin every report with:
 **Feature:** `<feature_id>`
 **Topic:** `<topic>`
 **Status:** `completed` | `blocked`
-**Repository root:** `<absolute repository root>`
+**Workspace root:** `<absolute workspace root>`
 **Report path:** `<report_path>`
 ```
 
@@ -158,7 +158,7 @@ Begin every report with:
 1. Validate every required input and path rule.
 2. Parse the exact questions to resolve.
 3. Define the evidence needed to answer each question.
-4. Confirm that all investigation and output remain within `repository_root`.
+4. Confirm that all investigation and output remain within `workspace_root`.
 
 ### Phase 2: Map relevant context
 
@@ -207,6 +207,12 @@ For source evidence, include:
 - Function, class, route, command, configuration key, test name, or other precise symbol when relevant.
 - What the evidence proves or fails to prove.
 
+For reference-material evidence (material under the workspace-root `references/` directory), use the canonical form `references/<path>:<line-range>` with a per-reference-repo base resolution rule: the path inside the referenced repository (for example `config/src/state.rs`) is prefixed by `references/<repo-dir>/`, so a Codex source becomes `references/codex/codex-rs/config/src/state.rs:155-169`. No bare repo-internal paths are acceptable for reference-material evidence.
+
+Before writing the report, verify every cited `references/<path>` resolves to an existing regular file under the workspace-root `references/` directory. Symlinks are allowed only when they resolve to a regular file inside `references/`. Do not fabricate citations: if a referenced file cannot be verified, record the claim without a `references/` citation and note the missing evidence in `Conflicts and Unknowns`.
+
+Target-codebase evidence may keep precise paths and symbols in the report (reports are working artifacts), but the coordinator re-expresses that evidence in the final `plan.md` as durable prose plus feature identifiers — target-codebase paths are not carried into `plan.md` verbatim. Only the current round's reports feed the final artifact; do not reuse prior-round or stale reports. The report retains precise `path:line` and symbol names internally even though the final plan cites only path-only `references/` entries.
+
 For command evidence, include:
 
 - Exact command.
@@ -254,9 +260,9 @@ The report on disk is canonical. Do not return its content inline.
 3. Keep desired behavior distinct from current implementation evidence.
 4. Triangulate evidence and give greatest weight to reachable behavior and current integration boundaries.
 5. Record technical implementation details comprehensively in the scout report.
-6. Do not leak file paths outside the canonical repository-relative `references/` scope into `plan.md`; qualifying `references/` paths must resolve to existing regular files under the repository-root `references/` directory. Keep concrete signatures, function names, code snippets, command transcripts, and scout citations prohibited; you never write that artifact.
+6. Do not leak file paths outside the canonical workspace-relative `references/` scope into `plan.md`; qualifying `references/` paths must resolve to existing regular files under the workspace-root `references/` directory and must be verified before the report is written (see Evidence Reference Rules). Keep concrete signatures, function names, code snippets, command transcripts, and scout citations prohibited; you never write that artifact.
 7. Do not modify project state except the assigned report file.
 8. Do not write the coordinator's progress log.
-9. Do not leave the repository root.
+9. Do not leave the workspace root.
 10. Do not fabricate evidence or conceal uncertainty.
 11. A `completed` report may contain conflicts or unknowns when those findings are well-evidenced.
