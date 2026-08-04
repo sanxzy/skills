@@ -6,7 +6,7 @@ The canonical scout report lives at:
 _xzy-ai/sprints/<backlog_name>/plans/features/<NNN>/scouts/round-<RRR>/<topic>.md
 ```
 
-`plan-scout` reports are technical evidence artifacts. They may include concrete file paths, symbols, tests, commands, and line references. The final `plan.md` must not leak brittle file paths outside the canonical repository-relative `references/` scope, function names, concrete signatures, code snippets, scout citations, or command transcripts.
+`plan-scout` reports are technical evidence artifacts. They may include concrete file paths, symbols, tests, commands, and line references. The final `plan.md` must not leak brittle file paths outside the canonical workspace-relative `references/` scope, function names, concrete signatures, code snippets, scout citations, or command transcripts.
 
 ## Required Structure
 
@@ -19,7 +19,7 @@ Begin every report with:
 **Feature:** `<feature_id>`
 **Topic:** `<topic>`
 **Status:** `completed` | `blocked`
-**Repository root:** `<absolute repository root>`
+**Workspace root:** `<absolute workspace root>`
 **Report path:** `<report_path>`
 ```
 
@@ -65,6 +65,14 @@ For source evidence, include:
 - Line number or line range whenever available.
 - Function, class, route, command, configuration key, test name, or other precise symbol when relevant.
 - What the evidence proves or fails to prove.
+
+For reference-material evidence (material under the workspace-root `references/` directory), use the canonical form `references/<path>:<line-range>` with a per-reference-repo base resolution rule: the path inside the referenced repository (for example `config/src/state.rs`) is prefixed by `references/<repo-dir>/`, so a Codex source becomes `references/codex/codex-rs/config/src/state.rs:155-169`. No bare repo-internal paths are acceptable for reference-material evidence.
+
+Before writing the report, the scout MUST verify every cited `references/<path>` resolves to an existing regular file under the workspace-root `references/` directory. Symlinks are allowed only when they resolve to a regular file inside `references/`. Do not fabricate citations: if a referenced file cannot be verified, record the claim without a `references/` citation and note the missing evidence in `Conflicts and Unknowns`.
+
+Target-codebase evidence may keep precise paths and symbols inside the scout report (reports are working artifacts), but the coordinator re-expresses that evidence in the final `plan.md` as durable prose plus feature identifiers — target-codebase paths are not carried into `plan.md` verbatim.
+
+Only the current round's scout reports provide citations for the final artifact; prior-round or stale reports must not be silently reused. Scout reports retain precise `path:line` and symbol names internally even though the final plan cites only path-only `references/` entries.
 
 For command evidence, include:
 

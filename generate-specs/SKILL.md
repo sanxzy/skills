@@ -112,6 +112,30 @@ If same-session loading or automatic resume is unavailable, append a paused even
 
 If a discussion handoff is abandoned or not completed, keep the workflow paused. Do not synthesize or write `spec.md`.
 
+## Reference-Aware Mode
+
+Reference-aware mode is a scope of how the final `spec.md` cites evidence. It is entered only by the user's EXPLICIT instruction to use `references` as a source of truth. Mere existence of a `references/` directory is not by itself a mandate.
+
+### Citation scope
+
+- Only files under the workspace-root `references/` directory may be cited in the final `spec.md`.
+- Target-codebase paths, `AGENTS.md`, `ROADMAP.md`, `_xzy-ai/`, scout reports, and progress logs are prohibited in the final `spec.md`.
+
+### Driving signal
+
+- Enter reference-aware mode only when the user explicitly asks to use `references/`.
+- If `references/` does not exist and the user did not require it, generate normally with no citations required.
+
+### Behavior by context
+
+- If the user explicitly asks to use `references/` → enter reference-aware mode: include relevant `references/<path>` citations throughout wherever referenced files provide context, behavior, architecture, implementation-pattern, or other evidence (Implementation Decisions, Testing Decisions, stories/criteria, and so on). Preserve any additional user instructions or notes verbatim (for example "create an original version in our project to avoid copyright issues") in the appropriate artifact section (Further Notes or equivalent) and in progress/generation notes.
+- If the user explicitly asks to use `references/` but investigation finds NO relevant evidence → report this to the user and ask how to proceed (continue without citations / populate references first / other). Do not fabricate citations.
+- If the user explicitly REQUIRES `references/` but the directory does not exist → reject the request rather than proceeding without it.
+
+### Relevance, not a fixed count
+
+Whether citations are required depends on the presence of relevant evidence, not on a fixed number. Provenance-only citations (for example in Further Notes) do NOT satisfy the requirement when substantive evidence exists.
+
 ## Artifact Language
 
 Use the language of the product requirements in the conversation or source feature. If mixed or unclear, use the repository's dominant documentation language. Preserve established product terms verbatim.
@@ -222,7 +246,7 @@ Delegate with every required input:
 | `topic` | Unique kebab-case discovery topic for the current round. |
 | `discovery_scope` | Precise included and excluded discovery boundaries. |
 | `questions_to_resolve` | Specific evidence questions this report must answer. |
-| `repository_root` | Absolute active working-tree root. |
+| `workspace_root` | Absolute workspace root. |
 | `report_path` | Exact round-scoped scout report path. |
 
 When the platform supports bundled subagent invocation, invoke `spec-scout` with the full contract and wait for its completion return. Parallel waves are expressed as multiple independent scout delegations when supported.
@@ -320,6 +344,9 @@ Top-level sections are exactly:
 5. `Testing Decisions`
 6. `Out of Scope`
 7. `Further Notes`
+8. `References`
+
+The `## References` section is always present as the trailing top-level section. It contains the deduplicated, lexicographically sorted union of every inline path-only `references/<path>` citation. Every index entry must also appear inline; when there are no citations, its body is `None`.
 
 Rules:
 
@@ -328,8 +355,9 @@ Rules:
 - Include Given/When/Then acceptance criteria under each user story.
 - Describe one decided contract.
 - Do not include unresolved alternatives, open questions, or tentative choices.
-- Do not include file paths except qualifying repository-relative `references/` paths that resolve to existing regular files under the repository-root `references/` directory. Keep concrete function signatures, scout citations, and code snippets prohibited.
-- Use logical source provenance only in Further Notes; qualifying `references/` paths may identify read-only reference material inline where relevant.
+- Do not include file paths except qualifying workspace-relative `references/` paths. In the final artifact, citations are path-only (`references/<path>`) with no line number or symbol. Keep concrete function signatures, scout citations, and code snippets prohibited.
+- In reference-aware mode, include relevant qualifying `references/<path>` citations inline throughout substantive sections wherever referenced files provide evidence, including Implementation Decisions, Testing Decisions, stories, and criteria; provenance-only citations in Further Notes do not satisfy this requirement.
+- Use logical source provenance only in Further Notes, and preserve additional user-supplied reference instructions or notes verbatim there or in an equivalent artifact section and in progress/generation notes.
 - For cross-feature dependencies, specify only the selected feature's observable contract and required dependency interaction; do not redefine the dependent feature.
 
 ### Step 10: Apply the quality gate
@@ -369,11 +397,14 @@ Before writing `spec.md`, verify all of the following:
 #### Format and durability
 
 - Title follows `# F<NNN> — <Feature Title>`.
-- Exactly seven required top-level sections are present in order.
+- Exactly eight required top-level sections are present in order, with `References` last and always present (`None` when empty).
 - User story and acceptance-criteria identifiers are continuous.
-- No file paths appear except qualifying repository-relative `references/` paths that resolve to existing regular files under the repository-root `references/` directory.
+- No file paths appear except qualifying workspace-relative `references/` paths, which are path-only (`references/<path>` with no line number or symbol).
 - No concrete function signatures or code snippets appear.
 - No scout-report citations appear; repository evidence appears only as qualifying `references/` paths.
+- In reference-aware mode, evidence-backed Implementation and Testing decisions carry nearby `references/<path>` citations.
+- The `## References` section equals the deduplicated, lexicographically sorted union of all inline citations and contains no index-only paths.
+- No write-time path resolution is performed: path validity rests on the current-round scout reports, which scouts verified before writing; do not re-resolve citation paths at the gate.
 - The spec remains understandable without source code, scout reports, progress logs, or the original conversation, except for the specific `references/` files it cites.
 
 If a check fails:
@@ -401,7 +432,7 @@ After quality gate and required archival:
 
 1. Write `spec.md` using the quality-gated content.
 2. Re-read `spec.md` before declaring it finalized.
-3. Verify it matches the quality-gated content and required format.
+3. Verify it matches the quality-gated content and required format, including the presence of the `## References` section and its index consistency. Do NOT re-resolve citation paths at write time; trust the current-round scout reports for path validity.
 4. If incomplete, malformed, or inconsistent, correct that same write and re-read.
 5. If a verified artifact cannot be established, append `workflow-paused` with `reason=spec-write-verification-failed` and do not complete.
 6. Once verified, append `spec-write-verified`.
@@ -422,7 +453,7 @@ Do not repeat the spec in chat.
 
 `spec-scout` is a bundled read-only discovery agent.
 
-**Required inputs:** `backlog_name`, `feature_id`, `feature_context`, `topic`, `discovery_scope`, `questions_to_resolve`, `repository_root`, `report_path`.
+**Required inputs:** `backlog_name`, `feature_id`, `feature_context`, `topic`, `discovery_scope`, `questions_to_resolve`, `workspace_root`, `report_path`.
 
 **Canonical output:** `_xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/scouts/round-<RRR>/<topic>.md` using the agent's embedded canonical schema, mirrored for human reference in [SCOUT-REPORT-FORMAT.md](./references/SCOUT-REPORT-FORMAT.md).
 
@@ -438,11 +469,11 @@ Do not repeat the spec in chat.
 6. Do not create alternate draft specs.
 7. Do not maintain a backlog-level spec manifest.
 8. Preserve all scout reports, revisions, and progress history.
-9. Keep `spec.md` free of file paths except qualifying repository-relative `references/` paths that resolve to existing regular files under the repository-root `references/` directory; keep it free of concrete function signatures, code snippets, scout citations, unresolved alternatives, and open questions.
+9. Keep `spec.md` free of file paths except qualifying workspace-relative `references/` paths; final citations are path-only (`references/<path>`), and the trailing `## References` index must be the deduplicated sorted union of inline citations. Keep it free of concrete function signatures, code snippets, scout citations, unresolved alternatives, and open questions. Trust current-round scout reports for citation path validity; do not re-resolve paths at write time.
 10. Only the main host writes feature `progress.md`.
 11. Do not exceed five scout invocations per wave, three waves, or fifteen invocations per authorized discovery cycle.
 12. Treat the active working tree, including uncommitted changes, as current state.
-13. Keep all workflow operations and artifacts inside the active repository root.
+13. Keep all workflow operations and artifacts inside the active workspace root.
 
 ## References
 

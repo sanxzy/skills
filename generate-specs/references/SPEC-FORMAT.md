@@ -16,16 +16,23 @@ The spec may include module-level, interface-level, data-contract, API-contract,
 
 ## File Path References
 
-The spec may contain repository-relative file paths only in the canonical form `references/<path>` (for example `references/legacy-payments/src/service.ts`), referencing files inside the single top-level `references/` directory at the repository root. Such paths must:
+The spec may contain workspace-relative file paths only in the canonical form `references/<path>` (for example `references/legacy-payments/src/service.ts`), referencing files inside the single top-level `references/` directory at the workspace root. Such paths must:
 
 - Use forward slashes and start with exactly `references/` — no leading `./` or `/`, and no `.` or `..` segments.
+- Be path-only in the final artifact: `references/<path>` with no line number and no symbol, for maximal stability.
 - Resolve to an existing regular file, not a directory. Symlinks are allowed only when they resolve to a regular file within `references/`.
 
-Qualifying `references/` paths are permitted inline anywhere content warrants them, including context, stories, and implementation guidance. All other file paths — absolute paths, `./references/...`, anything outside repository-root `references/`, and directory paths — remain prohibited. `references/` is read-only input: the generator and scouts never create, modify, move, rename, or delete files under it. A `references/` path that does not resolve is a format and durability defect; the spec remains valid while the cited `references/` files are preserved.
+Qualifying `references/` paths are permitted inline anywhere content warrants them, including context, stories, and implementation guidance. In reference-aware mode (when the user explicitly asked to use `references/`), relevant qualifying citations must appear inline throughout the substantive sections wherever referenced files provide evidence — Implementation Decisions, Testing Decisions, stories/criteria, and other sections — and not only as provenance in Further Notes.
+
+All other file paths — absolute paths, `./references/...`, anything outside workspace-root `references/`, and directory paths — remain prohibited. `references/` is read-only input: the generator and scouts never create, modify, move, rename, or delete files under it.
+
+Every inline citation is collected in the trailing `## References` section, which lists the deduplicated, deterministically sorted (lexicographic) union of all inline citations. Index-only paths are prohibited: every entry in `## References` must also appear inline. When there are no citations, the section body is `None`; the section itself is always present.
+
+Path validity rests on the current-round scout reports, which scouts verify before writing (each cited `references/<path>` is confirmed to resolve to an existing regular file under the workspace-root `references/` directory). The coordinator trusts those reports and does not re-resolve citation paths at write time. A `references/` path that was not verified by a current-round scout report is a format and durability defect; the spec remains valid while the cited `references/` files are preserved.
 
 ## Required Structure
 
-Use exactly these seven top-level sections in this order after the title:
+Use exactly these eight top-level sections in this order after the title:
 
 ```markdown
 # F<NNN> — <Feature Title>
@@ -70,9 +77,13 @@ As an <actor>, I want <capability>, so that <benefit>.
 ## Further Notes
 
 - <Rationale, logical source provenance, dependencies, or non-blocking observations.>
+
+## References
+
+- <Deduplicated, lexicographically sorted union of every inline `references/<path>` citation, or `None` when empty.>
 ```
 
-No other top-level sections are allowed. Details such as edge cases, acceptance criteria, dependencies, and constraints must live inside the appropriate required section.
+No other top-level sections are allowed. `References` is always present and always last; it is `None` when there are no citations. Details such as edge cases, acceptance criteria, dependencies, and constraints must live inside the appropriate required section.
 
 ## Section Rules
 
@@ -163,7 +174,8 @@ Rules:
 4. Do not include concrete function signatures.
 5. Do not include code snippets.
 6. Do not cite scout reports.
-7. Do not include open questions.
+7. In reference-aware mode, cite relevant reference-backed decisions inline with path-only `references/<path>` citations.
+8. Do not include open questions.
 
 ### Testing Decisions
 
@@ -180,7 +192,7 @@ Rules:
 1. Prefer existing seams over new seams.
 2. Prefer the highest usable seam.
 3. Test external behavior, not implementation details.
-4. Do not include source file paths or concrete test filenames, except qualifying `references/` paths.
+4. Do not include source file paths or concrete test filenames, except qualifying `references/` paths (path-only inline citations in reference-aware mode).
 5. Do not include commands unless needed as durable testing-contract prose; avoid repository-specific command transcripts.
 6. Do not leave testing alternatives unresolved.
 
@@ -198,8 +210,13 @@ Use only for:
 - Logical source provenance, such as `Derived from finalized feature F003 and clarified conversation decisions`.
 - Known cross-feature dependencies by identifier or title.
 - Non-blocking observations that do not change behavior, scope, interfaces, data, failure handling, or testing seams.
+- Preservation of additional user-supplied reference instructions or notes verbatim (for example "create an original version in our project to avoid copyright issues").
 
 Except for qualifying `references/` paths, do not include artifact paths, scout-report citations, repository evidence, generation-process narration, open questions, tentative choices, or unresolved options.
+
+### References
+
+The trailing `References` section lists every inline path-only `references/<path>` citation, deduplicated and deterministically sorted (lexicographic). Index-only paths are prohibited — every entry must also appear inline. When there are no citations, the body is `None`. This section is the reader's index of the cited read-only reference files.
 
 ## Cross-feature Dependency Rules
 
@@ -223,14 +240,14 @@ Keep the following tokens unchanged:
 
 ## Durability Gate
 
-Before finalization, confirm that a reader can understand the selected feature's complete final behavior without access to:
+Before finalization, confirm that a reader or delegated agent can understand the selected feature's complete final behavior and recover the evidence behind every reference-grounded claim by reopening each cited `references/` file, without access to:
 
-- Source code, except the specific files cited by qualifying `references/` paths.
-- File paths, except the specific `references/` paths cited in the spec.
+- Source code, except the specific `references/` files cited in the spec.
+- File paths, except the specific path-only `references/` citations in the spec.
 - Scout reports.
 - Progress logs.
 - The original conversation.
 - Implementation plans.
 - Tickets.
 
-If implementation changes while the intended behavior remains the same, `spec.md` should remain accurate. The spec remains accurate while the specific files cited under `references/` are preserved.
+The cited `references/` files are the evidence-recovery mechanism; scout reports, progress logs, and the original conversation are not. Current-round scouts verify cited paths before reporting, and the coordinator trusts that verification rather than re-resolving paths at write time. If implementation changes while the intended behavior remains the same, `spec.md` should remain accurate while the cited `references/` files are preserved.

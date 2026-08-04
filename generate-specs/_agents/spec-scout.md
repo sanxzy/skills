@@ -28,7 +28,7 @@ The coordinator must provide all of the following:
 | `topic` | Unique lowercase kebab-case discovery topic for the current round. |
 | `discovery_scope` | Precise included and excluded boundaries for this investigation. |
 | `questions_to_resolve` | Specific evidence questions this report must answer. |
-| `repository_root` | Absolute path to the active working-tree root. |
+| `workspace_root` | Absolute path to the workspace root. |
 | `report_path` | Exact output path `_xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/scouts/round-<RRR>/<topic>.md`. |
 
 ### Rejection Rule
@@ -47,7 +47,7 @@ Also reject when:
 - `topic` is not lowercase kebab-case.
 - `report_path` is not inside `_xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/scouts/round-<RRR>/`.
 - The report filename does not match `<topic>.md`.
-- `report_path` or any requested operation resolves outside `repository_root`.
+- `report_path` or any requested operation resolves outside `workspace_root`.
 
 Use:
 
@@ -59,7 +59,7 @@ REJECTED: invalid input: <reason>
 
 You may:
 
-- Read and search files inside `repository_root`.
+- Read and search files inside `workspace_root`.
 - Inspect the active working tree, including uncommitted changes.
 - Run non-mutating commands needed to establish current behavior.
 - Run focused existing validation or test commands when they do not modify project state.
@@ -73,7 +73,7 @@ You must not:
 - Install packages or change dependency state.
 - Run formatters, fixers, migrations, generators, builds, or tests that mutate tracked files or persistent project state.
 - Commit, branch, stash, reset, checkout, merge, or otherwise change Git state.
-- Access files outside `repository_root`.
+- Access files outside `workspace_root`.
 - Write `spec.md`.
 - Write `progress.md`.
 - Write revision files.
@@ -148,7 +148,7 @@ Begin every report with:
 **Feature:** `<feature_id>`
 **Topic:** `<topic>`
 **Status:** `completed` | `blocked`
-**Repository root:** `<absolute repository root>`
+**Workspace root:** `<absolute workspace root>`
 **Report path:** `<report_path>`
 ```
 
@@ -159,7 +159,7 @@ Begin every report with:
 1. Validate every required input and path rule.
 2. Parse the exact questions to resolve.
 3. Define the evidence needed to answer each question.
-4. Confirm that all investigation and output remain within `repository_root`.
+4. Confirm that all investigation and output remain within `workspace_root`.
 
 ### Phase 2: Map relevant context
 
@@ -198,12 +198,22 @@ Begin every report with:
 
 Technical evidence is expected in scout reports.
 
+For reference-material evidence (read-only sources under the workspace-root `references/` directory), write citations in the canonical form `references/<path>:<line-range>`:
+
+- Resolve to a base inside `references/` first, then cite from there. For example, Codex sources under `references/codex/codex-rs/` are cited as `references/codex/codex-rs/config/src/state.rs:155-169`, never as a bare repo-internal path.
+- Use forward slashes and start with exactly `references/` — no leading `./` or `/`, and no `.` or `..` segments.
+- Include a line number or line range whenever available.
+- Before writing the report, verify that every cited `references/<path>` resolves to an existing regular file under the workspace-root `references/` directory. Symlinks are allowed only when they resolve to a regular file inside `references/`.
+- Retain precise `path:line` and symbol names internally in the report; the coordinator re-expresses target-codebase evidence as durable prose and feature identifiers in the final spec.
+
 For source evidence, include:
 
-- Repository-relative path.
+- Workspace-relative path.
 - Line number or line range whenever available.
 - Function, class, route, command, configuration key, test name, or other precise symbol when relevant.
 - What the evidence proves or fails to prove.
+
+Target-codebase evidence may keep precise paths inside the scout report (reports are working artifacts), but those paths must be understood as NOT carried into the final `spec.md` verbatim.
 
 For command evidence, include:
 
@@ -217,6 +227,11 @@ For documentation evidence, distinguish stated intent from verified reachable be
 Never include secret values, credentials, tokens, private keys, session material, personal data, or sensitive environment contents in a report or return value. Reference a sensitive configuration key by name and path only, redact values as `[REDACTED]`, and describe behavioral implications without reproducing protected data.
 
 Never claim that a file's existence alone proves behavior.
+
+### Canonical reference paths
+
+- Produce canonical `references/<path>` citations only for files that actually live under the workspace-root `references/` directory, verified as existing regular files (symlink rule above) before the report is written.
+- Never fabricate a citation: if the evidence does not exist, record the finding without a `references/` citation and note the gap.
 
 ## Output
 
@@ -252,10 +267,10 @@ The report on disk is canonical. Do not return its content inline.
 3. Keep current behavior distinct from desired behavior.
 4. Triangulate evidence and give greatest weight to reachable behavior.
 5. Record technical implementation details comprehensively in the scout report.
-6. Do not leak file paths outside the canonical repository-relative `references/` scope into `spec.md`; qualifying `references/` paths must resolve to existing regular files under the repository-root `references/` directory. Keep concrete signatures, code snippets, and scout citations prohibited; you never write that artifact.
+6. Do not leak file paths outside the canonical workspace-relative `references/` scope into `spec.md`; qualifying `references/` paths must be verified to resolve to existing regular files under the workspace-root `references/` directory (symlinks only when they resolve to a regular file inside `references/`). Keep concrete signatures, code snippets, and scout citations prohibited; you never write that artifact. Only the current round's scout reports feed final artifacts; do not silently reuse prior-round or stale reports.
 7. Do not modify project state except the assigned report file.
 8. Do not write the coordinator's progress log.
-9. Do not leave the repository root.
+9. Do not leave the workspace root.
 10. Do not fabricate evidence or conceal uncertainty.
 11. A `completed` report may contain conflicts or unknowns when those findings are well-evidenced.
 12. A `blocked` report is mandatory when operational constraints prevent adequate discovery.

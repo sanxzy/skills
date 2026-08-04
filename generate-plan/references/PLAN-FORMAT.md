@@ -16,12 +16,19 @@ The plan uses tracer-bullet vertical slices: each phase delivers a narrow, compl
 
 ## File Path References
 
-The plan may contain repository-relative file paths only in the canonical form `references/<path>` (for example `references/legacy-payments/src/service.ts`), referencing files inside the single top-level `references/` directory at the repository root. Such paths must:
+The plan may contain workspace-relative file paths only in the canonical form `references/<path>` (for example `references/codex/codex-rs/config/src/state.rs`), referencing files inside the single top-level `references/` directory at the workspace root. Such paths must:
 
 - Use forward slashes and start with exactly `references/` — no leading `./` or `/`, and no `.` or `..` segments.
 - Resolve to an existing regular file, not a directory. Symlinks are allowed only when they resolve to a regular file within `references/`.
+- Be **path-only** in the final artifact: no line numbers, no line ranges, and no symbols are included. The coordinator re-expresses scout `path:line` evidence as durable prose plus the stable path; line-level and symbol detail stays inside scout reports and is not carried verbatim into `plan.md`.
 
-Qualifying `references/` paths are permitted inline anywhere content warrants them, including context, stories, and implementation guidance. All other file paths — absolute paths, `./references/...`, anything outside repository-root `references/`, and directory paths — remain prohibited. `references/` is read-only input: the generator and scouts never create, modify, move, rename, or delete files under it. A `references/` path that does not resolve is a format and durability defect; the plan remains valid while the cited `references/` files are preserved.
+Citations are **relevance-based**, not a fixed count: cite a `references/<path>` inline wherever a referenced file provides context, behavior, architecture, an implementation pattern, or other evidence that grounds a claim (Architectural decisions, phase "What to build", phase acceptance criteria that depend on reference seams, and similar). Provenance-only citations (the Source blockquote or a notes area) do not satisfy the requirement when substantive evidence exists.
+
+Every inline citation also appears in the trailing `## References` section (see below). All other file paths — absolute paths, `./references/...`, anything outside workspace-root `references/`, and directory paths — remain prohibited. `references/` is read-only input: the generator and scouts never create, modify, move, rename, or delete files under it.
+
+**Reference-aware mode:** enter reference-aware mode only when the user explicitly asks to use `references/` as the source of truth. Mere directory existence is not by itself a mandate. In reference-aware mode, embed relevant `references/<path>` citations throughout wherever referenced files provide evidence. If `references/` does not exist and the user did not require it, generate normally with no citations required. If the user explicitly requires `references/` but the directory does not exist, reject the request rather than proceeding without it.
+
+**Path validity:** path validity rests on the current-round scout reports the coordinator trusts. Scouts verify each cited `references/<path>` resolves to an existing regular file under the workspace-root `references/` directory before writing their reports; the coordinator does not re-resolve citation paths at write time. A `references/` path that does not resolve is a format and durability defect.
 
 ## Required Structure
 
@@ -70,9 +77,32 @@ Durable decisions that apply across all phases:
 ### Acceptance criteria
 
 - [ ] ...
+
+---
+
+## References
+
+<Union of all inline `references/<path>` citations, one per line, deduplicated and lexicographically sorted, or `None` when the plan carries no inline citations.>
 ```
 
-No other top-level sections are allowed. Add, remove, or rename architectural-decision bullets as appropriate, but preserve the `Architectural decisions` section.
+The only allowed top-level sections, in this exact order after the title, are:
+
+1. `## Architectural decisions`
+2. One or more `## Phase <N>: <Title>` sections
+3. A trailing `## References` section
+
+No other top-level sections are allowed. Add, remove, or rename architectural-decision bullets as appropriate, but preserve the `Architectural decisions` section. The `## References` section is always present, even when empty (content `None`).
+
+### References
+
+The `## References` section is the trailing top-level index of cited reference files. Rules:
+
+1. It lists exactly the union of all inline `references/<path>` citations in the plan, deduplicated.
+2. Entries are deterministically sorted in lexicographic order.
+3. Entries are path-only (`references/<path>`), one per line, with no line numbers or symbols.
+4. Index-only paths are prohibited: every entry in `## References` must also appear inline in the plan body.
+5. When the plan carries no inline citations, the section body is exactly `None`.
+6. In reference-aware mode, substantive evidence-backed claims must carry nearby inline citations, so an empty or near-empty `## References` section in that mode signals missing citations, not a valid outcome.
 
 ## Section Rules
 
@@ -105,7 +135,7 @@ When generated from clarified conversation only, use a durable logical source su
 > Source: clarified conversation for F003
 ```
 
-Do not cite scout reports, progress logs, or source file paths in the final plan. Qualifying repository-relative `references/` paths remain permitted under the File Path References rule.
+Do not cite scout reports, progress logs, or file paths outside the canonical `references/` scope in the final plan; qualifying workspace-relative `references/` paths remain permitted under the File Path References rule. The Source blockquote itself must remain a durable logical source identifier and must not carry file paths of any kind.
 
 ### Architectural decisions
 
@@ -198,5 +228,7 @@ Before finalization, confirm that a reader can understand the implementation seq
 - Scout reports.
 - Progress logs.
 - The original conversation.
+
+The cited `references/` files are the evidence-recovery mechanism for reference-grounded claims. A reader or delegated agent must be able to re-open every cited `references/` file and recover the evidence behind those claims without scout reports, progress logs, or the original conversation. Citations in the final plan are path-only; the plan must preserve enough durable prose to explain what each cited file establishes.
 
 If implementation file organization changes while the intended behavior and stable contracts remain the same, `plan.md` should remain useful. The plan remains useful while the specific files cited under `references/` are preserved.

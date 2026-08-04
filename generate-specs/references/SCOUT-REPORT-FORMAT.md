@@ -6,7 +6,7 @@ Every `spec-scout` writes one canonical technical evidence report to:
 _xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/scouts/round-<RRR>/<topic>.md
 ```
 
-The report exists for analysis, auditability, and resume. It may contain implementation details and source references, but those details must not be copied into the finalized `spec.md` as file paths outside the canonical repository-relative `references/` scope, concrete function signatures, code snippets, or scout citations.
+The report exists for analysis, auditability, and resume. It may contain implementation details and source references, but those details must not be copied into the finalized `spec.md` as file paths outside the canonical workspace-relative `references/` scope, concrete function signatures, code snippets, or scout citations.
 
 ## Required Template
 
@@ -17,7 +17,7 @@ The report exists for analysis, auditability, and resume. It may contain impleme
 **Feature:** `<feature_id>`
 **Topic:** `<topic>`
 **Status:** `completed` | `blocked`
-**Repository root:** `<absolute repository root>`
+**Workspace root:** `<absolute workspace root>`
 **Report path:** `<report_path>`
 
 ## Scope Investigated
@@ -158,15 +158,18 @@ Do not mark a report blocked merely because the feature is currently unsupported
 
 1. Prefer reachable behavior over isolated implementation artifacts.
 2. Corroborate claims with behavioral tests, documentation, configuration, and integrations where available.
-3. Include repository-relative `path:line` or `path:line-range` references whenever possible.
-4. Include precise symbols such as functions, classes, routes, commands, test names, or configuration keys.
-5. Explain what each reference proves and what it does not prove.
-6. For commands, record the exact command, why it was safe and non-mutating, relevant result, and exit status when available.
-7. Distinguish documentation intent from verified current behavior.
-8. Do not treat a name, TODO, comment, stub, or dormant code path as proof of supported behavior.
-9. Record active-working-tree evidence when uncommitted changes affect the topic.
-10. Never fabricate a citation, command result, reachable path, or confidence level.
-11. Never include secret values, credentials, tokens, private keys, session material, personal data, or sensitive environment contents. Cite sensitive configuration keys by name and path only, redact values as `[REDACTED]`, and describe implications without reproducing protected data.
+3. For reference-material evidence, cite only read-only sources under the workspace-root `references/` directory in the canonical form `references/<path>:<line-range>`, using a per-repository base resolution. For example, Codex sources under `references/codex/codex-rs/` are cited as `references/codex/codex-rs/config/src/state.rs:155-169`, never as a bare repo-internal path. Use forward slashes and no leading `./` or `/`, and no `.` or `..` segments.
+4. Before writing the report, verify that every cited `references/<path>` resolves to an existing regular file under the workspace-root `references/` directory. Symlinks are allowed only when they resolve to a regular file inside `references/`.
+5. Include workspace-relative `path:line` or `path:line-range` references for target-codebase evidence whenever possible; these precise paths may stay in the report (a working artifact) but must be understood as NOT carried verbatim into the final `spec.md` — the coordinator re-expresses them as durable prose and feature identifiers.
+6. Include precise symbols such as functions, classes, routes, commands, test names, or configuration keys.
+7. Explain what each reference proves and what it does not prove.
+8. For commands, record the exact command, why it was safe and non-mutating, relevant result, and exit status when available.
+9. Distinguish documentation intent from verified current behavior.
+10. Do not treat a name, TODO, comment, stub, or dormant code path as proof of supported behavior.
+11. Record active-working-tree evidence when uncommitted changes affect the topic.
+12. Never fabricate a citation, command result, reachable path, or confidence level.
+13. Never include secret values, credentials, tokens, private keys, session material, personal data, or sensitive environment contents. Cite sensitive configuration keys by name and path only, redact values as `[REDACTED]`, and describe implications without reproducing protected data.
+14. Only the current round's scout reports feed final artifacts; do not silently reuse prior-round or stale reports as citation sources.
 
 ## Scope and Overlap Rules
 
