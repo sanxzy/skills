@@ -25,7 +25,11 @@ flowchart TD
     Q -->|No, attempts < 3| R[Fix and retry]
     R --> Q
     Q -->|No, third failure| S[Ask user how to proceed]
-    Q -->|Yes| T[Check plan AC boxes]
+    Q -->|Yes| R2[Run impl-reviewer gate]
+    R2 --> R4{Approved?}
+    R4 -->|No| R3[Host fixes and reruns reviewer]
+    R3 --> Q
+    R4 -->|Yes| T[Check plan AC boxes]
     T --> U[Commit phase changes]
     U --> V{Continue explicitly requested?}
     V -->|Yes| G
@@ -43,9 +47,10 @@ flowchart TD
 7. Run normal project verification. If no command is identifiable, try build, lint, typecheck, then a user-defined command. Ask if none applies.
 8. Retry failing verification up to three self-fix attempts. Stop and ask after the third failure.
 9. In TDD mode, preserve Red → Green → Refactor commits directly on the current branch. Use the scaffolding fallback when no failing test seam exists.
-10. Check the completed phase's acceptance criteria in the source `plan.md`.
-11. Commit only the phase changes and plan checkbox updates, using the selected commit convention.
-12. Stop after one phase unless the original request explicitly asks to continue.
+10. Run the `impl-reviewer` gate before committing. On APPROVED proceed; on REJECTED, fix Blocker/Critical/Major findings, re-verify, and rerun until approved or blocked. The review loop is separate from the three-attempt retry budget.
+11. Check the completed phase's acceptance criteria in the source `plan.md`.
+12. Commit only the phase changes and plan checkbox updates, including any reviewer direct fixes, using the selected commit convention.
+13. Stop after one phase unless the original request explicitly asks to continue.
 
 ## Input Selection
 
