@@ -74,7 +74,8 @@ Handling rules:
 3. Extract architectural decisions for background.
 4. Extract each `## Phase N` section as one phase.
 5. Select the first phase whose acceptance criteria are not all checked, unless the user explicitly named a phase.
-6. If all phases are complete, stop with a concise completion summary and commit nothing.
+6. If the source `plan.md` is specified but the selected phase's contract and expected output are unclear or insufficiently defined — for example, "What to build" or the acceptance criteria are missing, vague, or ambiguous in ways that affect behavior — hand off to the `discussion` skill and resolve the phase contract before implementing. Do not guess or proceed with an ill-defined phase.
+7. If all phases are complete, stop with a concise completion summary and commit nothing.
 
 ### Free-form input
 

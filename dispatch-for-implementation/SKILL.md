@@ -112,6 +112,7 @@ Handling rules:
 5. Treat each phase section as exactly one dispatch phase.
 6. Select the first phase whose acceptance criteria are not all checked, unless the user explicitly named a phase.
 7. If all phases are complete, stop with a concise completion summary.
+8. If the source `plan.md` is specified but a phase's contract and expected output are unclear or insufficiently defined — for example, "What to build" or the acceptance criteria are missing, vague, or ambiguous in ways that affect behavior — hand off to the `discussion` skill and resolve the phase contract before dispatch. Do not dispatch an ill-defined phase.
 
 ### Other input
 
