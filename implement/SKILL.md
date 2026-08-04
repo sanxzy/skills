@@ -2,12 +2,12 @@
 name: implement
 version: 1.0.0
 description: |
-  Implement one plan phase directly in the current checkout with no worktrees, no bundled agents, and no review gates. Use when the user asks to implement or continue a phase from a `generate-plan` `plan.md`, or provides free-form implementation input for direct host-driven implementation. Resolves `default` or `tdd` mode with the user, requires a clean working tree, implements the selected phase, verifies with normal project commands, commits per mode convention, and checks the source plan's acceptance criteria.
+  Implement one plan phase directly in the current checkout with no worktrees. The host implements, verifies with normal project commands, and the bundled `impl-reviewer` agent runs an acceptance-criteria gate before the phase commit. Use when the user asks to implement or continue a phase from a `generate-plan` `plan.md`, or provides free-form implementation input for direct host-driven implementation. Resolves `default` or `tdd` mode with the user, requires a clean working tree, implements the selected phase, verifies with normal project commands, commits per mode convention, and checks the source plan's acceptance criteria.
 ---
 
 # Implement
 
-This skill implements exactly one phase directly. The host performs all codebase discovery, architecture reading, third-party documentation research, implementation, testing, and plan updates itself — nothing is delegated and no bundled agents are used.
+This skill implements exactly one phase directly. The host performs all codebase discovery, architecture reading, third-party documentation research, implementation, testing, and plan updates itself. The bundled `impl-reviewer` agent verifies acceptance criteria in the current checkout before the phase commit; nothing else is delegated.
 
 This is the direct, lightweight counterpart to `dispatch-for-implementation`:
 
@@ -15,7 +15,8 @@ This is the direct, lightweight counterpart to `dispatch-for-implementation`:
 |---|---|---|
 | Who implements | The host, directly | A bundled worker agent |
 | Isolation | Current checkout, no worktrees | Git worktree per phase |
-| Review gates | None — normal tests/commands only | ACS + security/quality reviewers |
+| Bundled agents | `impl-reviewer` | Worker + ACS, security, quality reviewers |
+| Review gates | `impl-reviewer` acceptance gate (before commit) | ACS + security/quality reviewers |
 | Artifacts | None written | assignment.md, reports, progress |
 | Modes | `default` and `tdd` | `default` and `tdd` |
 
@@ -31,20 +32,21 @@ Do not run this skill for:
 
 - Creating specs, plans, tickets, architecture, or design documents.
 - Discussion-only requests.
-- Implementation that should be delegated to agent orchestration with worktrees and review gates — use `dispatch-for-implementation` for that.
+- Implementation that should be delegated to agent orchestration with worktree isolation and worker/reviewer orchestration — use `dispatch-for-implementation` for that.
 
 ## Core Invariants
 
-1. The host implements directly. No bundled agents, no subagents, no delegation.
+1. The host implements directly. The only bundled agent is `impl-reviewer`, which runs the acceptance gate; no other subagents or delegation.
 2. Work in the current checkout. No git worktrees are created.
-3. No review gates run beyond the host's own verification with normal project commands.
-4. One phase is the atomic unit. Execute exactly one phase per invocation.
-5. Skip any phase whose acceptance criteria are all checked in a native plan.
-6. Use phase terminology. Do not call phases work units or tickets.
-7. Write no dispatch artifacts: no assignment.md, no reports, no progress.md.
-8. Escalate to the user only for mode choice, uncommitted changes, plan selection, missing verification commands, or unresolved verification failures.
-9. Never commit unrelated changes. The phase commit contains only phase work.
-10. Do not perform external research when internal project conventions suffice.
+3. The only review gate is `impl-reviewer`, run before the phase commit, in addition to the host's own verification with normal project commands.
+4. The `impl-reviewer` gate runs before every phase commit for both native `plan.md` and free-form phases. The host commits only after an `APPROVED` verdict; on `REJECTED` the host may fix findings and rerun the reviewer.
+5. One phase is the atomic unit. Execute exactly one phase per invocation.
+6. Skip any phase whose acceptance criteria are all checked in a native plan.
+7. Use phase terminology. Do not call phases work units or tickets.
+8. Write no dispatch artifacts: no assignment.md, no reports, no progress.md. The `impl-reviewer` verdict is returned inline, never written to a file.
+9. Escalate to the user only for mode choice, uncommitted changes, plan selection, missing verification commands, or unresolved verification failures.
+10. Never commit unrelated changes. The phase commit contains only phase work.
+11. Do not perform external research when internal project conventions suffice.
 
 ## Mode Resolution
 
@@ -124,6 +126,25 @@ If no applicable command exists after the chain, ask the user for the correct ve
 - Make up to three self-fix attempts when verification fails.
 - If verification still fails after the third attempt, stop and ask the user how to proceed. Do not commit failing work.
 
+## Review Gate
+
+Run the bundled `impl-reviewer` agent after verification passes and before any phase commit — in both `default` and `tdd` modes (in `tdd`, after Red → Green → Refactor, at the pre-finalization gate).
+
+Delegate to `impl-reviewer` with:
+
+- `baseline_sha` — the HEAD SHA recorded before implementation began.
+- The source `plan.md` path when one exists, otherwise the phase contract (user stories, what to build, acceptance criteria).
+- Phase metadata: backlog, feature number, phase number.
+- The mode (`default` or `tdd`).
+
+The reviewer inspects `git diff <baseline_sha>...HEAD`, the uncommitted `git diff`, and `git log --oneline <baseline_sha>..HEAD`, plus full relevant project state and project verification commands. It may directly fix only Minor/Trivial findings. The verdict is returned inline — no artifacts are written.
+
+On `APPROVED`, proceed to the commit rules. On `REJECTED`, the host fixes Blocker/Critical/Major findings, re-runs verification, and reruns the reviewer; repeat until approved or the host is blocked and must ask the user how to proceed.
+
+Note: the review rerun loop is separate from the three-attempt verification retry budget in "Retry budget" — do not conflate them.
+
+Reviewer direct fixes (Minor/Trivial) remain in the working tree and are included in the phase commit.
+
 ## Commit Rules
 
 All commits are created directly on the current branch.
@@ -145,6 +166,8 @@ Feature metadata resolution:
 
 Include the source plan's acceptance-criteria checkbox updates in the phase commit when a source plan exists. Never include unrelated changes.
 
+Reviewer direct fixes are included in the phase commit; the phase commit happens only after an `APPROVED` verdict.
+
 See [COMMIT-CONVENTIONS.md](./references/COMMIT-CONVENTIONS.md).
 
 ## Completion
@@ -164,3 +187,9 @@ See [WORKFLOW.md](./references/WORKFLOW.md).
 - [MODE.md](./references/MODE.md) — mode semantics and resolution.
 - [COMMIT-CONVENTIONS.md](./references/COMMIT-CONVENTIONS.md) — commit message templates.
 - [WORKFLOW.md](./references/WORKFLOW.md) — the phase implementation cycle.
+
+## Agents
+
+| Agent | Role | Primary output |
+|---|---|---|
+| `impl-reviewer` | Acceptance-criteria gate; verifies the host-implemented phase in the current checkout before the phase commit. | Inline `APPROVED`/`REJECTED` verdict (no files written) |
