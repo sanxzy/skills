@@ -18,7 +18,8 @@ The coordinator must provide:
 |---|---|
 | `assignment_path` | Absolute path to the phase assignment. |
 | `implementation_report_path` | Absolute path to the worker report. |
-| `worktree_path` | Absolute path to the phase worktree. |
+| `worktree_path` | Absolute path to the phase worktree created from the project root. |
+| `project_root` | Absolute path to the project codebase root resolved from the workspace `_xzy-ai/project-root.md`. |
 | `backlog` | Backlog name. |
 | `phase` | Phase number. |
 | `report_path` | Absolute output path to `_xzy-ai/sprints/<backlog>/dispatch/<NNN>/reviews/dispatch-acs-reviewer/report-<NN>.md`. |

@@ -17,7 +17,8 @@ The coordinator must provide:
 | Input | Description |
 |---|---|
 | `assignment_path` | Absolute path to `_xzy-ai/sprints/<backlog>/dispatch/<NNN>/assignments/phase-<phase>/assignment.md` in the main checkout. |
-| `worktree_path` | Absolute path to the assigned phase worktree. |
+| `worktree_path` | Absolute path to the assigned phase worktree created from the project root. |
+| `project_root` | Absolute path to the project codebase root resolved from the workspace `_xzy-ai/project-root.md`. |
 | `backlog` | Backlog name. |
 | `phase` | Phase number. |
 | `worker_mode` | `default` or `tdd`. |

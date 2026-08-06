@@ -19,7 +19,8 @@ The coordinator must provide:
 | `assignment_path` | Absolute path to the phase assignment. |
 | `implementation_report_path` | Absolute path to the worker report. |
 | `acs_report_path` | Absolute path to the latest approved ACS report. |
-| `worktree_path` | Absolute path to the phase worktree. |
+| `worktree_path` | Absolute path to the phase worktree created from the project root. |
+| `project_root` | Absolute path to the project codebase root resolved from the workspace `_xzy-ai/project-root.md`. |
 | `base_ref` | Main checkout ref or commit used as the diff base. |
 | `backlog` | Backlog name. |
 | `phase` | Phase number. |

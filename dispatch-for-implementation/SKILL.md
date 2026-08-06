@@ -7,7 +7,9 @@ description: |
 
 # Dispatch For Implementation
 
-This skill coordinates implementation of one phase at a time. It accepts a native `generate-plan` `plan.md` or other implementation input, selects one phase, creates an isolated git worktree for code changes, writes local dispatch artifacts in the main checkout, delegates implementation to a worker, runs review gates, commits approved code when required, merges with `git merge --no-ff`, updates the source plan, and stops unless the original user request explicitly asked to continue.
+This skill coordinates implementation of one phase at a time. It accepts a native `generate-plan` `plan.md` or other implementation input, selects one phase, resolves the project codebase from `<cwd>/_xzy-ai/project-root.md`, creates an isolated git worktree from that project root for code changes, writes local dispatch artifacts in the workspace root, delegates implementation to a worker, runs review gates, commits approved code when required, merges with `git merge --no-ff` inside the project root, updates the source plan, and stops unless the original user request explicitly asked to continue.
+
+The current working directory is the workspace root. `_xzy-ai/` is workflow state and artifact storage; the project root is the only codebase. Files outside the project root (including citable references) are read-only and are never modified by this skill.
 
 The coordinator orchestrates only. It must not implement code, perform codebase discovery, or make product decisions. Workers and reviewers perform all codebase exploration needed for implementation and verification.
 
@@ -29,19 +31,21 @@ Do not run this skill for:
 ## Core Invariants
 
 1. Use phase terminology everywhere. Do not call phases work units.
-2. One phase is the atomic implementation phase.
-3. Execute phases sequentially, never in parallel.
-4. By default, execute only one phase per invocation.
-5. If the original user request explicitly asks for multiple phases, repeat the same one-phase cycle for the next unfinished phase after each approved merge.
-6. Native `generate-plan` compatibility is first-class: each `## Phase N` section maps to exactly one dispatch phase.
-7. For native plans, skip any phase whose acceptance criteria are all checked.
-8. After a phase is approved and merged, check that phase's acceptance criteria in the source `plan.md`.
-9. Keep git worktree isolation per phase.
-10. Write `assignment.md` and reports in the main checkout under `_xzy-ai/sprints/<backlog>/dispatch/<NNN>/...`, because `_xzy-ai/` may be local-only and not part of git worktree merges.
-11. The coordinator must not perform codebase discovery. Workers and reviewers do their own exploration.
-12. Escalate to the user only for missing inputs, secrets, access, environment facts, or decisions that agents cannot resolve.
-13. Advisor, ACS, and security+quality retry cycles are unlimited until resolved, blocked by missing inputs, or explicitly stopped.
-14. Never commit or merge unapproved code.
+2. Resolve the project codebase root from `<cwd>/_xzy-ai/project-root.md` before any dispatch: the file holds exactly one `<cwd>`-relative entry (forward slashes, no leading `/`, no `.` or `..` segments) resolving to a directory inside `<cwd>`. If it is missing, empty, or malformed, ask the user to correct it. Do not guess.
+3. One phase is the atomic implementation phase.
+4. Execute phases sequentially, never in parallel.
+5. By default, execute only one phase per invocation.
+6. If the original user request explicitly asks for multiple phases, repeat the same one-phase cycle for the next unfinished phase after each approved merge.
+7. Native `generate-plan` compatibility is first-class: each `## Phase N` section maps to exactly one dispatch phase.
+8. For native plans, skip any phase whose acceptance criteria are all checked.
+9. After a phase is approved and merged, check that phase's acceptance criteria in the source `plan.md`.
+10. Keep git worktree isolation per phase, created from the project-root repository.
+11. Write `assignment.md` and reports in the workspace root under `_xzy-ai/sprints/<backlog>/dispatch/<NNN>/...`, because `_xzy-ai/` may be local-only and not part of git worktree merges.
+12. The coordinator must not perform codebase discovery. Workers and reviewers do their own exploration inside the project root.
+13. Treat everything outside the project root (including citable references) as read-only; workers and reviewers never modify it.
+14. Escalate to the user only for missing inputs, secrets, access, environment facts, or decisions that agents cannot resolve.
+15. Advisor, ACS, and security+quality retry cycles are unlimited until resolved, blocked by missing inputs, or explicitly stopped.
+16. Never commit or merge unapproved code.
 
 ## Managed Paths
 
@@ -57,9 +61,9 @@ _xzy-ai/sprints/<backlog>/dispatch/<NNN>/reviews/dispatch-security-quality-revie
 _xzy-ai/sprints/<backlog>/dispatch/<NNN>/advisor/report-<topic>-<NN>.md
 ```
 
-The code worktree path is chosen by the coordinator and must be outside these local dispatch artifacts.
+The code worktree path is chosen by the coordinator and must be outside these local dispatch artifacts. It is created from and for the resolved project-root repository.
 
-All paths passed to dispatch agents must be absolute paths. Agents operate from inside the assigned worktree, so relative paths to main-checkout artifacts are invalid.
+All paths passed to dispatch agents must be absolute paths. Agents operate from inside the assigned worktree, so relative paths to workspace-root artifacts are invalid. Pass the absolute project-root path to every agent so they know the codebase boundary.
 
 ## Worker Mode Resolution
 
@@ -81,11 +85,13 @@ The selected mode applies only to the active phase.
 
 ### Native `generate-plan` plan.md
 
-A native plan has this path shape:
+A native plan has this path shape relative to the workspace root:
 
 ```text
 _xzy-ai/sprints/<backlog>/plans/features/<NNN>/plan.md
 ```
+
+The plan lives under workspace-root `_xzy-ai/`; the codebase lives at the resolved project root. Read the plan from the workspace root, but all git operations and code changes happen in the project root.
 
 It contains phase sections:
 
@@ -138,6 +144,7 @@ Follow [ASSIGNMENT-FORMAT.md](./references/ASSIGNMENT-FORMAT.md).
 - User background and desired outcome.
 - What already happened in prior planning or dispatch processes.
 - Source plan path when available.
+- The resolved absolute project-root path (the codebase boundary).
 - Selected worker mode.
 - Phase number and title.
 - Relevant architectural decisions from `plan.md` when available.
@@ -188,7 +195,7 @@ If security+quality rejects for Blocker, Critical, or Major findings, send findi
 
 ## Commit and Merge Rules
 
-Use `git merge --no-ff` for approved phase code changes.
+Use `git merge --no-ff` for approved phase code changes. All git operations (worktree creation, commit, merge) run inside the project-root repository; the workspace-root `_xzy-ai/` artifacts are never part of these merges.
 
 ### Default mode
 

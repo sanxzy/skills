@@ -95,6 +95,43 @@ If same-session loading or automatic resume is unavailable, stop and tell the us
 
 There is no fixed handoff limit. Continue until the intent is clear enough to finalize or the user explicitly stops.
 
+## Project Location and Citation Scope
+
+The active workspace is the current working directory (`<cwd>`). Before any discovery, backlog resolution, citation handling, or artifact write:
+
+1. Read `<cwd>/_xzy-ai/project-root.md`.
+2. Require exactly one non-empty project-root entry. It must be a `<cwd>`-relative path (forward slashes, no leading `/`, no `.` or `..` segments) that resolves to a directory inside `<cwd>`.
+3. Treat `<cwd>/<project-root-entry>` as the project codebase root. Do not assume a particular project layout beneath it.
+4. Use the project root as the only codebase for repository discovery and pass its absolute path to scouts as `project_root`.
+5. If `project-root.md` is missing, empty, malformed, or points outside `<cwd>`, pause and ask the user to correct it. Do not guess the project root.
+
+Reference-aware behavior is manual: the workflow enters reference-aware mode only when the user explicitly asks to use references as a source of truth. Citable material may be anywhere under `<cwd>` except the project root and `_xzy-ai/` (which holds scout reports, progress logs, and generated workflow artifacts). Final citations use normalized `<cwd>`-relative paths with forward slashes, no `.` or `..` segments, and resolve to existing regular files verified by current-round scouts. Citable material is read-only.
+
+## Reference-Aware Mode
+
+Reference-aware mode is a scope of how the final `features.md` cites evidence. It is manual: entered only when the user explicitly asks to use references as a source of truth.
+
+### Citation scope
+
+- Only files under the workspace root and outside the project codebase root (resolved from `_xzy-ai/project-root.md`) and outside `_xzy-ai/` may be cited in the final `features.md`.
+- Paths under the project root, `AGENTS.md`, `ROADMAP.md`, `_xzy-ai/`, scout reports, and progress logs are prohibited in the final `features.md`.
+- Citable reference locations are read-only: neither the host nor scouts ever create, modify, move, rename, or delete files in them.
+
+### Driving signal
+
+- Enter reference-aware mode only when the user explicitly asks to use references. Do not enter it automatically merely because citable reference material exists outside the project root.
+- If no citable material exists and the user did not require it, generate normally with no citations required.
+
+### Behavior by context
+
+- If the user explicitly asks to use references → enter reference-aware mode: include relevant workspace-root-relative path citations inline wherever referenced files provide product context, background, desired outcome, goals, scope, or capability evidence. Preserve any additional user instructions or notes verbatim (for example "create an original version in our project to avoid copyright issues") in the References section area or as durable prose, and in progress/generation notes.
+- If reference-aware mode is active but investigation finds NO relevant evidence → report this to the user and ask how to proceed (continue without citations / add reference material first / other). Do not fabricate citations.
+- If the user explicitly REQUIRES citations but no citable material exists → reject the request rather than proceeding without it.
+
+### Relevance, not a fixed count
+
+Whether citations are required depends on the presence of relevant evidence, not on a fixed number. Provenance-only citations do NOT satisfy the requirement when substantive evidence exists.
+
 ## Backlog Naming
 
 Infer `<backlog_name>` from the desired outcome and normalize it to concise lowercase kebab-case:
@@ -210,7 +247,7 @@ Do not create an artificial baseline scout report.
 
 #### Established repository
 
-Use targeted end-to-end discovery. Cover only behavior relevant to the stated goal across:
+Use targeted end-to-end discovery against the project codebase root (resolved from `_xzy-ai/project-root.md`). Cover only behavior relevant to the stated goal across:
 
 - Product and project documentation.
 - User-facing entry points and journeys.
@@ -249,7 +286,8 @@ For each topic, delegate to `feat-scout` with every required input:
 | `product_goal` | Product problem and desired outcome. |
 | `relevant_context` | Intended actors, scope, terminology, and relevant conversation or artifact context. |
 | `questions_to_resolve` | Specific current-state questions the report must answer. |
-| `repository_root` | Absolute active working-tree root. |
+| `repository_root` | Absolute path to the active working-tree root. |
+| `project_root` | Absolute path to the project codebase root, resolved from `<repository_root>/_xzy-ai/project-root.md`. |
 | `report_path` | Exact path `_xzy-ai/sprints/<backlog_name>/feats/scouts/<topic>.md`. |
 
 Before delegation, append one `scout-started` event per scout in deterministic topic order. After all results from that batch return, append one `scout-completed` or `scout-blocked` event per result in the same deterministic topic order, regardless of actual completion order.
@@ -361,11 +399,12 @@ Rules:
 7. Describe the complete final behavior for partial capabilities.
 8. Cover all relevant success and non-success states in one cohesive paragraph, including validation, rejection, permissions, empty states, and recoverable failures when they affect the promised outcome.
 9. Embed accessibility, security, privacy, reliability, and similar user-observable qualities in affected features. Create a standalone feature only when the quality is an independently recognizable outcome.
-10. Exclude implementation details, source references, layers, technical sequencing, and acceptance-criteria breakdowns.
+10. Exclude implementation details, source references, layers, technical sequencing, and acceptance-criteria breakdowns. Qualifying path citations are allowed when reference-aware mode is active.
 11. Apply no feature quota.
 12. Order prerequisites first, then follow the natural user journey.
 13. Do not add priority labels unless the source context explicitly contains them.
 14. Assign sequential identifiers after ordering: `F001`, `F002`, and so on, with no gaps.
+15. In reference-aware mode, include relevant path-only citations inline wherever referenced files provide context, background, desired outcome, goals, scope, or capability evidence. Collect every inline citation in the trailing `## References` section, and preserve the user's additional reference-related instructions or notes verbatim in the References section area or as durable prose and in progress/generation notes.
 
 ### Step 10: Apply the internal quality gate
 
@@ -399,18 +438,22 @@ Before writing `features.md`, verify all of the following:
 
 #### Durability
 
-- No section of `features.md` cites files, paths, functions, tests, configuration, layers, APIs, or other implementation artifacts.
+- No section of `features.md` cites files, paths, functions, tests, configuration, layers, APIs, or other implementation artifacts, except qualifying path-only citations in reference-aware mode.
+- Every inline citation is a qualifying workspace-root-relative path outside the project root and `_xzy-ai/`, and every cited path was verified by a current-round scout report.
+- The trailing `## References` section equals the deduplicated, lexicographically sorted union of all inline citations and contains no index-only paths; its body is `None` when there are no citations.
+- In reference-aware mode, evidence-backed substantive sections carry nearby path citations.
 - No feature is framed as a technical task or implementation delta.
 - No assumptions, tentative items, or open-question sections remain.
 
 #### Format
 
 - The document title follows `# Features — <Backlog title>`.
-- All eight required sections are present.
+- All nine required sections are present in order, with `References` last.
 - Feature identifiers are continuous from `F001` in final order.
 - Every feature follows the required multi-line checklist format.
 - There are no nested feature items.
 - A no-work result uses the full document structure and no checklist items.
+- When there are no citations, the `## References` body is `None`.
 
 Append `quality-checked` with `result=passed`, either `features=<count>` or `result-detail=no-outstanding-features`, and `defects=none` only after every check passes. If a check fails:
 
@@ -423,7 +466,7 @@ Append `quality-checked` with `result=passed`, either `features=<count>` or `res
 
 Write `features.md` using [FEATURES-FORMAT.md](./references/FEATURES-FORMAT.md) exactly.
 
-The eight required sections are:
+The nine required sections are:
 
 1. `Background`
 2. `Intended Users`
@@ -433,6 +476,7 @@ The eight required sections are:
 6. `In Scope`
 7. `Out of Scope`
 8. `Features`
+9. `References`
 
 Each feature uses:
 
@@ -442,7 +486,9 @@ Each feature uses:
     One cohesive paragraph describing the complete end-to-end outcome and all relevant user-observable behavior.
 ```
 
-When no work-required capabilities remain, preserve all eight sections and write only:
+In reference-aware mode, include relevant path citations inline in substantive sections and collect every inline citation in the trailing `## References` section, deduplicated and lexicographically sorted. When there are no citations, the `## References` body is `None`.
+
+When no work-required capabilities remain, preserve all nine sections and write only:
 
 ```markdown
 No outstanding features
@@ -453,13 +499,14 @@ under `Features`. Do not list supported capabilities as checked items.
 After the write:
 
 1. Re-read `features.md` before declaring it finalized.
-2. If the write is incomplete, malformed, or differs from the quality-gated content, correct that same first-time write immediately and re-read it. This atomic write-verification cycle occurs before immutability attaches and before `artifact-written` is logged.
-3. If a correct write cannot be established, append `paused` with `reason=artifact-write-failed`, `pending=verified-artifact-write`, and `resume-requires=retry-write`; report the failure and do not append `artifact-written` or `round-completed`.
-4. Once verified, the artifact becomes immutable.
-5. Count every retained `.md` report under `feats/scouts/`.
-6. Append `artifact-written` with `path`, either `features=<count>` or `result=no-outstanding-features`, and `scout-reports=<count>`.
-7. Append `round-completed` with `artifact`, either `features=<count>` or `result=no-outstanding-features`, `scout-reports=<count>`, and `next: none`.
-8. Retain all scout reports and progress history.
+2. Verify it matches the quality-gated content and required format, including the presence of the `## References` section and its index consistency (deduplicated, sorted union of inline citations, no index-only paths). This verification must NOT re-resolve citation paths: path validity rests on the current-round scout reports the coordinator trusts, and scouts verify paths before reporting.
+3. If the write is incomplete, malformed, or differs from the quality-gated content, correct that same first-time write immediately and re-read it. This atomic write-verification cycle occurs before immutability attaches and before `artifact-written` is logged.
+4. If a correct write cannot be established, append `paused` with `reason=artifact-write-failed`, `pending=verified-artifact-write`, and `resume-requires=retry-write`; report the failure and do not append `artifact-written` or `round-completed`.
+5. Once verified, the artifact becomes immutable.
+6. Count every retained `.md` report under `feats/scouts/`.
+7. Append `artifact-written` with `path`, either `features=<count>` or `result=no-outstanding-features`, and `scout-reports=<count>`.
+8. Append `round-completed` with `artifact`, either `features=<count>` or `result=no-outstanding-features`, `scout-reports=<count>`, and `next: none`.
+9. Retain all scout reports and progress history.
 
 ## Completion Response
 
@@ -475,7 +522,7 @@ Do not repeat the feature list in chat.
 
 `feat-scout` is a bundled read-only discovery agent.
 
-**Required inputs:** `backlog_name`, `topic`, `discovery_scope`, `product_goal`, `relevant_context`, `questions_to_resolve`, `repository_root`, `report_path`.
+**Required inputs:** `backlog_name`, `topic`, `discovery_scope`, `product_goal`, `relevant_context`, `questions_to_resolve`, `repository_root`, `project_root`, `report_path`.
 
 **Canonical output:** `_xzy-ai/sprints/<backlog_name>/feats/scouts/<topic>.md` using the agent's embedded canonical schema, mirrored for human reference in [SCOUT-REPORT-FORMAT.md](./references/SCOUT-REPORT-FORMAT.md).
 
@@ -489,7 +536,7 @@ Do not repeat the feature list in chat.
 4. Do not modify source code, tests, configuration, dependencies, or unrelated project artifacts.
 5. Delete only stale scout reports during a fresh workflow round.
 6. Preserve scout reports after finalization.
-7. Keep `features.md` entirely free of implementation evidence.
+7. Keep `features.md` entirely free of implementation evidence; only qualifying workspace-root-relative path citations outside the project root and `_xzy-ai/` may be cited, path-only and in reference-aware mode, with the trailing `## References` index as the deduplicated sorted union of inline citations.
 8. Keep feature descriptions outcome-focused, end-to-end, flat, and durable.
 9. Only the main host writes `feats/progress.md`.
 10. Do not exceed five scout invocations per wave, three waves, or fifteen invocations per authorized discovery cycle; run a wave concurrently only when supported.

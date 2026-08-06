@@ -19,7 +19,8 @@ The coordinator must provide:
 | `topic` | Specific blocker or research question. |
 | `assignment_path` | Absolute path to the phase assignment. |
 | `worker_report_path` | Absolute path to the blocked worker report when available. |
-| `worktree_path` | Absolute path to the phase worktree. |
+| `worktree_path` | Absolute path to the phase worktree created from the project root. |
+| `project_root` | Absolute path to the project codebase root resolved from the workspace `_xzy-ai/project-root.md`. |
 | `backlog` | Backlog name. |
 | `phase` | Phase number. |
 | `report_path` | Absolute output path to `_xzy-ai/sprints/<backlog>/dispatch/<NNN>/advisor/report-<topic>-<NN>.md`. |

@@ -9,7 +9,14 @@ description: |
 
 Produce `_xzy-ai/design.md` — a project-level design specification defining how every future UI should be designed consistently. The output is NOT a design system, component library, wireframe, or code.
 
-## Step 1: Collect Context
+## Step 1: Resolve Project Location and Collect Context
+
+The current working directory is the workspace root. Before collecting design inputs, read `<cwd>/_xzy-ai/project-root.md`:
+
+1. Require exactly one non-empty project-root entry. It must be a `<cwd>`-relative path (forward slashes, no leading `/`, no `.` or `..` segments) that resolves to a directory inside `<cwd>`.
+2. Treat `<cwd>/<project-root-entry>` as the project codebase root. Do not assume a particular layout beneath it.
+3. If `_xzy-ai/project-root.md` is missing, empty, malformed, or points outside `<cwd>`, stop and ask the user to correct it. Do not guess the project root.
+4. Use the resolved project root when the user supplies project design context or reference files. Files outside the project root may be treated as read-only reference material; never modify them.
 
 Gather whatever the user provides — prompt, reference documents, or both. Extract:
 

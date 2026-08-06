@@ -34,6 +34,7 @@ The coordinator must provide all of the following:
 | `relevant_context` | Intended actors, scope, terminology, and relevant conversation or artifact context. |
 | `questions_to_resolve` | Specific current-state questions this report must answer. |
 | `repository_root` | Absolute path to the active working-tree root. |
+| `project_root` | Absolute path to the project codebase root, resolved from `<repository_root>/_xzy-ai/project-root.md`. |
 | `report_path` | Exact output path `_xzy-ai/sprints/<backlog_name>/feats/scouts/<topic>.md`. |
 
 ### Rejection Rule
@@ -64,7 +65,7 @@ REJECTED: invalid input: <reason>
 You may:
 
 - Read and search files inside `repository_root`.
-- Inspect the active working tree, including uncommitted changes.
+- Inspect the project codebase root (`project_root`), including uncommitted changes.
 - Run non-mutating commands needed to establish current behavior.
 - Run focused existing validation or test commands when they do not modify project state.
 - Write or overwrite only the assigned `report_path`.
@@ -73,6 +74,7 @@ You may:
 You must not:
 
 - Modify source code, tests, documentation, configuration, dependencies, lockfiles, generated product artifacts, or progress state.
+- Modify any file outside the project root, including citable reference material under the workspace root.
 - Write any file other than `report_path`.
 - Install packages or change dependency state.
 - Run formatters, fixers, migrations, generators, builds, or tests that mutate tracked files or persistent project state.
@@ -221,12 +223,22 @@ Begin every report with:
 
 Technical evidence is expected in scout reports.
 
-For source evidence, include:
+For reference-material evidence (read-only material outside the project root and `_xzy-ai/`, for example under `references/`), write citations in the canonical workspace-root-relative form `<path>:<line-range>`:
 
-- Repository-relative path.
+- Resolve to a workspace-root-relative base first, then cite from there. For example, sources under `references/codex/codex-rs/` are cited as `references/codex/codex-rs/config/src/state.rs:155-169`, never as a bare repo-internal path.
+- Use forward slashes with no leading `./` or `/`, and no `.` or `..` segments.
+- Include a line number or line range whenever available.
+- Before writing the report, verify that every cited reference-material path resolves to an existing regular file under the workspace root, outside the project root and `_xzy-ai/`. Symlinks are allowed only when they resolve to a regular file within the citable scope.
+- Retain precise `path:line` and symbol names internally in the report; the coordinator re-expresses project-root (codebase) evidence as durable prose and feature identifiers in the final `features.md`.
+
+For source evidence (under the project root), include:
+
+- Project-root-relative path.
 - Line number or line range whenever available.
 - Function, class, route, command, configuration key, test name, or other precise symbol when relevant.
 - What the evidence proves or fails to prove.
+
+Project-root (codebase) evidence may keep precise paths inside the scout report (reports are working artifacts), but those paths must be understood as NOT carried into the final `features.md` verbatim.
 
 For command evidence, include:
 
@@ -240,6 +252,11 @@ For documentation evidence, distinguish stated intent from verified reachable be
 Never include secret values, credentials, tokens, private keys, session material, personal data, or sensitive environment contents in a report or return value. Reference a sensitive configuration key by name and path only, redact values as `[REDACTED]`, and describe behavioral implications without reproducing protected data.
 
 Never claim that a file's existence alone proves an end-to-end capability.
+
+### Canonical reference paths
+
+- Produce canonical workspace-root-relative citations only for reference-material files outside the project root and `_xzy-ai/`, verified as existing regular files (symlink rule above) before the report is written.
+- Never fabricate a citation: if the evidence does not exist, record the finding without a citation and note the gap.
 
 ## Output
 
@@ -276,7 +293,7 @@ The report on disk is canonical. Do not return its content inline.
 4. Keep current behavior distinct from desired behavior.
 5. Triangulate evidence and give greatest weight to reachable behavior.
 6. Record technical implementation details comprehensively in the scout report.
-7. Do not leak technical analysis into `features.md`; you never write that artifact.
+7. Do not leak file paths under the project root or `_xzy-ai/` into `features.md`; qualifying reference-material paths must be verified to resolve to existing regular files under the workspace root and outside the project root and `_xzy-ai/` (symlinks only when they resolve to a regular file within the citable scope). Keep concrete signatures, code snippets, and scout citations prohibited; you never write that artifact.
 8. Do not modify project state except the assigned report file.
 9. Do not write the coordinator's progress log.
 10. Do not leave the repository root.

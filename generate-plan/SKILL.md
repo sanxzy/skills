@@ -43,7 +43,20 @@ Do not run it for:
 7. Never write source code, tests, configuration, dependencies, lockfiles, or unrelated artifacts.
 8. Always overwrite canonical `plan.md` on successful generation; do not create revisions.
 9. Always write and verify the canonical current plan at `plan.md`.
-10. Keep final `plan.md` durable and free of file paths outside the canonical workspace-relative `references/` scope, concrete function names, concrete signatures, code snippets, command transcripts, scout citations, unresolved alternatives, and open questions. Qualifying `references/` paths must resolve to existing regular files under the workspace-root `references/` directory; their validity rests on the current-round scout reports, which the coordinator trusts without re-resolving at write time.
+10. Keep final `plan.md` durable and free of file paths outside the citable non-codebase scope, concrete function names, concrete signatures, code snippets, command transcripts, scout citations, unresolved alternatives, and open questions. Qualifying citation paths must be workspace-root-relative paths that resolve to existing regular files outside the project root and outside `_xzy-ai/`; their validity rests on the current-round scout reports, which the coordinator trusts without re-resolving at write time.
+
+## Project Location and Citation Scope
+
+The active workspace is the current working directory (`<cwd>`). Before any discovery, source resolution, citation handling, or artifact write:
+
+1. Read `<cwd>/_xzy-ai/project-root.md`.
+2. Require exactly one non-empty project-root entry. It must be a `<cwd>`-relative path (forward slashes, no leading `/`, no `.` or `..` segments) that resolves to a directory inside `<cwd>`.
+3. Treat `<cwd>/<project-root-entry>` as the project codebase root. For example, when the file contains `plugins`, the project root is `<cwd>/plugins`.
+4. Do not inspect, modify, cite, or delegate discovery outside the active workspace except for citable reference files under the workspace root.
+5. Treat the project root as the only codebase for repository discovery and pass its absolute path to scouts as `project_root`.
+6. If `project-root.md` is missing, empty, malformed, or points outside `<cwd>`, pause and ask the user to correct it. Do not guess the project root.
+
+Reference-aware behavior is manual: the workflow enters reference-aware mode only when the user explicitly asks to use references as a source of truth. Citable material may be anywhere under `<cwd>` except the project root and `_xzy-ai/` (which holds scout reports, progress logs, and generated workflow artifacts). Use a normalized `<cwd>`-relative path for final citations, with forward slashes and no `.` or `..` segments. Final citations are path-only and must resolve to existing regular files verified by current-round scouts. References are read-only.
 
 ## Managed Paths
 
@@ -119,20 +132,19 @@ If a discussion handoff is abandoned or not completed, keep the workflow paused.
 
 ## Reference-Aware Mode
 
-`references/` is a read-only, workspace-root directory that can serve as a durable source of truth for planning evidence. When the user explicitly asks to use `references/`, enter reference-aware mode: embed durable, resolvable `references/<path>` citations in the substantive sections of `plan.md` so a downstream agent can re-open the referenced files and recover the nuance. Reference-aware mode is driven by the user's EXPLICIT instruction; mere existence of the directory is not by itself a mandate.
+Citable reference material is not limited to a single `references/` directory. Reference-aware mode is manual: enter it only when the user explicitly asks to use references. When active, embed durable, resolvable workspace-root-relative path citations in the substantive sections of `plan.md` so a downstream agent can re-open the referenced files and recover the nuance.
 
 ### Citation scope
 
-- Only files under the workspace-root `references/` directory may be cited in the final `plan.md`.
-- Target-codebase paths (for example `koji/packages/...`), `AGENTS.md`, `ROADMAP.md`, `_xzy-ai/`, scout reports, and progress logs are prohibited in the final `plan.md`.
-- `references/` is read-only: neither the host nor scouts ever create, modify, move, rename, or delete files under it.
+- Only files under the workspace root and outside the project codebase root (resolved from `_xzy-ai/project-root.md`) may be cited in the final `plan.md`.
+- Paths under the project root, `AGENTS.md`, `ROADMAP.md`, `_xzy-ai/`, scout reports, and progress logs are prohibited in the final `plan.md`.
+- Citable reference locations are read-only: neither the host nor scouts ever create, modify, move, rename, or delete files in them.
 
 ### Behavior by context
 
-- If `references/` does not exist and the user did not require it → generate normally with no citations required.
-- If the user explicitly asks to use `references/` → enter reference-aware mode. Include relevant `references/<path>` citations throughout wherever referenced files provide context, behavior, architecture, implementation-pattern, or other evidence — Architectural decisions, phase "What to build", phase acceptance criteria that depend on reference seams, and similar. Preserve any additional user reference-related instructions or notes verbatim (for example "create an original version in our project to avoid copyright issues") in the appropriate artifact section and in progress/generation notes. The `> Source:` blockquote is a durable logical source identifier and must NOT carry file paths; put user notes in the References section area or as durable prose.
-- If the user explicitly asks to use `references/` but investigation finds no relevant evidence → report this to the user and ask how to proceed (continue without citations / populate `references/` first / other). Do not fabricate citations.
-- If the user explicitly REQUIRES `references/` but the directory does not exist → reject the request rather than proceeding without it.
+- If the user explicitly asks to use references → enter reference-aware mode. Do not enter it automatically merely because citable reference material exists outside the project root. Include relevant path citations throughout wherever referenced files provide context, behavior, architecture, implementation-pattern, or other evidence — Architectural decisions, phase "What to build", phase acceptance criteria that depend on reference seams, and similar. Preserve any additional user reference-related instructions or notes verbatim (for example "create an original version in our project to avoid copyright issues") in the appropriate artifact section and in progress/generation notes. The `> Source:` blockquote is a durable logical source identifier and must NOT carry file paths; put user notes in the References section area or as durable prose.
+- If reference-aware mode is active but investigation finds no relevant evidence → report this to the user and ask how to proceed (continue without citations / add reference material first / other). Do not fabricate citations.
+- If the user explicitly REQUIRES citations but no citable material exists → reject the request rather than proceeding without it.
 
 ### Relevance, not a fixed count
 
@@ -213,7 +225,7 @@ When light host discovery verifies that no implementation relevant to the target
 
 #### Established repository
 
-Use fresh targeted discovery against the active working tree, including uncommitted changes. Do not reuse `feat-scout` or `spec-scout` reports as canonical plan evidence. An explicit resume may reuse only completed `plan-scout` reports produced by the same per-feature workflow round when their scopes remain valid.
+Use fresh targeted discovery against the project codebase root (resolved from `_xzy-ai/project-root.md`), including uncommitted changes. Do not reuse `feat-scout` or `spec-scout` reports as canonical plan evidence. An explicit resume may reuse only completed `plan-scout` reports produced by the same per-feature workflow round when their scopes remain valid.
 
 ### Step 3: Plan scout scopes
 
@@ -254,6 +266,7 @@ Delegate with every required input:
 | `discovery_scope` | Precise included and excluded discovery boundaries. |
 | `questions_to_resolve` | Specific planning evidence questions this report must answer. |
 | `workspace_root` | Absolute workspace root. |
+| `project_root` | Absolute project codebase root resolved from `_xzy-ai/project-root.md`. |
 | `report_path` | Exact round-scoped scout report path. |
 
 When the platform supports bundled subagent invocation, invoke `plan-scout` with the full contract and wait for its completion return. Parallel waves are expressed as multiple independent scout delegations when supported.
@@ -348,9 +361,9 @@ The final plan must:
 5. Use tracer-bullet vertical slices.
 6. Include `**User stories covered**`, `### What to build`, and `### Acceptance criteria` for every phase.
 7. Preserve stable story identifiers such as `US001` when available.
-8. Describe durable implementation guidance without brittle source references, except qualifying `references/` paths that resolve to existing regular files under the workspace-root `references/` directory. Citations are path-only (`references/<path>`, no line numbers or symbols) and appear inline wherever the referenced files provide evidence.
+8. Describe durable implementation guidance without brittle source references, except qualifying path-only citations that resolve to existing regular files under the workspace root and outside the project root and `_xzy-ai/`. Citations are path-only (no line numbers or symbols) and appear inline wherever the referenced files provide evidence.
 9. Include a trailing `## References` section listing the deduplicated, lexicographically sorted union of all inline citations; when the plan carries no inline citations its body is `None`. Index-only paths are prohibited (every entry must also appear inline).
-10. In reference-aware mode, carry relevant `references/<path>` citations in substantive sections throughout and preserve the user's additional reference-related instructions/notes verbatim in the artifact and in progress/generation notes.
+10. In reference-aware mode, carry relevant path citations in substantive sections throughout and preserve the user's additional reference-related instructions/notes verbatim in the artifact and in progress/generation notes.
 11. Order phases by prerequisites and natural user journey.
 12. Keep the plan independently understandable.
 
@@ -386,12 +399,12 @@ Before writing `plan.md`, verify all of the following:
 
 - Required sections and headings match `PLAN-FORMAT.md`.
 - Phase numbers are continuous.
-- No file paths appear in `plan.md` except qualifying workspace-relative `references/` paths accepted from the current-round scout reports as existing regular files under the workspace-root `references/` directory.
+- No file paths appear in `plan.md` except qualifying path-only citations accepted from the current-round scout reports as existing regular files under the workspace root and outside the project root and `_xzy-ai/`.
 - No concrete function signatures, function names, code snippets, command transcripts, scout-report citations, or progress citations appear.
 - No unresolved alternatives or open questions appear.
 - The `## References` section is present and equals the deduplicated, lexicographically sorted union of all inline citations, and contains no index-only paths (body is `None` when there are no inline citations).
-- In reference-aware mode, evidence-backed architectural decisions, phase "What to build" content, and phase acceptance criteria that depend on reference seams carry nearby `references/<path>` citations.
-- The plan remains understandable without source code, scout reports, progress logs, or the original conversation, except for the specific `references/` files it cites.
+- In reference-aware mode, evidence-backed architectural decisions, phase "What to build" content, and phase acceptance criteria that depend on reference seams carry nearby path citations.
+- The plan remains understandable without source code, scout reports, progress logs, or the original conversation, except for the specific citable reference files it cites.
 - No write-time path resolution is performed: path validity rests on the current-round scout reports the coordinator trusts; do not re-resolve citation paths here.
 
 If a check fails:
@@ -431,7 +444,7 @@ Do not repeat the plan in chat.
 
 `plan-scout` is a bundled read-only discovery agent.
 
-**Required inputs:** `backlog_name`, `feature_id`, `feature_context`, `topic`, `discovery_scope`, `questions_to_resolve`, `workspace_root`, `report_path`.
+**Required inputs:** `backlog_name`, `feature_id`, `feature_context`, `topic`, `discovery_scope`, `questions_to_resolve`, `workspace_root`, `project_root`, `report_path`.
 
 **Canonical output:** `_xzy-ai/sprints/<backlog_name>/plans/features/<NNN>/scouts/round-<RRR>/<topic>.md` using the agent's embedded canonical schema, mirrored for human reference in [SCOUT-REPORT-FORMAT.md](./references/SCOUT-REPORT-FORMAT.md).
 
@@ -446,7 +459,7 @@ Do not repeat the plan in chat.
 5. Do not write source code, tests, configuration, dependencies, lockfiles, or unrelated artifacts.
 6. Overwrite canonical `plan.md` only after quality gate; do not create revisions.
 7. Preserve all scout reports and progress history.
-8. Keep `plan.md` free of file paths except qualifying workspace-relative `references/` paths that resolve to existing regular files under the workspace-root `references/` directory; keep citations path-only and trust the current-round scout reports for their validity (do not re-resolve at write time). Keep it free of concrete function signatures, function names, code snippets, command transcripts, scout citations, unresolved alternatives, and open questions.
+8. Keep `plan.md` free of file paths except qualifying workspace-root-relative citations that resolve to existing regular files outside the project root and `_xzy-ai/`; keep citations path-only and trust the current-round scout reports for their validity (do not re-resolve at write time). Keep it free of concrete function signatures, function names, code snippets, command transcripts, scout citations, unresolved alternatives, and open questions.
 9. Only the main host writes feature `progress.md`.
 10. Do not exceed five scout invocations per wave, three waves, or fifteen invocations per authorized discovery cycle.
 11. Treat the active working tree, including uncommitted changes, as current state.

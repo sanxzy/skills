@@ -48,11 +48,16 @@ Each section should be short and scannable — 3 bullet points of essential guid
 
 ---
 
-### Step 1: Detect Language
+### Step 1: Resolve Project Location and Detect Language
+
+The current working directory is the workspace root. Before detecting the project, read `<cwd>/_xzy-ai/project-root.md`:
+
+1. Require exactly one non-empty project-root entry. It must be a `<cwd>`-relative path (forward slashes, no leading `/`, no `.` or `..` segments) that resolves to a directory inside `<cwd>`.
+2. Treat `<cwd>/<project-root-entry>` as the project codebase root. Do not assume a particular layout beneath it.
+3. If `_xzy-ai/project-root.md` is missing, empty, malformed, or points outside `<cwd>`, stop and ask the user to correct it. Do not guess the project root.
+4. Check for manifest files inside the resolved project root using the detection table in [LANGUAGE-CONVENTIONS.md](./references/LANGUAGE-CONVENTIONS.md).
 
 Identify the project's programming language. If the user is in a greenfield/new project with no source code, this step will find no manifests.
-
-1. Check for manifest files in the working directory using the detection table in [LANGUAGE-CONVENTIONS.md](./references/LANGUAGE-CONVENTIONS.md).
 2. If exactly one language is detected → use it.
 3. If multiple manifests exist → determine if this is a polyglot project. If the project type hasn't been selected yet, note the detected languages and defer the decision to Step 3.
 4. If no manifests found (greenfield) → ask the user:
@@ -337,8 +342,8 @@ If any violation is found, fix it before writing the document to disk.
 
 ### Step 8: Write Document
 
-1. Ensure `_xzy-ai/` directory exists. Create if missing.
-2. Write the generated document to `_xzy-ai/architecture.md`.
+1. Ensure `_xzy-ai/` directory exists at the workspace root. Create if missing.
+2. Write the generated document to `<workspace_root>/_xzy-ai/architecture.md`.
 3. Use atomic write: write to `.tmp` path first, then rename.
 
 **Completion**: `_xzy-ai/architecture.md` written to disk.
