@@ -14,6 +14,8 @@ Answer: <answer title> - <detailed explanation>
 
 ## Rules
 
+- Write the transcript in English, translating questions and answers from the discussion language when necessary.
+- Translate faithfully: preserve the user's decisions, reasoning, constraints, uncertainty, and important nuances without adding meaning.
 - Maintain the transcript in chronological order. After each user response, immediately append the question and answer to the transcript.
 - Number questions sequentially starting from 1.
 - The answer title should be a concise label for the decision or preference expressed.

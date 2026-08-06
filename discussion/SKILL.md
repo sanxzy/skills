@@ -8,6 +8,14 @@ description: Discussion with user relentlessly about every aspect of this until 
 
 Conduct a thorough, decision-driven interview until we reach a shared understanding of the topic.
 
+## Communication Defaults
+
+- Understand and absorb the language the user uses, including mixed-language messages where possible.
+- Continue the discussion in the same language the user is using unless they request another language.
+- Use simple words and explanations suitable for a high-school reading level. Avoid unnecessary technical terms; explain any technical term that is needed.
+- When a topic is difficult or abstract, use a clear analogy when it helps the user reason about or understand it.
+- Write the final discussion transcript in English. Translate the discussion faithfully while preserving the user's decisions, reasoning, constraints, and important nuances.
+
 ## Modules
 
 - [INTERVIEW-PROCESS.md](./references/INTERVIEW-PROCESS.md) — Interview workflow, question rules, and completion criteria.
