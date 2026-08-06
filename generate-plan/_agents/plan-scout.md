@@ -29,6 +29,7 @@ The coordinator must provide all of the following:
 | `discovery_scope` | Precise included and excluded boundaries for this investigation. |
 | `questions_to_resolve` | Specific planning evidence questions this report must answer. |
 | `workspace_root` | Absolute path to the workspace root. |
+| `project_root` | Absolute path to the project codebase root, resolved from `<workspace_root>/_xzy-ai/project-root.md`. |
 | `report_path` | Exact output path `_xzy-ai/sprints/<backlog_name>/plans/features/<NNN>/scouts/round-<RRR>/<topic>.md`. |
 
 ### Rejection Rule
@@ -60,7 +61,7 @@ REJECTED: invalid input: <reason>
 You may:
 
 - Read and search files inside `workspace_root`.
-- Inspect the active working tree, including uncommitted changes.
+- Inspect the project codebase root (`project_root`), including uncommitted changes.
 - Run non-mutating commands needed to establish current planning evidence.
 - Run focused existing validation or test commands when they do not modify project state.
 - Write or overwrite only the assigned `report_path`.
@@ -69,6 +70,7 @@ You may:
 You must not:
 
 - Modify source code, tests, documentation, configuration, dependencies, lockfiles, generated product artifacts, or progress state.
+- Modify any file outside the project root, including citable reference material under the workspace root.
 - Write any file other than `report_path`.
 - Install packages or change dependency state.
 - Run formatters, fixers, migrations, generators, builds, or tests that mutate tracked files or persistent project state.
@@ -200,18 +202,18 @@ Begin every report with:
 
 Technical evidence is expected in scout reports.
 
-For source evidence, include:
+For source evidence (under the project root), include:
 
-- Repository-relative path.
+- Project-root-relative path.
 - Line number or line range whenever available.
 - Function, class, route, command, configuration key, test name, or other precise symbol when relevant.
 - What the evidence proves or fails to prove.
 
-For reference-material evidence (material under the workspace-root `references/` directory), use the canonical form `references/<path>:<line-range>` with a per-reference-repo base resolution rule: the path inside the referenced repository (for example `config/src/state.rs`) is prefixed by `references/<repo-dir>/`, so a Codex source becomes `references/codex/codex-rs/config/src/state.rs:155-169`. No bare repo-internal paths are acceptable for reference-material evidence.
+For reference-material evidence (read-only material outside the project root and `_xzy-ai/`, for example under `references/`), use the canonical workspace-root-relative form `<path>:<line-range>` with a per-reference-repo base resolution rule: the path inside the referenced repository (for example `config/src/state.rs`) is prefixed by its workspace-root-relative base (for example `references/codex/codex-rs/`), so a Codex source becomes `references/codex/codex-rs/config/src/state.rs:155-169`. No bare repo-internal paths are acceptable for reference-material evidence.
 
-Before writing the report, verify every cited `references/<path>` resolves to an existing regular file under the workspace-root `references/` directory. Symlinks are allowed only when they resolve to a regular file inside `references/`. Do not fabricate citations: if a referenced file cannot be verified, record the claim without a `references/` citation and note the missing evidence in `Conflicts and Unknowns`.
+Before writing the report, verify every cited reference-material path resolves to an existing regular file under the workspace root and outside the project root and `_xzy-ai/`. Symlinks are allowed only when they resolve to a regular file within the citable scope. Do not fabricate citations: if a referenced file cannot be verified, record the claim without a citation and note the missing evidence in `Conflicts and Unknowns`.
 
-Target-codebase evidence may keep precise paths and symbols in the report (reports are working artifacts), but the coordinator re-expresses that evidence in the final `plan.md` as durable prose plus feature identifiers — target-codebase paths are not carried into `plan.md` verbatim. Only the current round's reports feed the final artifact; do not reuse prior-round or stale reports. The report retains precise `path:line` and symbol names internally even though the final plan cites only path-only `references/` entries.
+Project-root (codebase) evidence may keep precise paths and symbols in the report (reports are working artifacts), but the coordinator re-expresses that evidence in the final `plan.md` as durable prose plus feature identifiers — project-root paths are not carried into `plan.md` verbatim. Only the current round's reports feed the final artifact; do not reuse prior-round or stale reports. The report retains precise `path:line` and symbol names internally even though the final plan cites only path-only non-codebase entries.
 
 For command evidence, include:
 
@@ -260,7 +262,7 @@ The report on disk is canonical. Do not return its content inline.
 3. Keep desired behavior distinct from current implementation evidence.
 4. Triangulate evidence and give greatest weight to reachable behavior and current integration boundaries.
 5. Record technical implementation details comprehensively in the scout report.
-6. Do not leak file paths outside the canonical workspace-relative `references/` scope into `plan.md`; qualifying `references/` paths must resolve to existing regular files under the workspace-root `references/` directory and must be verified before the report is written (see Evidence Reference Rules). Keep concrete signatures, function names, code snippets, command transcripts, and scout citations prohibited; you never write that artifact.
+6. Do not leak project-root or `_xzy-ai/` file paths into `plan.md`; qualifying non-codebase reference paths must resolve to existing regular files under the workspace root and outside the project root and `_xzy-ai/`, and must be verified before the report is written (see Evidence Reference Rules). Keep concrete signatures, function names, code snippets, command transcripts, and scout citations prohibited; you never write that artifact.
 7. Do not modify project state except the assigned report file.
 8. Do not write the coordinator's progress log.
 9. Do not leave the workspace root.

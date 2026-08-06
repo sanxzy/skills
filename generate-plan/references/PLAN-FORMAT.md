@@ -10,25 +10,33 @@ It becomes canonical current output after the host writes it, re-reads it, verif
 
 ## Purpose
 
-`plan.md` communicates a practical multi-phase implementation plan for exactly one feature. It must be independently understandable without reopening the source conversation, scout reports, or progress log; it may rely on the specific read-only reference files cited under the canonical `references/` path rule.
+`plan.md` communicates a practical multi-phase implementation plan for exactly one feature. It must be independently understandable without reopening the source conversation, scout reports, or progress log; it may rely on the specific read-only reference files cited under the citable non-codebase path rule.
 
 The plan uses tracer-bullet vertical slices: each phase delivers a narrow, complete, verifiable path through all relevant integration layers. It should read like the existing `to-plan` output while fitting the `_xzy-ai` sprint artifact structure.
 
+## Project Root Resolution
+
+Before working with citations, resolve the project codebase root from `<cwd>/_xzy-ai/project-root.md`:
+
+- The file holds exactly one `<cwd>`-relative project-root entry (for example `plugins`) using forward slashes, with no leading `/`, `.` or `..` segments; it must resolve to a directory inside `<cwd>`, and the project root is `<cwd>/<entry>`.
+- The project root is the active codebase under development. It is mutable and its contents are never cited in final artifacts.
+- If the file is missing, empty, or malformed, ask the user to correct it. Do not guess the project root.
+
 ## File Path References
 
-The plan may contain workspace-relative file paths only in the canonical form `references/<path>` (for example `references/codex/codex-rs/config/src/state.rs`), referencing files inside the single top-level `references/` directory at the workspace root. Such paths must:
+The plan may contain workspace-root-relative file paths only in canonical, path-only form (for example `references/codex/codex-rs/config/src/state.rs`), referencing files that live under the workspace root and outside the project root and outside `_xzy-ai/`. Such paths must:
 
-- Use forward slashes and start with exactly `references/` — no leading `./` or `/`, and no `.` or `..` segments.
-- Resolve to an existing regular file, not a directory. Symlinks are allowed only when they resolve to a regular file within `references/`.
+- Use forward slashes with no leading `./` or `/`, and no `.` or `..` segments.
+- Resolve to an existing regular file, not a directory. Symlinks are allowed only when they resolve to a regular file within the citable scope.
 - Be **path-only** in the final artifact: no line numbers, no line ranges, and no symbols are included. The coordinator re-expresses scout `path:line` evidence as durable prose plus the stable path; line-level and symbol detail stays inside scout reports and is not carried verbatim into `plan.md`.
 
-Citations are **relevance-based**, not a fixed count: cite a `references/<path>` inline wherever a referenced file provides context, behavior, architecture, an implementation pattern, or other evidence that grounds a claim (Architectural decisions, phase "What to build", phase acceptance criteria that depend on reference seams, and similar). Provenance-only citations (the Source blockquote or a notes area) do not satisfy the requirement when substantive evidence exists.
+Citations are **relevance-based**, not a fixed count: cite a path inline wherever a referenced file provides context, behavior, architecture, an implementation pattern, or other evidence that grounds a claim (Architectural decisions, phase "What to build", phase acceptance criteria that depend on reference seams, and similar). Provenance-only citations (the Source blockquote or a notes area) do not satisfy the requirement when substantive evidence exists.
 
-Every inline citation also appears in the trailing `## References` section (see below). All other file paths — absolute paths, `./references/...`, anything outside workspace-root `references/`, and directory paths — remain prohibited. `references/` is read-only input: the generator and scouts never create, modify, move, rename, or delete files under it.
+Every inline citation also appears in the trailing `## References` section (see below). All other file paths — absolute paths, `./...`, anything under the project root, anything under `_xzy-ai/`, and directory paths — remain prohibited. Citable reference locations are read-only input: the generator and scouts never create, modify, move, rename, or delete files in them.
 
-**Reference-aware mode:** enter reference-aware mode only when the user explicitly asks to use `references/` as the source of truth. Mere directory existence is not by itself a mandate. In reference-aware mode, embed relevant `references/<path>` citations throughout wherever referenced files provide evidence. If `references/` does not exist and the user did not require it, generate normally with no citations required. If the user explicitly requires `references/` but the directory does not exist, reject the request rather than proceeding without it.
+**Reference-aware mode:** enter reference-aware mode only when the user explicitly asks to use references. Do not enter it automatically merely because citable reference material exists under the workspace root outside the project root and workflow artifacts. In reference-aware mode, embed relevant path citations throughout wherever referenced files provide evidence. If no citable material exists and the user did not require it, generate normally with no citations required. If the user explicitly requires citations but no citable material exists, reject the request rather than proceeding without it.
 
-**Path validity:** path validity rests on the current-round scout reports the coordinator trusts. Scouts verify each cited `references/<path>` resolves to an existing regular file under the workspace-root `references/` directory before writing their reports; the coordinator does not re-resolve citation paths at write time. A `references/` path that does not resolve is a format and durability defect.
+**Path validity:** path validity rests on the current-round scout reports the coordinator trusts. Scouts verify each cited path resolves to an existing regular file under the workspace root and outside the project root and `_xzy-ai/` before writing their reports; the coordinator does not re-resolve citation paths at write time. A path that does not resolve, or that falls under the project root or `_xzy-ai/`, is a format and durability defect.
 
 ## Required Structure
 
@@ -82,7 +90,7 @@ Durable decisions that apply across all phases:
 
 ## References
 
-<Union of all inline `references/<path>` citations, one per line, deduplicated and lexicographically sorted, or `None` when the plan carries no inline citations.>
+<Union of all inline path citations, one per line, deduplicated and lexicographically sorted, or `None` when the plan carries no inline citations.>
 ```
 
 The only allowed top-level sections, in this exact order after the title, are:
@@ -97,9 +105,9 @@ No other top-level sections are allowed. Add, remove, or rename architectural-de
 
 The `## References` section is the trailing top-level index of cited reference files. Rules:
 
-1. It lists exactly the union of all inline `references/<path>` citations in the plan, deduplicated.
+1. It lists exactly the union of all inline path citations in the plan, deduplicated.
 2. Entries are deterministically sorted in lexicographic order.
-3. Entries are path-only (`references/<path>`), one per line, with no line numbers or symbols.
+3. Entries are path-only, one per line, with no line numbers or symbols.
 4. Index-only paths are prohibited: every entry in `## References` must also appear inline in the plan body.
 5. When the plan carries no inline citations, the section body is exactly `None`.
 6. In reference-aware mode, substantive evidence-backed claims must carry nearby inline citations, so an empty or near-empty `## References` section in that mode signals missing citations, not a valid outcome.
@@ -135,7 +143,7 @@ When generated from clarified conversation only, use a durable logical source su
 > Source: clarified conversation for F003
 ```
 
-Do not cite scout reports, progress logs, or file paths outside the canonical `references/` scope in the final plan; qualifying workspace-relative `references/` paths remain permitted under the File Path References rule. The Source blockquote itself must remain a durable logical source identifier and must not carry file paths of any kind.
+Do not cite scout reports, progress logs, or file paths under the project root or `_xzy-ai/` in the final plan; qualifying citable reference paths remain permitted under the File Path References rule. The Source blockquote itself must remain a durable logical source identifier and must not carry file paths of any kind.
 
 ### Architectural decisions
 
@@ -184,7 +192,7 @@ Rules:
 5. Order prerequisite slices first, then follow the natural user journey.
 6. Each phase should cut through every relevant layer needed for that slice, such as schema, domain behavior, API, UI, integration, and tests, without listing the plan as layer-by-layer tasks.
 7. A phase may mention durable routes, models, contracts, or data shapes from the architectural decisions.
-8. Do not include brittle implementation details such as exact files outside the canonical `references/` scope, function names, concrete signatures, code snippets, or command transcripts.
+8. Do not include brittle implementation details such as exact files under the project root, function names, concrete signatures, code snippets, or command transcripts.
 9. Do not include tasks unrelated to the selected feature.
 
 ### User stories covered
@@ -223,12 +231,12 @@ Keep the following tokens unchanged:
 
 Before finalization, confirm that a reader can understand the implementation sequence without access to:
 
-- Source code, except the specific files cited by qualifying `references/` paths.
-- File paths, except the specific `references/` paths cited in the plan.
+- Project source code under the resolved project root.
+- File paths, except the specific citable reference paths cited in the plan.
 - Scout reports.
 - Progress logs.
 - The original conversation.
 
-The cited `references/` files are the evidence-recovery mechanism for reference-grounded claims. A reader or delegated agent must be able to re-open every cited `references/` file and recover the evidence behind those claims without scout reports, progress logs, or the original conversation. Citations in the final plan are path-only; the plan must preserve enough durable prose to explain what each cited file establishes.
+The cited non-codebase files are the evidence-recovery mechanism for reference-grounded claims. A reader or delegated agent must be able to re-open every cited file and recover the evidence behind those claims without scout reports, progress logs, or the original conversation. Citations in the final plan are path-only; the plan must preserve enough durable prose to explain what each cited file establishes.
 
-If implementation file organization changes while the intended behavior and stable contracts remain the same, `plan.md` should remain useful. The plan remains useful while the specific files cited under `references/` are preserved.
+If project implementation file organization changes while the intended behavior and stable contracts remain the same, `plan.md` should remain useful. The plan remains useful while the cited non-codebase files are preserved.

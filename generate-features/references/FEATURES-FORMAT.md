@@ -10,13 +10,37 @@ It becomes immutable after the first write is re-read, verified, and recorded by
 
 ## Purpose
 
-`features.md` communicates the durable target behavior that still requires work. It is independently understandable without reopening the source conversation or reading technical scout reports.
+`features.md` communicates the durable target behavior that still requires work. It is independently understandable without reopening the source conversation or reading technical scout reports; it may rely on the specific read-only non-codebase reference files cited under the citable path rule.
 
 It must not include implementation evidence, assumptions, open questions, tentative scope, or technical decomposition.
 
+## Project Root Resolution
+
+Before working with citations, resolve the project codebase root from `<cwd>/_xzy-ai/project-root.md`:
+
+- The file holds exactly one `<cwd>`-relative project-root entry (for example `plugins`) using forward slashes, with no leading `/`, `.` or `..` segments; it must resolve to a directory inside `<cwd>`, and the project root is `<cwd>/<entry>`.
+- The project root is the active codebase under development. It is mutable and its contents are never cited in final artifacts.
+- If the file is missing, empty, or malformed, ask the user to correct it. Do not guess the project root.
+
+## File Path References
+
+The artifact may contain workspace-root-relative file paths only in canonical, path-only form (for example `references/legacy-payments/src/service.ts`), referencing files that live under the workspace root and outside the project root and outside `_xzy-ai/`. Such paths must:
+
+- Use forward slashes with no leading `./` or `/`, and no `.` or `..` segments.
+- Be path-only in the final artifact: no line number and no symbol, for maximal stability.
+- Resolve to an existing regular file, not a directory. Symlinks are allowed only when they resolve to a regular file within the citable scope.
+
+Qualifying paths are permitted inline anywhere content warrants them, including Background, Desired Outcome, Goals, In Scope, and feature descriptions. In reference-aware mode (entered only when the user explicitly asks to use references as a source of truth), relevant qualifying citations must appear inline throughout the substantive sections wherever referenced files provide evidence, and not only as provenance in a notes area.
+
+All other file paths — absolute paths, `./...`, anything under the project root, anything under `_xzy-ai/`, and directory paths — remain prohibited. Citable reference locations are read-only input: the generator and scouts never create, modify, move, rename, or delete files in them.
+
+Every inline citation is collected in the trailing `## References` section, which lists the deduplicated, deterministically sorted (lexicographic) union of all inline citations. Index-only paths are prohibited: every entry in `## References` must also appear inline. When there are no citations, the section body is `None`; the section itself is always present.
+
+Path validity rests on the current-round scout reports, which scouts verify before writing (each cited path is confirmed to resolve to an existing regular file under the workspace root, outside the project root and `_xzy-ai/`). The coordinator trusts those reports and does not re-resolve citation paths at write time. A path that was not verified by a current-round scout report, or that falls under the project root or `_xzy-ai/`, is a format and durability defect; the artifact remains valid while the cited non-codebase files are preserved.
+
 ## Required Structure
 
-Use exactly these eight top-level sections in this order:
+Use exactly these nine top-level sections in this order:
 
 ```markdown
 # Features — <Backlog title>
@@ -61,6 +85,10 @@ Use exactly these eight top-level sections in this order:
 - [ ] F002 - <Capability title>
 
     <One cohesive paragraph describing the complete end-to-end outcome and all relevant user-observable behavior.>
+
+## References
+
+- <Deduplicated, lexicographically sorted union of every inline path citation, or `None` when empty.>
 ```
 
 `<Backlog title>` is a human-readable title derived from `<backlog_name>` and product terminology.
@@ -69,7 +97,7 @@ Use exactly these eight top-level sections in this order:
 
 ### Background
 
-Include enough stable context to explain the product area and why the backlog exists. Do not narrate the generation process, mention scouts, cite conversations, or list repository evidence.
+Include enough stable context to explain the product area and why the backlog exists. Do not narrate the generation process, mention scouts, cite conversations, or list repository evidence. Qualifying citable paths may be included when needed to identify reference material.
 
 ### Intended Users
 
@@ -99,6 +127,10 @@ State meaningful exclusions needed to prevent scope ambiguity. Do not use this s
 
 Include only capabilities requiring work. The list is flat and ordered by product dependency followed by the natural user journey.
 
+### References
+
+The trailing `References` section lists every inline path-only citation, deduplicated and deterministically sorted (lexicographic). Index-only paths are prohibited — every entry must also appear inline. When there are no citations, the body is `None`. This section is the reader's index of the cited read-only non-codebase reference files.
+
 ## Feature Item Contract
 
 Every feature uses a zero-padded identifier, a concise title, and one detailed paragraph:
@@ -121,7 +153,7 @@ Rules:
 8. Describe the complete final outcome, including material happy and non-success paths.
 9. Include validation, rejection, permissions, empty states, recoverable failures, accessibility, security, privacy, reliability, or similar qualities when they materially affect the promised outcome.
 10. For a partially supported capability, describe the whole target behavior rather than only the missing delta.
-11. Exclude implementation details, files, paths, functions, tests, layers, APIs, data structures, migrations, and technical sequencing.
+11. Exclude implementation details, files, paths, functions, tests, layers, APIs, data structures, migrations, and technical sequencing. Qualifying path-only non-codebase citations are allowed in reference-aware mode.
 12. Do not add status, effort, risk, or priority labels unless priority is explicitly part of the supplied product context.
 
 ## Granularity Rules
@@ -169,16 +201,17 @@ Keep the following tokens unchanged:
 - `F001`, `F002`, and other feature identifiers.
 - Markdown checklist syntax.
 - The `No outstanding features` sentinel.
+- Required section headings.
 
 ## Durability Gate
 
-Before finalization, confirm that a reader can understand the full intended product outcome without access to:
+Before finalization, confirm that a reader or delegated agent can understand the full intended product outcome and recover the evidence behind every reference-grounded claim by reopening each cited non-codebase file, without access to:
 
-- Source code.
-- File paths.
+- Project source code under the resolved project root.
+- File paths, except the specific path-only citations.
 - Test files.
 - Scout reports.
 - The original conversation.
 - Implementation plans.
 
-If implementation changes while the desired outcome remains the same, `features.md` should still remain accurate.
+The cited non-codebase files are the evidence-recovery mechanism; scout reports, progress logs, and the original conversation are not. If implementation changes while the desired outcome remains the same, `features.md` should still remain accurate while the cited non-codebase files are preserved.

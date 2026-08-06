@@ -42,7 +42,7 @@ flowchart TD
 2. Resolve mode. Ask for `default` or `tdd` whenever no explicit mode is supplied.
 3. Inspect `git status`. Existing changes must be handled by asking the user to commit, stash, or stop. Begin only with a clean tree; pre-existing `_xzy-ai/` planning changes are excluded.
 4. Read the selected phase, architecture guidance, repository instructions, source patterns, and relevant tests.
-5. Implement directly in the current checkout.
+5. Implement directly in the project root checkout.
 6. For functional phases, add or update tests. For scaffolding, run applicable syntax/build/config checks.
 7. Run normal project verification. If no command is identifiable, try build, lint, typecheck, then a user-defined command. Ask if none applies.
 8. Retry failing verification up to three self-fix attempts. Stop and ask after the third failure.

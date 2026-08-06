@@ -7,7 +7,9 @@ description: |
 
 # Implement
 
-This skill implements exactly one phase directly. The host performs all codebase discovery, architecture reading, third-party documentation research, implementation, testing, and plan updates itself. The bundled `impl-reviewer` agent verifies acceptance criteria in the current checkout before the phase commit; nothing else is delegated.
+This skill implements exactly one phase directly. The host performs all codebase discovery, architecture reading, third-party documentation research, implementation, testing, and plan updates itself. The bundled `impl-reviewer` agent verifies acceptance criteria in the project root checkout before the phase commit; nothing else is delegated.
+
+The project root is resolved from `_xzy-ai/project-root.md` at the workspace root (current working directory): the file holds exactly one `<cwd>`-relative path (forward slashes, no leading `/`, no `.` or `..` segments) that resolves to a directory inside `<cwd>`, and the codebase under development lives at `<cwd>/<entry>`. All implementation, verification, and commits happen inside the project root. Files outside the project root (for example `references/`) are read-only reference material and are never modified by this skill or its reviewer.
 
 This is the direct, lightweight counterpart to `dispatch-for-implementation`:
 
@@ -37,7 +39,7 @@ Do not run this skill for:
 ## Core Invariants
 
 1. The host implements directly. The only bundled agent is `impl-reviewer`, which runs the acceptance gate; no other subagents or delegation.
-2. Work in the current checkout. No git worktrees are created.
+2. First resolve the project root from `<cwd>/_xzy-ai/project-root.md`. Work in the project root checkout. No git worktrees are created.
 3. The only review gate is `impl-reviewer`, run before the phase commit, in addition to the host's own verification with normal project commands.
 4. The `impl-reviewer` gate runs before every phase commit for both native `plan.md` and free-form phases. The host commits only after an `APPROVED` verdict; on `REJECTED` the host may fix findings and rerun the reviewer.
 5. One phase is the atomic unit. Execute exactly one phase per invocation.
@@ -63,15 +65,17 @@ See [MODE.md](./references/MODE.md).
 
 ### Native `generate-plan` plan.md
 
-A native plan has this path shape:
+A native plan has this path shape relative to the workspace root:
 
 ```text
 _xzy-ai/sprints/<backlog>/plans/features/<NNN>/plan.md
 ```
 
+The plan lives under `_xzy-ai/` at the workspace root, while the codebase lives at the resolved project root. Read the plan from the workspace root, but implement only inside the project root; never modify files under `_xzy-ai/` beyond the plan's acceptance-criteria checkboxes.
+
 Handling rules:
 
-1. Find candidate plans. If exactly one plan exists in the repository, use it. If multiple candidate plans exist and the user named none, ask which feature/plan to implement.
+1. Find candidate plans. If exactly one plan exists in the workspace, use it. If multiple candidate plans exist and the user named none, ask which feature/plan to implement.
 2. Extract the backlog name, feature number, and feature name from the path.
 3. Extract architectural decisions for background.
 4. Extract each `## Phase N` section as one phase.
@@ -91,19 +95,22 @@ For non-plan input:
 
 Before implementing:
 
-1. Verify the working tree. If uncommitted changes exist, ask the user whether to commit them, stash them, or stop. The working tree must be clean before implementation begins. Pre-existing changes under `_xzy-ai/` are planning artifacts and are excluded from this requirement.
-2. Confirm the mode when not explicitly supplied (`default` or `tdd`).
-3. Read the phase content: user stories covered, what to build, and acceptance criteria.
-4. Read `_xzy-ai/architecture.md` when present.
-5. Perform codebase discovery directly: existing patterns, tests, commands, and conventions. The host owns this — it is not a violation of any restriction.
-6. If relevant internal guidance is unavailable, research third-party packages with official documentation and verify latest stable versions before use.
+1. Resolve the project root from `<cwd>/_xzy-ai/project-root.md`: the file holds exactly one `<cwd>`-relative entry (forward slashes, no leading `/`, no `.` or `..` segments) resolving to a directory inside `<cwd>`. If it is missing, empty, or malformed, ask the user to correct it. Do not guess.
+2. Verify the working tree inside the project root. If uncommitted changes exist, ask the user whether to commit them, stash them, or stop. The project-root working tree must be clean before implementation begins. Pre-existing changes under the workspace-root `_xzy-ai/` are planning artifacts and are excluded from this requirement.
+3. Confirm the mode when not explicitly supplied (`default` or `tdd`).
+4. Read the phase content: user stories covered, what to build, and acceptance criteria.
+5. Read `<workspace_root>/_xzy-ai/architecture.md` when present.
+6. Perform codebase discovery directly inside the project root: existing patterns, tests, commands, and conventions. The host owns this — it is not a violation of any restriction.
+7. If relevant internal guidance is unavailable, research third-party packages with official documentation and verify latest stable versions before use.
+
+Treat every file outside the project root (including `references/`) as read-only reference material; never create, modify, move, rename, or delete files there. Project code paths cited in the plan are workspace-root-relative pointers into the project root; map them when implementing.
 
 ## Implementation
 
 1. Classify the phase from its acceptance criteria:
    - `functional`: any criterion describes observable behavior, validation, state, failure handling, integration, user-visible behavior, or business logic.
    - `scaffolding`: criteria describe only file structure, boilerplate, placeholders, configuration shape, or non-functional skeletons.
-2. Implement the phase directly in the current checkout.
+2. Implement the phase directly in the project root checkout.
 3. Testing rules:
    - Functional phases must include tests or a clear project-appropriate verification path in both modes.
    - Scaffolding phases do not require tests but must pass relevant syntax/build/config checks when available.
@@ -133,11 +140,12 @@ Run the bundled `impl-reviewer` agent after verification passes and before any p
 Delegate to `impl-reviewer` with:
 
 - `baseline_sha` — the HEAD SHA recorded before implementation began.
+- `project_root` — the absolute project codebase root resolved from `_xzy-ai/project-root.md`.
 - The source `plan.md` path when one exists, otherwise the phase contract (user stories, what to build, acceptance criteria).
 - Phase metadata: backlog, feature number, phase number.
 - The mode (`default` or `tdd`).
 
-The reviewer inspects `git diff <baseline_sha>...HEAD`, the uncommitted `git diff`, and `git log --oneline <baseline_sha>..HEAD`, plus full relevant project state and project verification commands. It may directly fix only Minor/Trivial findings. The verdict is returned inline — no artifacts are written.
+The reviewer inspects `git diff <baseline_sha>...HEAD`, the uncommitted `git diff`, and `git log --oneline <baseline_sha>..HEAD` inside the project root, plus full relevant project state and project verification commands. It may directly fix only Minor/Trivial findings. The verdict is returned inline — no artifacts are written.
 
 On `APPROVED`, proceed to the commit rules. On `REJECTED`, the host fixes Blocker/Critical/Major findings, re-runs verification, and reruns the reviewer; repeat until approved or the host is blocked and must ask the user how to proceed.
 
@@ -147,7 +155,7 @@ Reviewer direct fixes (Minor/Trivial) remain in the working tree and are include
 
 ## Commit Rules
 
-All commits are created directly on the current branch.
+All commits are created directly on the current branch of the project-root repository.
 
 Commit messages follow the feature-scoped template with mode state:
 
@@ -192,4 +200,4 @@ See [WORKFLOW.md](./references/WORKFLOW.md).
 
 | Agent | Role | Primary output |
 |---|---|---|
-| `impl-reviewer` | Acceptance-criteria gate; verifies the host-implemented phase in the current checkout before the phase commit. | Inline `APPROVED`/`REJECTED` verdict (no files written) |
+| `impl-reviewer` | Acceptance-criteria gate; verifies the host-implemented phase in the project root checkout before the phase commit. | Inline `APPROVED`/`REJECTED` verdict (no files written) |
