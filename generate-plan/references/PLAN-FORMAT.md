@@ -10,7 +10,7 @@ It becomes canonical current output after the host writes it, re-reads it, verif
 
 ## Purpose
 
-`plan.md` communicates a practical multi-phase implementation plan for exactly one feature. It must be independently understandable without reopening the source conversation, scout reports, or progress log; it may rely on the specific read-only reference files cited under the citable non-codebase path rule.
+`plan.md` communicates a practical multi-phase implementation plan for exactly one feature. It must be independently understandable without reopening the source conversation or the project source tree; it may rely on the specific files cited under the citable path rule.
 
 The plan uses tracer-bullet vertical slices: each phase delivers a narrow, complete, verifiable path through all relevant integration layers. It should read like the existing `to-plan` output while fitting the `_xzy-ai` sprint artifact structure.
 
@@ -24,19 +24,19 @@ Before working with citations, resolve the project codebase root from `<cwd>/_xz
 
 ## File Path References
 
-The plan may contain workspace-root-relative file paths only in canonical, path-only form (for example `references/codex/codex-rs/config/src/state.rs`), referencing files that live under the workspace root and outside the project root and outside `_xzy-ai/`. Such paths must:
+The plan may contain workspace-root-relative or absolute file paths in canonical, path-only form (for example `references/codex/codex-rs/config/src/state.rs` or `/Users/example/docs/contract.md`), referencing regular files outside the project root. Such paths must:
 
-- Use forward slashes with no leading `./` or `/`, and no `.` or `..` segments.
-- Resolve to an existing regular file, not a directory. Symlinks are allowed only when they resolve to a regular file within the citable scope.
+- Relative paths use forward slashes with no leading `./`, `/`, or `..` segments; absolute paths use forward slashes.
+- Resolve to an existing regular file, not a directory. Symlinks are allowed only when they resolve to a regular file outside the project root.
 - Be **path-only** in the final artifact: no line numbers, no line ranges, and no symbols are included. The coordinator re-expresses scout `path:line` evidence as durable prose plus the stable path; line-level and symbol detail stays inside scout reports and is not carried verbatim into `plan.md`.
 
 Citations are **relevance-based**, not a fixed count: cite a path inline wherever a referenced file provides context, behavior, architecture, an implementation pattern, or other evidence that grounds a claim (Architectural decisions, phase "What to build", phase acceptance criteria that depend on reference seams, and similar). Provenance-only citations (the Source blockquote or a notes area) do not satisfy the requirement when substantive evidence exists.
 
-Every inline citation also appears in the trailing `## References` section (see below). All other file paths — absolute paths, `./...`, anything under the project root, anything under `_xzy-ai/`, and directory paths — remain prohibited. Citable reference locations are read-only input: the generator and scouts never create, modify, move, rename, or delete files in them.
+Every inline citation also appears in the trailing `## References` section (see below). All other file paths — relative paths containing `.` or `..` segments, anything under the project root, and directory paths — remain prohibited. Cited files are read-only inputs to the current workflow; a workflow may still manage its own declared output paths.
 
-**Reference-aware mode:** enter reference-aware mode only when the user explicitly asks to use references. Do not enter it automatically merely because citable reference material exists under the workspace root outside the project root and workflow artifacts. In reference-aware mode, embed relevant path citations throughout wherever referenced files provide evidence. If no citable material exists and the user did not require it, generate normally with no citations required. If the user explicitly requires citations but no citable material exists, reject the request rather than proceeding without it.
+**Reference-aware mode:** enter reference-aware mode only when the user explicitly asks to use references. Do not enter it automatically merely because citable material exists outside the project root. In reference-aware mode, embed relevant path citations throughout wherever referenced files provide evidence. If no citable material exists and the user did not require it, generate normally with no citations required. If the user explicitly requires citations but no citable material exists, reject the request rather than proceeding without it.
 
-**Path validity:** path validity rests on the current-round scout reports the coordinator trusts. Scouts verify each cited path resolves to an existing regular file under the workspace root and outside the project root and `_xzy-ai/` before writing their reports; the coordinator does not re-resolve citation paths at write time. A path that does not resolve, or that falls under the project root or `_xzy-ai/`, is a format and durability defect.
+**Path validity:** path validity rests on the current-round scout reports the coordinator trusts. Scouts verify each cited path resolves to an existing regular file outside the project root before writing their reports; the coordinator does not re-resolve citation paths at write time. A path that does not resolve, or that falls under the project root, is a format and durability defect.
 
 ## Required Structure
 
@@ -143,7 +143,7 @@ When generated from clarified conversation only, use a durable logical source su
 > Source: clarified conversation for F003
 ```
 
-Do not cite scout reports, progress logs, or file paths under the project root or `_xzy-ai/` in the final plan; qualifying citable reference paths remain permitted under the File Path References rule. The Source blockquote itself must remain a durable logical source identifier and must not carry file paths of any kind.
+Do not cite file paths under the project root in the final plan; qualifying citable paths, including scout reports and progress logs when relevant, remain permitted under the File Path References rule. The Source blockquote itself must remain a durable logical source identifier and must not carry file paths of any kind.
 
 ### Architectural decisions
 
@@ -161,7 +161,7 @@ Rules:
 
 1. Keep decisions durable and contract-level.
 2. Include stable product or system names when useful.
-3. Do not include file paths except qualifying `references/` paths; keep concrete function signatures, code snippets, and scout citations prohibited.
+3. Do not include file paths except qualifying workspace-root-relative or absolute paths outside the project root; keep concrete function signatures and code snippets prohibited.
 4. Do not include unresolved alternatives or open questions.
 5. Label decisions as proposed when greenfield mode means no existing implementation evidence exists.
 
@@ -232,11 +232,9 @@ Keep the following tokens unchanged:
 Before finalization, confirm that a reader can understand the implementation sequence without access to:
 
 - Project source code under the resolved project root.
-- File paths, except the specific citable reference paths cited in the plan.
-- Scout reports.
-- Progress logs.
+- File paths, except the specific citable paths cited in the plan.
 - The original conversation.
 
-The cited non-codebase files are the evidence-recovery mechanism for reference-grounded claims. A reader or delegated agent must be able to re-open every cited file and recover the evidence behind those claims without scout reports, progress logs, or the original conversation. Citations in the final plan are path-only; the plan must preserve enough durable prose to explain what each cited file establishes.
+The cited files are the evidence-recovery mechanism for reference-grounded claims. A reader or delegated agent must be able to re-open every cited file and recover the evidence behind those claims without access to the project root or the original conversation. Citations in the final plan are path-only; the plan must preserve enough durable prose to explain what each cited file establishes.
 
-If project implementation file organization changes while the intended behavior and stable contracts remain the same, `plan.md` should remain useful. The plan remains useful while the cited non-codebase files are preserved.
+If project implementation file organization changes while the intended behavior and stable contracts remain the same, `plan.md` should remain useful while the cited files are preserved.

@@ -60,7 +60,7 @@ REJECTED: invalid input: <reason>
 
 You may:
 
-- Read and search files inside `workspace_root`.
+- Read and search files on the machine when needed for the delegated evidence scope.
 - Inspect the project codebase root (`project_root`), including uncommitted changes.
 - Run non-mutating commands needed to establish current behavior.
 - Run focused existing validation or test commands when they do not modify project state.
@@ -70,12 +70,11 @@ You may:
 You must not:
 
 - Modify source code, tests, documentation, configuration, dependencies, lockfiles, generated product artifacts, or progress state.
-- Modify any file outside the project root, including citable reference material under the workspace root.
-- Write any file other than `report_path`.
+- Modify any file other than `report_path` (citation source files are read-only evidence; never modify them).
 - Install packages or change dependency state.
 - Run formatters, fixers, migrations, generators, builds, or tests that mutate tracked files or persistent project state.
 - Commit, branch, stash, reset, checkout, merge, or otherwise change Git state.
-- Access files outside `workspace_root`.
+- Access files outside `workspace_root` only for read-only citation evidence; never modify them.
 - Write `spec.md`.
 - Write `progress.md`.
 - Write revision files.
@@ -161,7 +160,7 @@ Begin every report with:
 1. Validate every required input and path rule.
 2. Parse the exact questions to resolve.
 3. Define the evidence needed to answer each question.
-4. Confirm that all investigation and output remain within `workspace_root`.
+4. Confirm that all investigation and output remain within `workspace_root` (read-only citation evidence outside it is allowed).
 
 ### Phase 2: Map relevant context
 
@@ -200,12 +199,12 @@ Begin every report with:
 
 Technical evidence is expected in scout reports.
 
-For reference-material evidence (read-only sources outside the project root and `_xzy-ai/`, for example under `references/`), write citations in the canonical workspace-root-relative form `<path>:<line-range>`:
+For reference-material evidence, write either a canonical workspace-root-relative citation `<path>:<line-range>` or an absolute citation `<absolute-path>:<line-range>`:
 
-- Resolve to a workspace-root-relative base first, then cite from there. For example, Codex sources under `references/codex/codex-rs/` are cited as `references/codex/codex-rs/config/src/state.rs:155-169`, never as a bare repo-internal path.
-- Use forward slashes with no leading `./` or `/`, and no `.` or `..` segments.
+- Relative paths use forward slashes with no leading `./`, `/`, or `..` segments.
+- Absolute paths use forward slashes and must resolve outside the project root.
 - Include a line number or line range whenever available.
-- Before writing the report, verify that every cited reference-material path resolves to an existing regular file under the workspace root, outside the project root and `_xzy-ai/`. Symlinks are allowed only when they resolve to a regular file within the citable scope.
+- Before writing the report, verify every cited reference-material path resolves to an existing regular file outside the project root. Symlinks are allowed only when they resolve to a regular file outside the project root.
 - Retain precise `path:line` and symbol names internally in the report; the coordinator re-expresses project-root (codebase) evidence as durable prose and feature identifiers in the final spec.
 
 For source evidence (under the project root), include:
@@ -232,7 +231,7 @@ Never claim that a file's existence alone proves behavior.
 
 ### Canonical reference paths
 
-- Produce canonical path citations only for reference-material files outside the project root and `_xzy-ai/`, verified as existing regular files (symlink rule above) before the report is written.
+- Produce workspace-relative or absolute path citations only for reference-material files outside the project root, verified as existing regular files (symlink rule above) before the report is written.
 - Never fabricate a citation: if the evidence does not exist, record the finding without a citation and note the gap.
 
 ## Output
@@ -269,10 +268,10 @@ The report on disk is canonical. Do not return its content inline.
 3. Keep current behavior distinct from desired behavior.
 4. Triangulate evidence and give greatest weight to reachable behavior.
 5. Record technical implementation details comprehensively in the scout report.
-6. Do not leak file paths under the project root or `_xzy-ai/` into `spec.md`; qualifying reference-material citations must be verified to resolve to existing regular files under the workspace root and outside the project root and `_xzy-ai/` (symlinks only when they resolve to a regular file within the citable scope). Keep concrete signatures, code snippets, and scout citations prohibited; you never write that artifact. Only the current round's scout reports feed final artifacts; do not silently reuse prior-round or stale reports.
+6. Do not leak file paths under the project root into `spec.md`; qualifying reference-material citations must be verified to resolve to existing regular files outside the project root (symlinks only when they resolve to a regular file outside the project root). Keep concrete signatures and code snippets prohibited; you never write that artifact. Only the current round's scout reports feed final artifacts; do not silently reuse prior-round or stale reports.
 7. Do not modify project state except the assigned report file.
 8. Do not write the coordinator's progress log.
-9. Do not leave the workspace root.
+9. Do not leave the workspace root for project discovery; read-only citation evidence outside it is allowed.
 10. Do not fabricate evidence or conceal uncertainty.
 11. A `completed` report may contain conflicts or unknowns when those findings are well-evidenced.
 12. A `blocked` report is mandatory when operational constraints prevent adequate discovery.

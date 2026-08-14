@@ -10,7 +10,7 @@ It becomes immutable after the first write is re-read, verified, and recorded by
 
 ## Purpose
 
-`features.md` communicates the durable target behavior that still requires work. It is independently understandable without reopening the source conversation or reading technical scout reports; it may rely on the specific read-only non-codebase reference files cited under the citable path rule.
+`features.md` communicates the durable target behavior that still requires work. It is independently understandable without reopening the source conversation or the project source tree; it may rely on the specific files cited under the citable path rule.
 
 It must not include implementation evidence, assumptions, open questions, tentative scope, or technical decomposition.
 
@@ -24,19 +24,19 @@ Before working with citations, resolve the project codebase root from `<cwd>/_xz
 
 ## File Path References
 
-The artifact may contain workspace-root-relative file paths only in canonical, path-only form (for example `references/legacy-payments/src/service.ts`), referencing files that live under the workspace root and outside the project root and outside `_xzy-ai/`. Such paths must:
+The artifact may contain workspace-root-relative or absolute file paths in canonical, path-only form (for example `references/legacy-payments/src/service.ts` or `/Users/example/product-brief.md`), referencing regular files outside the project root. Such paths must:
 
-- Use forward slashes with no leading `./` or `/`, and no `.` or `..` segments.
+- Relative paths use forward slashes with no leading `./`, `/`, or `..` segments; absolute paths use forward slashes.
 - Be path-only in the final artifact: no line number and no symbol, for maximal stability.
-- Resolve to an existing regular file, not a directory. Symlinks are allowed only when they resolve to a regular file within the citable scope.
+- Resolve to an existing regular file, not a directory. Symlinks are allowed only when they resolve to a regular file outside the project root.
 
 Qualifying paths are permitted inline anywhere content warrants them, including Background, Desired Outcome, Goals, In Scope, and feature descriptions. In reference-aware mode (entered only when the user explicitly asks to use references as a source of truth), relevant qualifying citations must appear inline throughout the substantive sections wherever referenced files provide evidence, and not only as provenance in a notes area.
 
-All other file paths — absolute paths, `./...`, anything under the project root, anything under `_xzy-ai/`, and directory paths — remain prohibited. Citable reference locations are read-only input: the generator and scouts never create, modify, move, rename, or delete files in them.
+All other file paths — relative paths with `.` or `..` segments, anything under the project root, and directory paths — remain prohibited. Cited files are read-only inputs to the current workflow; a workflow may still manage its own declared output paths.
 
 Every inline citation is collected in the trailing `## References` section, which lists the deduplicated, deterministically sorted (lexicographic) union of all inline citations. Index-only paths are prohibited: every entry in `## References` must also appear inline. When there are no citations, the section body is `None`; the section itself is always present.
 
-Path validity rests on the current-round scout reports, which scouts verify before writing (each cited path is confirmed to resolve to an existing regular file under the workspace root, outside the project root and `_xzy-ai/`). The coordinator trusts those reports and does not re-resolve citation paths at write time. A path that was not verified by a current-round scout report, or that falls under the project root or `_xzy-ai/`, is a format and durability defect; the artifact remains valid while the cited non-codebase files are preserved.
+Path validity rests on the current-round scout reports, which scouts verify before writing (each cited path is confirmed to resolve to an existing regular file outside the project root). The coordinator trusts those reports and does not re-resolve citation paths at write time. A path that was not verified by a current-round scout report, or that falls under the project root, is a format and durability defect; the artifact remains valid while the cited files are preserved.
 
 ## Required Structure
 
@@ -129,7 +129,7 @@ Include only capabilities requiring work. The list is flat and ordered by produc
 
 ### References
 
-The trailing `References` section lists every inline path-only citation, deduplicated and deterministically sorted (lexicographic). Index-only paths are prohibited — every entry must also appear inline. When there are no citations, the body is `None`. This section is the reader's index of the cited read-only non-codebase reference files.
+The trailing `References` section lists every inline path-only citation, deduplicated and deterministically sorted (lexicographic). Index-only paths are prohibited — every entry must also appear inline. When there are no citations, the body is `None`. This section is the reader's index of the cited files.
 
 ## Feature Item Contract
 
@@ -153,7 +153,7 @@ Rules:
 8. Describe the complete final outcome, including material happy and non-success paths.
 9. Include validation, rejection, permissions, empty states, recoverable failures, accessibility, security, privacy, reliability, or similar qualities when they materially affect the promised outcome.
 10. For a partially supported capability, describe the whole target behavior rather than only the missing delta.
-11. Exclude implementation details, files, paths, functions, tests, layers, APIs, data structures, migrations, and technical sequencing. Qualifying path-only non-codebase citations are allowed in reference-aware mode.
+11. Exclude implementation details, files, paths under the project root, functions, tests, layers, APIs, data structures, migrations, and technical sequencing. Qualifying path-only files cited outside the project root are allowed in reference-aware mode.
 12. Do not add status, effort, risk, or priority labels unless priority is explicitly part of the supplied product context.
 
 ## Granularity Rules
@@ -205,13 +205,11 @@ Keep the following tokens unchanged:
 
 ## Durability Gate
 
-Before finalization, confirm that a reader or delegated agent can understand the full intended product outcome and recover the evidence behind every reference-grounded claim by reopening each cited non-codebase file, without access to:
+Before finalization, confirm that a reader or delegated agent can understand the full intended product outcome and recover the evidence behind every reference-grounded claim by reopening each cited file, without access to:
 
 - Project source code under the resolved project root.
 - File paths, except the specific path-only citations.
-- Test files.
-- Scout reports.
 - The original conversation.
 - Implementation plans.
 
-The cited non-codebase files are the evidence-recovery mechanism; scout reports, progress logs, and the original conversation are not. If implementation changes while the desired outcome remains the same, `features.md` should still remain accurate while the cited non-codebase files are preserved.
+The cited files are the evidence-recovery mechanism. If implementation changes while the desired outcome remains the same, `features.md` should still remain accurate while the cited files are preserved.
