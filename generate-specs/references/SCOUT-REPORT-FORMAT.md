@@ -6,7 +6,7 @@ Every `spec-scout` writes one canonical technical evidence report to:
 _xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/scouts/round-<RRR>/<topic>.md
 ```
 
-The report exists for analysis, auditability, and resume. It may contain implementation details and source references, but those details must not be copied into the finalized `spec.md` as file paths under the project root or `_xzy-ai/`, concrete function signatures, code snippets, or scout citations.
+The report exists for analysis, auditability, and resume. It may contain implementation details and source references, but those details must not be copied into the finalized `spec.md` as project-root file paths, concrete function signatures, code snippets, or scout citations.
 
 ## Required Template
 
@@ -158,8 +158,8 @@ Do not mark a report blocked merely because the feature is currently unsupported
 
 1. Prefer reachable behavior over isolated implementation artifacts.
 2. Corroborate claims with behavioral tests, documentation, configuration, and integrations where available.
-3. For reference-material evidence, cite only read-only sources outside the project root and `_xzy-ai/` in the canonical workspace-root-relative form `<path>:<line-range>`, using a per-reference-repo base resolution. For example, Codex sources under `references/codex/codex-rs/` are cited as `references/codex/codex-rs/config/src/state.rs:155-169`, never as a bare repo-internal path. Use forward slashes and no leading `./` or `/`, and no `.` or `..` segments.
-4. Before writing the report, verify that every cited reference-material path resolves to an existing regular file under the workspace root, outside the project root and `_xzy-ai/`. Symlinks are allowed only when they resolve to a regular file within the citable scope.
+3. For reference-material evidence, cite only sources outside the project root in either the canonical workspace-root-relative form `<path>:<line-range>` or absolute form `<absolute-path>:<line-range>`. For example, Codex sources under `references/codex/codex-rs/` are cited as `references/codex/codex-rs/config/src/state.rs:155-169`. Relative paths use forward slashes with no leading `./` or `/`, and no `.` or `..` segments.
+4. Before writing the report, verify that every cited reference-material path resolves to an existing regular file outside the project root. Symlinks are allowed only when they resolve to a regular file outside the project root.
 5. Include workspace-relative `path:line` or `path:line-range` references for target-codebase evidence whenever possible; these precise paths may stay in the report (a working artifact) but must be understood as NOT carried verbatim into the final `spec.md` — the coordinator re-expresses them as durable prose and feature identifiers.
 6. Include precise symbols such as functions, classes, routes, commands, test names, or configuration keys.
 7. Explain what each reference proves and what it does not prove.

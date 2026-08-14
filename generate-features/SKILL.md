@@ -105,7 +105,7 @@ The active workspace is the current working directory (`<cwd>`). Before any disc
 4. Use the project root as the only codebase for repository discovery and pass its absolute path to scouts as `project_root`.
 5. If `project-root.md` is missing, empty, malformed, or points outside `<cwd>`, pause and ask the user to correct it. Do not guess the project root.
 
-Reference-aware behavior is manual: the workflow enters reference-aware mode only when the user explicitly asks to use references as a source of truth. Citable material may be anywhere under `<cwd>` except the project root and `_xzy-ai/` (which holds scout reports, progress logs, and generated workflow artifacts). Final citations use normalized `<cwd>`-relative paths with forward slashes, no `.` or `..` segments, and resolve to existing regular files verified by current-round scouts. Citable material is read-only.
+Reference-aware behavior is manual: the workflow enters reference-aware mode only when the user explicitly asks to use references as a source of truth. Citable material may be anywhere on the machine except inside the project codebase root resolved from `_xzy-ai/project-root.md`. Final citations may use either workspace-root-relative paths (forward slashes, no `.` or `..` segments) or absolute paths, and must resolve to existing regular files verified by current-round scouts. Cited files are read-only inputs to the current workflow; a workflow may still manage its own declared output paths.
 
 ## Reference-Aware Mode
 
@@ -113,9 +113,8 @@ Reference-aware mode is a scope of how the final `features.md` cites evidence. I
 
 ### Citation scope
 
-- Only files under the workspace root and outside the project codebase root (resolved from `_xzy-ai/project-root.md`) and outside `_xzy-ai/` may be cited in the final `features.md`.
-- Paths under the project root, `AGENTS.md`, `ROADMAP.md`, `_xzy-ai/`, scout reports, and progress logs are prohibited in the final `features.md`.
-- Citable reference locations are read-only: neither the host nor scouts ever create, modify, move, rename, or delete files in them.
+- Any regular file outside the project codebase root (resolved from `_xzy-ai/project-root.md`) may be cited in the final `features.md`, using a workspace-root-relative or absolute path.
+- Citable files are read-only inputs to the current workflow: neither the host nor scouts modify, move, rename, or delete them, except each workflow's own declared outputs.
 
 ### Driving signal
 
@@ -124,7 +123,7 @@ Reference-aware mode is a scope of how the final `features.md` cites evidence. I
 
 ### Behavior by context
 
-- If the user explicitly asks to use references → enter reference-aware mode: include relevant workspace-root-relative path citations inline wherever referenced files provide product context, background, desired outcome, goals, scope, or capability evidence. Preserve any additional user instructions or notes verbatim (for example "create an original version in our project to avoid copyright issues") in the References section area or as durable prose, and in progress/generation notes.
+- If the user explicitly asks to use references → enter reference-aware mode: include relevant workspace-root-relative or absolute path citations inline wherever referenced files provide product context, background, desired outcome, goals, scope, or capability evidence. Preserve any additional user instructions or notes verbatim (for example "create an original version in our project to avoid copyright issues") in the References section area or as durable prose, and in progress/generation notes.
 - If reference-aware mode is active but investigation finds NO relevant evidence → report this to the user and ask how to proceed (continue without citations / add reference material first / other). Do not fabricate citations.
 - If the user explicitly REQUIRES citations but no citable material exists → reject the request rather than proceeding without it.
 
@@ -439,7 +438,7 @@ Before writing `features.md`, verify all of the following:
 #### Durability
 
 - No section of `features.md` cites files, paths, functions, tests, configuration, layers, APIs, or other implementation artifacts, except qualifying path-only citations in reference-aware mode.
-- Every inline citation is a qualifying workspace-root-relative path outside the project root and `_xzy-ai/`, and every cited path was verified by a current-round scout report.
+- Every inline citation is a qualifying workspace-root-relative or absolute path outside the project root, and every cited path was verified by a current-round scout report.
 - The trailing `## References` section equals the deduplicated, lexicographically sorted union of all inline citations and contains no index-only paths; its body is `None` when there are no citations.
 - In reference-aware mode, evidence-backed substantive sections carry nearby path citations.
 - No feature is framed as a technical task or implementation delta.
@@ -536,7 +535,7 @@ Do not repeat the feature list in chat.
 4. Do not modify source code, tests, configuration, dependencies, or unrelated project artifacts.
 5. Delete only stale scout reports during a fresh workflow round.
 6. Preserve scout reports after finalization.
-7. Keep `features.md` entirely free of implementation evidence; only qualifying workspace-root-relative path citations outside the project root and `_xzy-ai/` may be cited, path-only and in reference-aware mode, with the trailing `## References` index as the deduplicated sorted union of inline citations.
+7. Keep `features.md` entirely free of implementation evidence; only qualifying workspace-root-relative or absolute path citations outside the project root may be cited, path-only and in reference-aware mode, with the trailing `## References` index as the deduplicated sorted union of inline citations.
 8. Keep feature descriptions outcome-focused, end-to-end, flat, and durable.
 9. Only the main host writes `feats/progress.md`.
 10. Do not exceed five scout invocations per wave, three waves, or fifteen invocations per authorized discovery cycle; run a wave concurrently only when supported.

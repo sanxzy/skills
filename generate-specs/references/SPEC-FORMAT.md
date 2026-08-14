@@ -10,9 +10,9 @@ It becomes canonical current output only after the host writes it, re-reads it, 
 
 ## Purpose
 
-`spec.md` communicates the complete final behavior contract for exactly one feature. It must be independently understandable without reopening the source conversation, scout reports, or progress log; it may rely on the specific read-only non-codebase reference files cited under the citable path rule.
+`spec.md` communicates the complete final behavior contract for exactly one feature. It must be independently understandable without reopening the source conversation or the project source tree; it may rely on the specific files cited under the citable path rule.
 
-The spec may include module-level, interface-level, data-contract, API-contract, and testing-seam decisions, but it must not include concrete function signatures, code snippets, scout citations, unresolved alternatives, or open questions.
+The spec may include module-level, interface-level, data-contract, API-contract, and testing-seam decisions, but it must not include concrete function signatures, code snippets, unresolved alternatives, or open questions.
 
 ## Project Root Resolution
 
@@ -24,19 +24,19 @@ Before working with citations, resolve the project codebase root from `<cwd>/_xz
 
 ## File Path References
 
-The spec may contain workspace-root-relative file paths only in canonical, path-only form (for example `references/legacy-payments/src/service.ts`), referencing files that live under the workspace root and outside the project root and outside `_xzy-ai/`. Such paths must:
+The spec may contain workspace-root-relative or absolute file paths in canonical, path-only form (for example `references/legacy-payments/src/service.ts` or `/Users/example/contracts.md`), referencing regular files outside the project root. Such paths must:
 
-- Use forward slashes with no leading `./` or `/`, and no `.` or `..` segments.
+- Relative paths use forward slashes with no leading `./`, `/`, or `..` segments; absolute paths use forward slashes.
 - Be path-only in the final artifact: no line number and no symbol, for maximal stability.
-- Resolve to an existing regular file, not a directory. Symlinks are allowed only when they resolve to a regular file within the citable scope.
+- Resolve to an existing regular file, not a directory. Symlinks are allowed only when they resolve to a regular file outside the project root.
 
 Qualifying paths are permitted inline anywhere content warrants them, including context, stories, and implementation guidance. In reference-aware mode (entered only when the user explicitly asks to use references as a source of truth), relevant qualifying citations must appear inline throughout the substantive sections wherever referenced files provide evidence — Implementation Decisions, Testing Decisions, stories/criteria, and other sections — and not only as provenance in Further Notes.
 
-All other file paths — absolute paths, `./...`, anything under the project root, anything under `_xzy-ai/`, and directory paths — remain prohibited. Citable reference locations are read-only input: the generator and scouts never create, modify, move, rename, or delete files in them.
+All other file paths — relative paths with `.` or `..` segments, anything under the project root, and directory paths — remain prohibited. Cited files are read-only inputs to the current workflow; a workflow may still manage its own declared output paths.
 
 Every inline citation is collected in the trailing `## References` section, which lists the deduplicated, deterministically sorted (lexicographic) union of all inline citations. Index-only paths are prohibited: every entry in `## References` must also appear inline. When there are no citations, the section body is `None`; the section itself is always present.
 
-Path validity rests on the current-round scout reports, which scouts verify before writing (each cited path is confirmed to resolve to an existing regular file under the workspace root, outside the project root and `_xzy-ai/`). The coordinator trusts those reports and does not re-resolve citation paths at write time. A path that was not verified by a current-round scout report, or that falls under the project root or `_xzy-ai/`, is a format and durability defect; the spec remains valid while the cited non-codebase files are preserved.
+Path validity rests on the current-round scout reports, which scouts verify before writing (each cited path is confirmed to resolve to an existing regular file outside the project root). The coordinator trusts those reports and does not re-resolve citation paths at write time. A path that was not verified by a current-round scout report, or that falls under the project root, is a format and durability defect; the spec remains valid while the cited files are preserved.
 
 ## Required Structure
 
@@ -114,7 +114,7 @@ Rules:
 
 Describe the unmet need or undesirable current state from the actor's perspective. Keep it focused on the one selected feature.
 
-Do not describe implementation tasks, repository evidence, or generation process. Qualifying citable paths may be included when needed to identify reference material.
+Do not describe implementation tasks or generation process. Qualifying citable paths may be included when needed to identify reference material.
 
 ### Solution
 
@@ -165,10 +165,10 @@ Rules:
 
 Record decided implementation-relevant contracts at durable prose level. Acceptable content includes:
 
-- Module or component responsibilities without file paths (except qualifying citable paths).
+- Module or component responsibilities without file paths (except qualifying workspace-relative or absolute citable paths).
 - Interface responsibilities without concrete signatures.
 - Data contracts and schema behavior without code snippets.
-- API contracts without concrete source references (except qualifying citable paths).
+- API contracts without concrete source references (except qualifying workspace-relative or absolute citable paths).
 - State transitions.
 - Integration behavior.
 - Permission, security, privacy, reliability, and failure-handling decisions.
@@ -178,10 +178,10 @@ Rules:
 
 1. Record one decided contract, not alternatives.
 2. Label decisions as proposed when greenfield mode means no existing implementation evidence exists.
-3. Do not include source file paths under the project root; qualifying non-codebase paths are allowed.
+3. Do not include source file paths under the project root; qualifying workspace-relative or absolute paths outside the project root are allowed.
 4. Do not include concrete function signatures.
 5. Do not include code snippets.
-6. Do not cite scout reports.
+6. Do not cite project-root source paths.
 7. In reference-aware mode, cite relevant reference-backed decisions inline with path-only citations.
 8. Do not include open questions.
 
@@ -200,7 +200,7 @@ Rules:
 1. Prefer existing seams over new seams.
 2. Prefer the highest usable seam.
 3. Test external behavior, not implementation details.
-4. Do not include source file paths or concrete test filenames under the project root; qualifying non-codebase paths are allowed as path-only inline citations in reference-aware mode.
+4. Do not include source file paths or concrete test filenames under the project root; qualifying workspace-relative or absolute paths outside the project root are allowed as path-only inline citations in reference-aware mode.
 5. Do not include commands unless needed as durable testing-contract prose; avoid repository-specific command transcripts.
 6. Do not leave testing alternatives unresolved.
 
@@ -220,11 +220,11 @@ Use only for:
 - Non-blocking observations that do not change behavior, scope, interfaces, data, failure handling, or testing seams.
 - Preservation of additional user-supplied reference instructions or notes verbatim (for example "create an original version in our project to avoid copyright issues").
 
-Except for qualifying citable paths, do not include artifact paths, scout-report citations, repository evidence, generation-process narration, open questions, tentative choices, or unresolved options.
+Except for qualifying citable paths, do not include project-root artifact paths, repository evidence, generation-process narration, open questions, tentative choices, or unresolved options.
 
 ### References
 
-The trailing `References` section lists every inline path-only citation, deduplicated and deterministically sorted (lexicographic). Index-only paths are prohibited — every entry must also appear inline. When there are no citations, the body is `None`. This section is the reader's index of the cited read-only non-codebase reference files.
+The trailing `References` section lists every inline path-only citation, deduplicated and deterministically sorted (lexicographic). Index-only paths are prohibited — every entry must also appear inline. When there are no citations, the body is `None`. This section is the reader's index of the cited files.
 
 ## Cross-feature Dependency Rules
 
@@ -248,14 +248,12 @@ Keep the following tokens unchanged:
 
 ## Durability Gate
 
-Before finalization, confirm that a reader or delegated agent can understand the selected feature's complete final behavior and recover the evidence behind every reference-grounded claim by reopening each cited non-codebase file, without access to:
+Before finalization, confirm that a reader or delegated agent can understand the selected feature's complete final behavior and recover the evidence behind every reference-grounded claim by reopening each cited file, without access to:
 
 - Project source code under the resolved project root.
 - File paths, except the specific path-only citations in the spec.
-- Scout reports.
-- Progress logs.
 - The original conversation.
 - Implementation plans.
 - Tickets.
 
-The cited non-codebase files are the evidence-recovery mechanism; scout reports, progress logs, and the original conversation are not. Current-round scouts verify cited paths before reporting, and the coordinator trusts that verification rather than re-resolving paths at write time. If implementation changes while the intended behavior remains the same, `spec.md` should remain accurate while the cited non-codebase files are preserved.
+The cited files are the evidence-recovery mechanism. Current-round scouts verify cited paths before reporting, and the coordinator trusts that verification rather than re-resolving paths at write time. If implementation changes while the intended behavior remains the same, `spec.md` should remain accurate while the cited files are preserved.

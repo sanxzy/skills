@@ -6,7 +6,7 @@ Every `feat-scout` writes one canonical technical evidence report to:
 _xzy-ai/sprints/<backlog_name>/feats/scouts/<topic>.md
 ```
 
-The report exists for analysis and auditability. It may contain implementation details, but none of those details may be copied into the finalized `features.md` as file paths under the project root or `_xzy-ai/`.
+The report exists for analysis and auditability. It may contain implementation details, but none of those details may be copied into the finalized `features.md` as project-root file paths.
 
 ## Required Template
 
@@ -180,8 +180,8 @@ Every status row must contain rationale and evidence.
 7. Distinguish documentation intent from verified current behavior.
 8. Do not treat a name, TODO, comment, stub, or dormant code path as proof of a supported capability.
 9. Record active-working-tree evidence when uncommitted changes affect the topic.
-10. For reference-material evidence, cite only read-only sources outside the project root and `_xzy-ai/` in the canonical workspace-root-relative form `<path>:<line-range>`, using a per-reference-repo base resolution. For example, sources under `references/codex/codex-rs/` are cited as `references/codex/codex-rs/config/src/state.rs:155-169`. Use forward slashes and no leading `./` or `/`, and no `.` or `..` segments.
-11. Before writing the report, verify that every cited reference-material path resolves to an existing regular file under the workspace root, outside the project root and `_xzy-ai/`. Symlinks are allowed only when they resolve to a regular file within the citable scope.
+10. For reference-material evidence, cite only sources outside the project root in either the canonical workspace-root-relative form `<path>:<line-range>` or absolute form `<absolute-path>:<line-range>`. For example, sources under `references/codex/codex-rs/` are cited as `references/codex/codex-rs/config/src/state.rs:155-169`. Relative paths use forward slashes with no leading `./` or `/`, and no `.` or `..` segments.
+11. Before writing the report, verify that every cited reference-material path resolves to an existing regular file outside the project root. Symlinks are allowed only when they resolve to a regular file outside the project root.
 12. Never fabricate a citation, command result, reachable path, or confidence level.
 13. Never include secret values, credentials, tokens, private keys, session material, personal data, or sensitive environment contents. Cite sensitive configuration keys by name and path only, redact values as `[REDACTED]`, and describe implications without reproducing protected data.
 

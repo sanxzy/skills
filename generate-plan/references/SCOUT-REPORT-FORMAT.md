@@ -6,7 +6,7 @@ The canonical scout report lives at:
 _xzy-ai/sprints/<backlog_name>/plans/features/<NNN>/scouts/round-<RRR>/<topic>.md
 ```
 
-`plan-scout` reports are technical evidence artifacts. They may include concrete file paths, symbols, tests, commands, and line references. The final `plan.md` must not leak brittle file paths under the project root or `_xzy-ai/`, function names, concrete signatures, code snippets, scout citations, or command transcripts.
+`plan-scout` reports are technical evidence artifacts. They may include concrete file paths, symbols, tests, commands, and line references. The final `plan.md` must not leak brittle file paths under the project root, function names, concrete signatures, code snippets, or command transcripts.
 
 ## Required Structure
 
@@ -57,7 +57,7 @@ Then include these sections in this exact order, using `None` for empty sections
 
 ## Project Root Resolution
 
-The scout receives `workspace_root` (absolute workspace root) and `project_root` (absolute project codebase root resolved from `_xzy-ai/project-root.md`). The project root is the mutable codebase under development; its contents are never cited in the final `plan.md`.
+The scout receives `workspace_root` (absolute workspace root) and `project_root` (absolute project codebase root resolved from `_xzy-ai/project-root.md`). The project root is the mutable codebase under development; its contents are never cited in the final `plan.md`, but any other regular file on the machine may be cited when relevant.
 
 ## Evidence Reference Rules
 
@@ -70,13 +70,13 @@ For source evidence (under the project root), include:
 - Function, class, route, command, configuration key, test name, or other precise symbol when relevant.
 - What the evidence proves or fails to prove.
 
-For reference-material evidence (read-only material outside the project root and `_xzy-ai/`, for example under `references/`), use the canonical workspace-root-relative form `<path>:<line-range>` with a per-reference-repo base resolution rule: the path inside the referenced repository (for example `config/src/state.rs`) is prefixed by its workspace-root-relative base (for example `references/codex/codex-rs/`), so a Codex source becomes `references/codex/codex-rs/config/src/state.rs:155-169`. No bare repo-internal paths are acceptable for reference-material evidence.
+For reference-material evidence, use either a canonical workspace-root-relative form `<path>:<line-range>` or an absolute path with an optional line range for regular files outside the project root. Relative paths use forward slashes with no leading `./`, `/`, or `..` segments. For repository-internal references, prefix the repository-relative path with its workspace-root-relative base when applicable. No bare repo-internal paths are acceptable.
 
-Before writing the report, the scout MUST verify every cited reference-material path resolves to an existing regular file under the workspace root and outside the project root and `_xzy-ai/`. Symlinks are allowed only when they resolve to a regular file within the citable scope. Do not fabricate citations: if a referenced file cannot be verified, record the claim without a citation and note the missing evidence in `Conflicts and Unknowns`.
+Before writing the report, the scout MUST verify every cited reference-material path resolves to an existing regular file outside the project root. Symlinks are allowed only when they resolve to a regular file outside the project root. Do not fabricate citations: if a referenced file cannot be verified, record the claim without a citation and note the missing evidence in `Conflicts and Unknowns`.
 
 Project-root (codebase) evidence may keep precise paths and symbols inside the scout report (reports are working artifacts), but the coordinator re-expresses that evidence in the final `plan.md` as durable prose plus feature identifiers — project-root paths are not carried into `plan.md` verbatim.
 
-Only the current round's scout reports provide citations for the final artifact; prior-round or stale reports must not be silently reused. Scout reports retain precise `path:line` and symbol names internally even though the final plan cites only path-only non-codebase entries.
+Only current-round evidence that the coordinator intentionally uses should feed the final artifact; prior-round or stale evidence must not be silently reused. Scout reports retain precise `path:line` and symbol names internally even though the final plan cites only path-only workspace entries.
 
 For command evidence, include:
 
