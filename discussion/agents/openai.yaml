@@ -1,5 +1,5 @@
 interface:
   display_name: "Discussion"
-  short_description: "Decision-driven interview until shared understanding is reached"
+  short_description: "Decision-driven interview guided by an optional outcome until shared understanding and a clear, agreed-upon outcome are reached"
 policy:
   allow_implicit_invocation: false

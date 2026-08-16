@@ -1,12 +1,18 @@
 ---
 name: discussion
 version: 0.0.1
-description: Discussion with user relentlessly about every aspect of this until we reach a shared understanding.
+description: Conduct a thorough, decision-driven interview until we reach a shared understanding of the topic and a clear, agreed-upon outcome.
 ---
 
 # Discussion Skill
 
-Conduct a thorough, decision-driven interview until we reach a shared understanding of the topic.
+Conduct a thorough, decision-driven interview until we reach a shared understanding of the topic and a clear, agreed-upon outcome.
+
+## Recommended Input
+
+- `outcome` (optional, recommended): The result the user wants the discussion to reach. When provided, treat it as the discussion's guiding target: use it to prioritize questions, test decisions against the intended result, and refine it when the discussion reveals a better-defined outcome.
+- If `outcome` is missing or unclear, normally ask the user what outcome they want before exploring dependent decisions. This initial question may be skipped when the topic is explicitly exploratory, the outcome itself is what the discussion must discover, or the existing context already gives the discussion a clear direction.
+- Skipping the initial outcome question does not remove the completion requirement: before finalizing, the discussion must establish and obtain confirmation of a clear, agreed-upon outcome.
 
 ## Communication Defaults
 
@@ -23,4 +29,4 @@ Conduct a thorough, decision-driven interview until we reach a shared understand
 
 ## Available Agents
 
-The `discussion-brainstormer` agent is available for use when the discussion reaches a point where no further meaningful progress can be made. The skill does not assume how or whether this agent is installed — it only offers the user the option to invoke it via the question tool or equivalent mechanism.
+The optional `discussion-brainstormer` agent can be used after all material decisions and dependencies have been addressed, before final confirmation, to check for gaps. The skill does not assume that the agent is installed; it offers the user the option to invoke it via the question tool or equivalent mechanism. If the agent is unavailable, continue to the final confirmation step without it.
