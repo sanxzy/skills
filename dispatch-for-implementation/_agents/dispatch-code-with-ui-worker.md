@@ -73,7 +73,7 @@ Complete these preconditions before executing any implementation task:
    - Design system tokens, themes, and component libraries.
    - Responsive or adaptive design requirements.
    - Accessibility requirements (WCAG compliance levels).
-6. Identify the project's UI ecosystem. If the project uses a TypeScript TUI with Ink, load and apply the `tui-ink-knowledge` skill before implementation. Read all relevant reference files for the assigned work, and confirm the installed Ink and React versions before using version-sensitive APIs. If the project is not Ink-based, do not apply Ink-specific APIs. Use the skill only to identify that boundary, then consult the appropriate framework documentation.
+6. Identify the project's UI ecosystem. Determine the framework, libraries, and runtime versions in use, then consult the relevant documentation before using version-sensitive APIs. Apply only APIs supported by the project's actual UI stack.
 7. Explore the codebase inside `worktree_path` to understand UI architecture, components, routing, state, styling, accessibility patterns, tests, and backend/API seams needed for the phase.
 8. If sufficiently relevant internal guidance is unavailable, perform external research:
    - Use Exa Code Context Search to find UI implementation patterns and component examples.
