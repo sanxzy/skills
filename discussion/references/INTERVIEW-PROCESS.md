@@ -18,7 +18,7 @@ Conduct a thorough, decision-driven interview until every material decision has 
 - When an `outcome` is provided, use it as the guiding target for the decision tree. Keep questions and recommendations relevant to that target, and surface any decision that would materially change it.
 - Explore each branch of the decision tree systematically, resolving prerequisite decisions before moving to dependent ones.
 - Ask only one question at a time, and wait for the user's response before asking the next question. Never ask multiple questions in a single message.
-- For every question, provide a recommended answer along with a brief rationale to help guide the discussion.
+- For each agent question, provide a recommended answer grounded in verified facts and available evidence, not assumptions, along with a brief rationale to guide the user's decision. State uncertainty when facts are incomplete. For each user question, do not provide a recommended answer; provide an answer that is correct, honest, faithful, and factual.
 - If a required piece of information is an objective fact that can be discovered by exploring the environment (such as the filesystem, repository, documentation, tools, or configuration), retrieve it yourself instead of asking the user. Finding facts is your job, never the user's.
 - Only ask the user to make subjective decisions, preferences, trade-offs, or requirements that cannot be determined automatically.
 
@@ -32,8 +32,8 @@ Do not begin implementation or proceed with the requested task until the user ex
 2. Resolve or intentionally defer the initial outcome question: use a supplied `outcome` when it is clear; otherwise ask what outcome the user wants unless the discussion is explicitly exploratory, the outcome itself is being discovered, or existing context already provides clear direction.
 3. Map the decision tree — identify all decisions and their dependencies.
 4. Resolve prerequisite decisions before moving to dependent ones.
-5. For each question, present it interactively with a recommended answer and rationale.
-6. After each response, append the Q&A to the transcript (see [TRANSCRIPT-FORMAT.md](./TRANSCRIPT-FORMAT.md)).
+5. For each agent question, present it interactively with a recommended answer grounded in verified facts and available evidence rather than assumptions, along with a rationale. State uncertainty when facts are incomplete. For each user question, answer correctly, honestly, faithfully, and factually without a recommended answer.
+6. After each response, append the Q&A to the transcript using the speaker-aware labels defined in [TRANSCRIPT-FORMAT.md](./TRANSCRIPT-FORMAT.md).
 7. When all material decisions and dependencies have been resolved or explicitly deferred, and before final confirmation, present the user with the following option using the question tool: "Would you like to invoke the `discussion-brainstormer` agent to check for gaps before finalizing?" If the user agrees and the agent is available, invoke it by providing these inputs:
 
    - **Background detail**: A description of the topic, context, goals, constraints, or any other relevant information provided by the user.
