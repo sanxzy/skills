@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- ═══════════════ THEME: AGRIFOOD & NATURE ═══════════════
+       Industries (industries.md #11): agriculture, plantation, livestock, fisheries,
+       aquaculture, agritech, food processing, food distribution & delivery,
+       alternative protein.
+       Vibe    : field & harvest — moss green, season chips, earthy labels.
+       Motif   : season chip + stage label (a cycle is a real sequence).
+       Usage   : paste the blocks below into the lesson-template.html head
+                 (replace the universal font links + <style> blocks), then paste
+                 <div data-theme-signature…> into <section data-scn-stage>
+                 as the first element. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <style type="text/tailwindcss">
+    @theme {
+      --color-brand: #4D7C0F;
+      --color-ink: #1C1917;
+      --color-steel: #78716C;
+      --color-paper: #FAFAF9;
+      --color-soft: #ECFCCB;
+      --color-panel: #1C1917;
+      --color-pinline: #292524;
+      --color-ok: #059669;
+      --color-mut: #D97706;
+    }
+  </style>
+  <style>:root { --scn-accent: #4D7C0F; --scn-tint: #ECFCCB; --scn-ink: #1C1917; }</style>
+
+  <!-- Signature: season chip -->
+  <div data-theme-signature class="mb-5 inline-flex items-center gap-3 rounded-lg border border-brand/25 bg-soft/40 px-4 py-2.5">
+    <svg class="h-5 w-5 shrink-0 text-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
+      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
+    </svg>
+    <div class="min-w-0">
+      <p class="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-steel">Season</p>
+      <p class="truncate text-sm font-semibold text-ink">Sow → Grow → Harvest</p>
+    </div>
+  </div>
+</head>
+</html>

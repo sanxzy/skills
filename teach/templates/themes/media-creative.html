@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- ═══════════════ THEME: MEDIA & CREATIVE ═══════════════
+       Industries (industries.md): #8 Media & Entertainment, #17 Creative Industries.
+       Vibe    : screen & spectrum — bold fuchsia, waveform, scene labels.
+       Motif   : spectrum strip with a "SCENE" label (a lesson is a sequence of scenes).
+       Usage   : paste the blocks below into the lesson-template.html head
+                 (replace the universal font links + <style> blocks), then paste
+                 <div data-theme-signature…> into <section data-scn-stage>
+                 as the first element. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style type="text/tailwindcss">
+    @theme {
+      --color-brand: #C026D3;
+      --color-ink: #18181B;
+      --color-steel: #71717A;
+      --color-paper: #FAFAF9;
+      --color-soft: #FAE8FF;
+      --color-panel: #18181B;
+      --color-pinline: #27272A;
+      --color-ok: #059669;
+      --color-mut: #D97706;
+    }
+  </style>
+  <style>:root { --scn-accent: #C026D3; --scn-tint: #FAE8FF; --scn-ink: #18181B; }</style>
+
+  <!-- Signature: spectrum strip -->
+  <div data-theme-signature class="mb-5 flex items-center gap-3 rounded-lg border border-brand/25 bg-soft/40 px-4 py-3">
+    <div class="flex h-6 items-end gap-0.5" aria-hidden="true">
+      <span class="w-1 rounded-sm bg-brand/30" style="height:35%"></span>
+      <span class="w-1 rounded-sm bg-brand/50" style="height:60%"></span>
+      <span class="w-1 rounded-sm bg-brand" style="height:90%"></span>
+      <span class="w-1 rounded-sm bg-brand/60" style="height:45%"></span>
+      <span class="w-1 rounded-sm bg-brand/35" style="height:70%"></span>
+      <span class="w-1 rounded-sm bg-brand/70" style="height:30%"></span>
+    </div>
+    <div class="min-w-0">
+      <p class="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-steel">Scene</p>
+      <p class="truncate text-sm font-semibold text-ink">03 of 05</p>
+    </div>
+  </div>
+</head>
+</html>

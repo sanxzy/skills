@@ -1,0 +1,124 @@
+/* scenes.css — shared runtime styles for teach visual lessons.
+   Workspace: copy to ./assets/scenes.css; lesson HTML links ../assets/scenes.css.
+   Scene visibility must use these classes (.scn-on/.scn-hot) — never toggle
+   Tailwind utility classes at runtime (the v4 browser CDN recompiles on DOM change). */
+
+/* --- Type: engineering-manual pairing. Display used with restraint; mono for code/labels. --- */
+body { font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif; }
+.scn-display, .scn-caption-title { font-family: "Space Grotesk", "IBM Plex Sans", sans-serif; }
+code, pre, .font-mono { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+/* --- Dark machine panel (left visual column) --- */
+.scn-panel { color: #E4E4E7; }
+
+/* --- Step-tagged visual elements --- */
+[data-step] {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  transition: opacity 0.45s ease, transform 0.45s ease, box-shadow 0.45s ease;
+}
+[data-step].scn-on { opacity: 1; visibility: visible; transform: none; }
+[data-step].scn-hot { filter: drop-shadow(0 0 5px var(--scn-accent, #f59e0b)); }
+
+/* --- Code panel progress: the active step's line(s) get a marker + highlight --- */
+.scn-code .scn-hot {
+  background: rgba(245, 158, 11, 0.16);
+  background: color-mix(in srgb, var(--scn-accent, #f59e0b) 18%, transparent);
+  border-radius: 0.375rem;
+}
+.scn-code .scn-hot::before {
+  content: "▶ ";
+  color: var(--scn-accent, #f59e0b);
+}
+
+/* --- Captions: side-by-side layout. Only the active step's explanation shows. --- */
+.scn-caption-item { display: none; }
+.scn-caption-item.scn-on {
+  display: block;
+  animation: scn-fade 0.4s ease;
+}
+@keyframes scn-fade {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Comprehensive per-step explanation */
+.scn-caption-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--scn-ink, #18181B);
+}
+.scn-caption-text {
+  color: #3F3F46;
+  line-height: 1.7;
+}
+.scn-caption-text p { margin: 0 0 0.6rem; }
+.scn-caption-text p:last-child { margin-bottom: 0; }
+.scn-caption-points {
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+  list-style: disc;
+  color: #334155;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.scn-caption-code {
+  margin: 0.75rem 0 0;
+  padding: 0.8rem 1rem;
+  border-radius: 0.625rem;
+  border: 1px solid #2A2A2E;
+  background: #1F1F23;
+  color: #E4E4E7;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre;
+}
+.scn-caption-why {
+  margin: 1rem 0 0;
+  padding: 0.6rem 0.9rem;
+  border-left: 3px solid var(--scn-accent, #C2410C);
+  border-radius: 0.5rem;
+  background: var(--scn-tint, #FFEDD5);
+  color: #52525B;
+  line-height: 1.6;
+}
+.scn-why-label { font-weight: 700; color: var(--scn-ink, #18181B); }
+
+/* --- Progress dots --- */
+.scn-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 9999px;
+  border: 0;
+  padding: 0;
+  background: #A1A1AA;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.scn-dot:hover { background: #52525B; }
+.scn-dot-on { background: var(--scn-accent, #C2410C); transform: scale(1.25); }
+
+/* --- Print: flatten all scenes, one caption per page, hide controls --- */
+@media print {
+  html, body, main { height: auto !important; overflow: visible !important; }
+  .scn-grid { display: block !important; }
+  .scn-pane { overflow: visible !important; max-height: none !important; }
+  [data-step] {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  .scn-code .scn-hot { background: transparent !important; }
+  .scn-code .scn-hot::before { content: none; }
+  .scn-caption-item { display: block !important; break-inside: avoid; page-break-inside: avoid; }
+  .scn-caption-item.scn-on { animation: none; }
+  [data-scn-controls] { display: none !important; }
+}

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- ═══════════════ THEME: HEALTHCARE ═══════════════
+       Industries (industries.md #3): hospitals & clinics, pharmaceuticals,
+       biotechnology, medical devices, healthtech, medical research, diagnostics,
+       mental health services, healthcare insurance.
+       Vibe    : clinical & calm — medical blue, vitals labels, status chip.
+       Motif   : vitals card (heartbeat line) + status chip.
+       Usage   : paste the blocks below into the lesson-template.html head
+                 (replace the universal font links + <style> blocks), then paste
+                 <div data-theme-signature…> into <section data-scn-stage>
+                 as the first element. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style type="text/tailwindcss">
+    @theme {
+      --color-brand: #0369A1;
+      --color-ink: #0F172A;
+      --color-steel: #64748B;
+      --color-paper: #F8FAFC;
+      --color-soft: #E0F2FE;
+      --color-panel: #0C4A6E;
+      --color-pinline: #0E7490;
+      --color-ok: #059669;
+      --color-mut: #D97706;
+    }
+  </style>
+  <style>:root { --scn-accent: #0369A1; --scn-tint: #E0F2FE; --scn-ink: #0F172A; }</style>
+
+  <!-- Signature: vitals card -->
+  <div data-theme-signature class="mb-5 flex items-center gap-3 rounded-lg border border-brand/25 bg-soft/60 px-4 py-3">
+    <svg class="h-6 w-6 shrink-0 text-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+    </svg>
+    <div class="min-w-0">
+      <p class="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-steel">Vitals</p>
+      <p class="truncate text-sm font-semibold text-ink">Normal range</p>
+    </div>
+    <span class="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full bg-ok/10 px-2.5 py-1 font-mono text-[11px] font-medium text-ok">
+      <span class="h-1.5 w-1.5 rounded-full bg-ok"></span>OK
+    </span>
+  </div>
+</head>
+</html>

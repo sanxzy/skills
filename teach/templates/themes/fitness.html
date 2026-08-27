@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- ═══════════════ THEME: FITNESS ═══════════════
+       Beyond the industry taxonomy — sports, yoga, wellness, movement.
+       Vibe    : energetic & earthy — moss green, progress ring, rep numbers.
+       Motif   : progress ring "POSITION" — step n of N.
+       Usage   : paste the blocks below into the lesson-template.html head
+                 (replace the universal font links + <style> blocks), then paste
+                 <div data-theme-signature…> into <section data-scn-stage>
+                 as the first element. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <style type="text/tailwindcss">
+    @theme {
+      --color-brand: #15803D;
+      --color-ink: #1C1917;
+      --color-steel: #78716C;
+      --color-paper: #F8FAFC;
+      --color-soft: #DCFCE7;
+      --color-panel: #1C1917;
+      --color-pinline: #292524;
+      --color-ok: #16A34A;
+      --color-mut: #D97706;
+    }
+  </style>
+  <style>:root { --scn-accent: #15803D; --scn-tint: #DCFCE7; --scn-ink: #1C1917; }</style>
+
+  <!-- Signature: progress ring -->
+  <div data-theme-signature class="mb-5 flex items-center gap-4 rounded-lg border border-brand/20 bg-soft/40 px-4 py-3">
+    <svg class="h-11 w-11 shrink-0 -rotate-90" viewBox="0 0 36 36" aria-hidden="true">
+      <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" stroke-width="3.5" class="text-ink/10"></circle>
+      <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="97.4" stroke-dashoffset="24" class="text-brand"></circle>
+    </svg>
+    <div class="min-w-0">
+      <p class="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-steel">Position</p>
+      <p class="truncate text-sm font-semibold text-ink">Step 3 of 5</p>
+    </div>
+  </div>
+</head>
+</html>

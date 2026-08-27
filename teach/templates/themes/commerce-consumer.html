@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- ═══════════════ THEME: COMMERCE & CONSUMER ═══════════════
+       Industries (industries.md): #7 Retail & Consumer, #15 Tourism & Hospitality.
+       Vibe    : modern shop — warm rose, price tag, offer chip.
+       Motif   : product tag (label + price) — merchandise speaks this field's language.
+       Usage   : paste the blocks below into the lesson-template.html head
+                 (replace the universal font links + <style> blocks), then paste
+                 <div data-theme-signature…> into <section data-scn-stage>
+                 as the first element. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <style type="text/tailwindcss">
+    @theme {
+      --color-brand: #E11D48;
+      --color-ink: #1C1917;
+      --color-steel: #78716C;
+      --color-paper: #FAFAF9;
+      --color-soft: #FFE4E6;
+      --color-panel: #1C1917;
+      --color-pinline: #292524;
+      --color-ok: #059669;
+      --color-mut: #D97706;
+    }
+  </style>
+  <style>:root { --scn-accent: #E11D48; --scn-tint: #FFE4E6; --scn-ink: #1C1917; }</style>
+
+  <!-- Signature: product tag -->
+  <div data-theme-signature class="mb-5 inline-flex items-center gap-3 rounded-lg border border-brand/25 bg-white px-4 py-2.5 shadow-sm">
+    <span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-brand text-white">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+        <line x1="7" y1="7" x2="7.01" y2="7"></line>
+      </svg>
+    </span>
+    <div class="min-w-0">
+      <p class="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-steel">Offer</p>
+      <p class="truncate text-sm font-semibold text-ink">Value Pack · Rp 99.000</p>
+    </div>
+  </div>
+</head>
+</html>

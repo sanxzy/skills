@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>0001-Rust-Borrowing — Borrow, Don't Take</title>
+
+  <!-- Tailwind v4 browser CDN (dev-only CDN; fine for static lesson files) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <!-- Type: Space Grotesk (display) + IBM Plex Sans (body) + IBM Plex Mono (code/labels).
+       Theme applied: TECHNOLOGY & DIGITAL (templates/themes/technology-digital.html). -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style type="text/tailwindcss">
+    @theme {
+      /* "Steel & rust" — grounded in the subject: paper = docs, panel = machine (compiler).
+         brand = single accent · ok/mut = semantic status. */
+      --color-brand: #C2410C;
+      --color-ink: #18181B;
+      --color-steel: #71717A;
+      --color-paper: #F4F4F5;
+      --color-soft: #FFEDD5;
+      --color-panel: #171717;
+      --color-pinline: #27272A;
+      --color-ok: #059669;
+      --color-mut: #D97706;
+    }
+  </style>
+  <style>:root { --scn-accent: #C2410C; --scn-tint: #FFEDD5; --scn-ink: #18181B; }</style>
+
+  <!-- Shared runtime (in a real workspace: assets/scenes.css). This example uses the templates/ copy. -->
+  <link rel="stylesheet" href="../templates/scenes.css">
+</head>
+<body class="bg-paper text-ink antialiased lg:overflow-hidden">
+
+  <main data-scenes data-scn-why-label="Why it matters:" class="mx-auto flex w-full max-w-none flex-col px-4 py-5 sm:px-8 lg:py-6 lg:h-dvh">
+
+    <!-- Top bar: title left, controls right — one row -->
+    <header class="mb-4 flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-ink/10 pb-3">
+      <div class="flex min-w-0 items-center gap-3">
+        <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-white">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+        </span>
+        <div class="min-w-0">
+          <p class="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-steel">Lesson 0001 · Rust</p>
+          <h1 class="scn-display truncate text-lg font-bold text-ink lg:text-xl">Borrowing in Rust: Borrow, Don't Take</h1>
+          <p class="truncate text-sm text-steel">Ownership → move → borrow → &amp;mut, in 5 visual steps · source: The Rust Book ch. 4</p>
+        </div>
+      </div>
+      <div data-scn-controls class="flex shrink-0 items-center gap-3">
+        <button type="button" data-scn-prev class="inline-flex items-center gap-1 rounded-md bg-ink px-3 py-1.5 text-sm font-medium text-paper transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-40">← Previous</button>
+        <div data-scn-dots class="flex gap-2"></div>
+        <span data-scn-counter class="font-mono text-sm tabular-nums text-steel"></span>
+        <button type="button" data-scn-next class="inline-flex items-center gap-1 rounded-md bg-ink px-3 py-1.5 text-sm font-medium text-paper transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-40">Next →</button>
+      </div>
+    </header>
+
+    <!-- FIXED-VIEWPORT 50:50: left = dark machine panel (visual, no scroll), right = light docs (own scrollbar) -->
+    <div class="scn-grid grid min-h-0 flex-1 gap-8 lg:grid-cols-2">
+
+      <!-- LEFT: compiler window — signature element (main.rs tab + borrow-check LED) -->
+      <section data-scn-stage class="scn-panel flex min-h-0 flex-col overflow-hidden rounded-xl border border-pinline bg-panel shadow-2xl">
+
+        <!-- Compiler-window header: file tab + status LED -->
+        <div class="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-2">
+          <div class="flex items-center gap-2 font-mono text-xs text-zinc-400">
+            <span class="h-2.5 w-2.5 rounded-[3px] bg-zinc-600"></span>
+            <span>main.rs</span>
+          </div>
+          <span class="flex items-center gap-1.5 font-mono text-[11px] text-emerald-400">
+            <span class="h-2 w-2 rounded-full bg-ok shadow-[0_0_8px_#059669]"></span>
+            borrow check OK
+          </span>
+        </div>
+
+        <div class="min-h-0 overflow-y-auto p-5">
+          <!-- Evolving program: each line appears at its scene; the active step's line(s) get a ▶ marker -->
+          <pre class="scn-code overflow-x-auto rounded-lg border border-white/5 bg-[#1F1F23] p-4 font-mono text-[13px] leading-6 text-zinc-100"><code><span class="block text-zinc-500">fn main() {</span><span data-step="1" class="block">    let s1 = String::from("halo");</span><span data-step="2" class="block">    let s2 = s1; <span class="text-zinc-500">// s1 moved → invalid</span></span><span data-step="3" class="block">    let r = &amp;s2; <span class="text-zinc-500">// immutable borrow</span></span><span data-step="3" class="block">    println!("{r}"); <span class="text-zinc-500">// last use of r</span></span><span data-step="4" class="block">    let r2 = &amp;mut s2; <span class="text-zinc-500">// mutable borrow — now allowed</span></span><span class="block text-zinc-500">}</span></code></pre>
+
+          <!-- Legend (always visible) -->
+          <div class="mt-3 flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] text-zinc-500">
+            <span class="inline-flex items-center gap-1.5"><span class="inline-block h-0.5 w-5 bg-[#EA580C]"></span> ownership</span>
+            <span class="inline-flex items-center gap-1.5"><span class="inline-block h-0 w-5 border-t-2 border-dashed border-zinc-500"></span> borrow</span>
+            <span class="inline-flex items-center gap-1.5"><span class="text-red-400">✗</span> invalid</span>
+            <span class="inline-flex items-center gap-1.5"><span class="text-emerald-400">✓</span> borrow done</span>
+          </div>
+
+          <!-- Memory diagram: stack (variables) → heap (data), tuned for the dark panel -->
+          <svg class="mt-3 w-full" viewBox="0 0 520 240" role="img" aria-label="Memory diagram: variables on the stack point to String data on the heap">
+            <defs>
+              <marker id="arr-brand" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#EA580C"></path></marker>
+              <marker id="arr-slate" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#A1A1AA"></path></marker>
+              <marker id="arr-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#F59E0B"></path></marker>
+            </defs>
+
+            <text x="14" y="24" font-size="11" fill="#71717A">STACK</text>
+            <text x="14" y="172" font-size="11" fill="#71717A">HEAP</text>
+
+            <!-- Arrow s1 → heap (scene 1, solid = owner) -->
+            <g data-step="1">
+              <path d="M64,68 C64,110 150,140 210,184" fill="none" stroke="#EA580C" stroke-width="2" marker-end="url(#arr-brand)"></path>
+            </g>
+            <!-- Stack boxes -->
+            <g data-step="1">
+              <rect x="16" y="34" width="96" height="34" rx="4" fill="#27272A" stroke="#52525B" stroke-width="1.5"></rect>
+              <text x="64" y="55" text-anchor="middle" font-size="13" fill="#E4E4E7">s1</text>
+            </g>
+            <!-- Scene 2 overlay: s1 crossed out + original arrow overlaid with a dashed line -->
+            <g data-step="2">
+              <rect x="16" y="34" width="96" height="34" rx="4" fill="#3F3F46" opacity="0.92"></rect>
+              <text x="64" y="55" text-anchor="middle" font-size="13" fill="#A1A1AA" text-decoration="line-through">s1</text>
+              <path d="M64,68 C64,110 150,140 210,184" fill="none" stroke="#71717A" stroke-width="2" stroke-dasharray="4 4" opacity="0.9"></path>
+              <text x="64" y="128" text-anchor="middle" font-size="18" fill="#F87171">✗</text>
+            </g>
+            <!-- Arrow s2 → heap (scene 2, new owner) -->
+            <g data-step="2">
+              <path d="M198,68 C198,110 225,140 248,184" fill="none" stroke="#EA580C" stroke-width="2" marker-end="url(#arr-brand)"></path>
+              <rect x="150" y="34" width="96" height="34" rx="4" fill="#27272A" stroke="#52525B" stroke-width="1.5"></rect>
+              <text x="198" y="55" text-anchor="middle" font-size="13" fill="#E4E4E7">s2</text>
+            </g>
+            <!-- Arrow r → heap (scene 3, dashed = read borrow) -->
+            <g data-step="3">
+              <path d="M332,68 C332,110 295,140 278,184" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arr-slate)"></path>
+              <rect x="284" y="34" width="96" height="34" rx="4" fill="#27272A" stroke="#52525B" stroke-width="1.5"></rect>
+              <text x="332" y="55" text-anchor="middle" font-size="13" fill="#E4E4E7">r</text>
+            </g>
+            <!-- Scene 4: borrow r ends (NLL) at its last use, then &mut may begin -->
+            <g data-step="4">
+              <circle cx="345" cy="120" r="10" fill="#059669"></circle>
+              <text x="345" y="125" text-anchor="middle" font-size="13" fill="#FFFFFF">✓</text>
+              <path d="M466,68 C466,110 330,140 306,184" fill="none" stroke="#F59E0B" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arr-amber)"></path>
+              <rect x="418" y="34" width="96" height="34" rx="4" fill="#2A2417" stroke="#D97706" stroke-width="1.5"></rect>
+              <text x="466" y="55" text-anchor="middle" font-size="12" fill="#E4E4E7">r2 (&amp;mut)</text>
+            </g>
+            <!-- Heap box (scene 1) -->
+            <g data-step="1">
+              <rect x="185" y="184" width="150" height="34" rx="4" fill="#1F1F23" stroke="#C2410C" stroke-width="1.5"></rect>
+              <text x="260" y="205" text-anchor="middle" font-size="12" fill="#FDBA74">String: "halo"</text>
+            </g>
+          </svg>
+
+          <!-- Scene 5: final-state pill -->
+          <div data-step="5" class="mt-4 inline-flex items-center gap-2 rounded-full border border-brand/40 bg-brand/15 px-3 py-1.5 font-mono text-xs font-medium text-orange-200">
+            <svg class="h-3.5 w-3.5 text-orange-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            final: all 4 rules apply
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: light documentation, scrollable pane (no card chrome) -->
+      <div data-scn-scroll class="scn-pane min-h-0 overflow-y-auto">
+        <div data-scn-captions></div>
+
+        <div class="mt-8 space-y-1 border-t border-ink/10 pt-4 text-sm text-steel">
+          <p><strong class="font-medium text-ink">Primary sources:</strong>
+            The Rust Book — <a class="text-brand underline decoration-brand/40 underline-offset-2 hover:decoration-brand" href="https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html">Ch 4.1: What Is Ownership?</a> and
+            <a class="text-brand underline decoration-brand/40 underline-offset-2 hover:decoration-brand" href="https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html">Ch 4.2: References and Borrowing</a>.
+            In a real workspace, this lesson also links to sibling lessons and reference documents via anchors.</p>
+          <p>Something unclear? Ask your teaching agent.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scene data: 5 scenes = highest data-step 5 -->
+  <script type="application/json" id="scene-data">
+  [
+    {
+      "title": "One value, one owner",
+      "paragraphs": [
+        "When `let s1 = String::from(\"halo\")` runs, Rust requests memory from the allocator. The string data lives on the heap; on the stack, s1 only stores a pointer, its length, and its capacity.",
+        "The solid orange line from s1 to the data marks ownership: s1 owns the heap data. The Rust Book calls this the first rule: every value has an owner."
+      ],
+      "points": [
+        "Each value has exactly one owner.",
+        "Only one owner at a time.",
+        "When the owner goes out of scope, the value is dropped automatically — a pattern similar to RAII in C++."
+      ],
+      "why": "Because ownership is always clear, Rust frees memory without a garbage collector — fast, with no runtime cost."
+    },
+    {
+      "title": "Move: ownership changes hands",
+      "paragraphs": [
+        "`let s2 = s1;` does not copy the heap data. Rust only copies the stack part (pointer, length, capacity), then considers s1 no longer valid.",
+        "This is not an ordinary shallow copy — Rust calls it a move. In the diagram, s1 is crossed out: using it again triggers error E0382 'borrow of moved value'.",
+        "Why must s1 die? If s1 stayed valid, two variables would free the same memory when they go out of scope — a double free, a classic memory-safety bug."
+      ],
+      "points": [
+        "Move = copy the stack part + invalidate the old owner.",
+        "Heap data is never copied automatically; a deep copy (clone) must be explicit.",
+        "Rust never makes automatic 'deep copies' — automatic copying is always cheap."
+      ],
+      "code": "let s1 = String::from(\"halo\");\nlet s2 = s1;        // value moved to s2\nprintln!(\"{s1}\"); // error E0382: borrow of moved value",
+      "why": "Move prevents double free without sacrificing speed — only a stack pointer gets copied."
+    },
+    {
+      "title": "Borrow: borrow, don't take",
+      "paragraphs": [
+        "With `&s2` we create a reference — 'an address we can follow' pointing to data owned by s2. Creating a reference is called borrowing: as in real life, you borrow and give it back; you don't own it.",
+        "A reference does not own the data. So the value is not dropped when the reference stops being used — the owner (s2) stays intact and usable.",
+        "References are immutable by default: trying to change through `&` (e.g. `push_str`) is rejected by the compiler with error E0596."
+      ],
+      "points": [
+        "Borrowing does not transfer ownership.",
+        "Many read references (&) at the same time are fine.",
+        "References must always be valid (no dangling references)."
+      ],
+      "code": "fn main() {\n    let s2 = String::from(\"halo\");\n    let r = &s2;        // read borrow\n    println!(\"{r}\");   // r used until here\n}",
+      "why": "With references a function can use data without 'borrow then give back' via tuples — much shorter code."
+    },
+    {
+      "title": "Mutable borrow: one &mut, never simultaneous",
+      "paragraphs": [
+        "`&mut s2` borrows the data for mutation. The rule is strict: 'if you have a mutable reference to a value, you can have no other references to that value'.",
+        "Mixing & and &mut is also forbidden (E0502) — holders of a read borrow don't expect the value to change underneath them.",
+        "The good news: a reference's scope ends at its last use (NLL). In the diagram, r gets a ✓ after `println!` — after that, `&mut s2` may begin. This code is valid."
+      ],
+      "points": [
+        "One &mut OR any number of & — never at the same time.",
+        "Two &mut at once are rejected (E0499).",
+        "A borrow ends at its last use (NLL), not at the end of the block."
+      ],
+      "code": "let r = &s2;\nprintln!(\"{r}\");      // last use of r → borrow ends\nlet r2 = &mut s2;     // &mut is now allowed\nr2.push_str(\", rust\");",
+      "why": "This restriction lets Rust reject data races at compile time — a race can't reach runtime."
+    },
+    {
+      "title": "Four rules, one picture",
+      "paragraphs": [
+        "Ownership rules (ch 4.1): each value has one owner; only one owner at a time; the value is dropped when the owner goes out of scope.",
+        "Rules of references (ch 4.2): 'at any given time, you can have either one mutable reference or any number of immutable references. References must always be valid.'",
+        "Ownership + move + borrowing together make Rust safe from double free, dangling pointers, and data races — no GC, no runtime cost."
+      ],
+      "points": [
+        "One owner → no double free.",
+        "Move → no two owners.",
+        "One &mut or many & → no data races.",
+        "References always valid → no dangling pointers."
+      ],
+      "why": "All rules are checked at compile time. If it compiles, these memory bugs are already impossible."
+    }
+  ]
+  </script>
+
+  <!-- Shared runtime (in a real workspace: assets/scenes.js) -->
+  <script src="../templates/scenes.js"></script>
+  <noscript>
+    <style>[data-step]{opacity:1;visibility:visible;transform:none}.scn-caption-item{display:block}</style>
+  </noscript>
+</body>
+</html>
