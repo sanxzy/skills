@@ -83,7 +83,7 @@ Do not install these dependencies globally. Do not commit `.xzy-env`, generated 
 | `compare` | Compare raw screenshots and persist pixel plus element-level structured differences. |
 | `verify` | Render when needed, compare, apply thresholds, and persist the acceptance verdict. |
 
-Every command writes a persistent run directory under `.artifacts/pixel-perfect-visionless/runs/`. Previous runs are immutable; `latest.json` points to the newest run. Complete results are in files; stdout emits one compact JSON pointer containing the status, operation, run directory, and `result.json`/`result.md` paths. Read those paths only when deeper evidence is needed.
+Every command writes a persistent run directory under `.artifacts/pixel-perfect-visionless/runs/`. Previous runs are immutable; `latest.json` points to the newest run. Complete results are in files; stdout emits one compact JSON pointer containing the status, operation, run directory, and `result.json`/`result.md` file descriptors. Each descriptor has an `output_path` and concise `description`; read `result.md` before `result.json` when deeper evidence is needed.
 
 Typical workflow:
 

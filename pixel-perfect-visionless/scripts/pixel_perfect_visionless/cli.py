@@ -238,8 +238,14 @@ def _pointer(status: str, writer: RunArtifacts) -> None:
                 "status": status,
                 "operation": writer.operation,
                 "run_dir": str(writer.run_dir),
-                "result_json": str(writer.path("result.json")),
-                "result_markdown": str(writer.path("result.md")),
+                "result_json": {
+                    "output_path": str(writer.path("result.json")),
+                    "description": "Complete machine-readable result and artifact manifest.",
+                },
+                "result_markdown": {
+                    "output_path": str(writer.path("result.md")),
+                    "description": "Concise operation summary; read before result.json.",
+                },
             },
             sort_keys=True,
         )

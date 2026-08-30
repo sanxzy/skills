@@ -240,7 +240,8 @@ class CompilerAndPersistenceTests(VisionlessTestCase):
         self.assertEqual(pointer["status"], "ok")
         self.assertEqual(pointer["operation"], "compile")
         self.assertNotIn("nodes", pointer)
-        self.assertTrue(Path(pointer["result_json"]).is_file())
+        self.assertTrue(Path(pointer["result_json"]["output_path"]).is_file())
+        self.assertIn("description", pointer["result_markdown"])
 
     def test_missing_tesseract_persists_compiler_error(self):
         with patch("pixel_perfect_visionless.bootstrap.find_tesseract", return_value=None):
@@ -285,7 +286,9 @@ class CompilerAndPersistenceTests(VisionlessTestCase):
             os.chdir(original_cwd)
         self.assertEqual(status, 2)
         pointer = json.loads(stdout.getvalue())
-        error = json.loads(Path(pointer["result_json"]).read_text(encoding="utf-8"))
+        error = json.loads(
+            Path(pointer["result_json"]["output_path"]).read_text(encoding="utf-8")
+        )
         self.assertEqual(error["status"], "error")
         self.assertIn("Missing visionless environment", error["error"])
 

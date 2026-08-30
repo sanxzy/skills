@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -35,6 +36,10 @@ def _add_runtime_options(parser: argparse.ArgumentParser) -> None:
         "--project-root",
         default=".",
         help="Project checkout used for source inspection and local entrypoints (default: .)",
+    )
+    parser.add_argument(
+        "--page-name",
+        help="Logical page name for default artifacts (defaults to the reference filename stem)",
     )
     parser.add_argument(
         "--no-auto-setup",
@@ -71,7 +76,7 @@ def _build_parser() -> argparse.ArgumentParser:
     inspect.add_argument("--reference", required=True, help="Reference image path")
     inspect.add_argument(
         "--output",
-        help="JSON output path (relative to the invocation cwd unless absolute; default: .artifacts/pixel-perfect/inspection.json)",
+        help="JSON output path (normalized under the page artifact directory; default: <page artifact dir>/inspection.json)",
     )
     inspect.add_argument(
         "--no-project",
@@ -102,8 +107,8 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     decompose.add_argument(
         "--output-dir",
-        default=".artifacts/pixel-perfect",
-        help="Artifact/report directory relative to the invocation cwd",
+        default=None,
+        help="Artifact/report directory normalized under the page artifact directory (default: .artifacts/pixel-perfect/<page-name>)",
     )
 
     render = commands.add_parser("render", help="Capture one deterministic viewport screenshot")
@@ -114,8 +119,7 @@ def _build_parser() -> argparse.ArgumentParser:
     render.add_argument("--entry", help="Local entrypoint relative to the project root")
     render.add_argument(
         "--output",
-        required=True,
-        help="Screenshot output path (relative to the invocation cwd unless absolute)",
+        help="Screenshot output path normalized under the page artifact directory (default: <page artifact dir>/candidate.png)",
     )
     render.add_argument(
         "--browser",
@@ -126,7 +130,7 @@ def _build_parser() -> argparse.ArgumentParser:
     render.add_argument("--ready-selector")
     render.add_argument(
         "--report",
-        help="JSON render report path (relative to the invocation cwd unless absolute; default: next to the screenshot)",
+        help="JSON render report path normalized under the page artifact directory (default: next to the screenshot)",
     )
 
     compare = commands.add_parser(
@@ -137,8 +141,8 @@ def _build_parser() -> argparse.ArgumentParser:
     compare.add_argument("--candidate", required=True, help="Rendered candidate image path")
     compare.add_argument(
         "--output-dir",
-        default=".artifacts/pixel-perfect",
-        help="Artifact/report directory relative to the invocation cwd",
+        default=None,
+        help="Artifact/report directory normalized under the page artifact directory (default: .artifacts/pixel-perfect/<page-name>)",
     )
     compare.add_argument("--tolerance", type=int, default=10)
     compare.add_argument("--tile-size", type=int, default=64)
@@ -176,8 +180,8 @@ def _build_parser() -> argparse.ArgumentParser:
     verify.add_argument("--ready-selector")
     verify.add_argument(
         "--output-dir",
-        default=".artifacts/pixel-perfect",
-        help="Artifact/report directory relative to the invocation cwd",
+        default=None,
+        help="Artifact/report directory normalized under the page artifact directory (default: .artifacts/pixel-perfect/<page-name>)",
     )
     verify.add_argument("--tolerance", type=int, default=10)
     verify.add_argument("--tile-size", type=int, default=64)
@@ -282,14 +286,11 @@ def _pointer(
     status: str,
     operation: str,
     *,
-    output_dir: Path | None = None,
-    reports: dict[str, str] | None = None,
-    artifacts: dict[str, str] | None = None,
+    reports: dict[str, dict[str, str]] | None = None,
+    artifacts: dict[str, dict[str, str]] | None = None,
     **context: Any,
 ) -> None:
     pointer: dict[str, Any] = {"status": status, "operation": operation}
-    if output_dir is not None:
-        pointer["output_dir"] = str(output_dir.resolve())
     if reports:
         pointer["reports"] = reports
     if artifacts:
@@ -298,8 +299,97 @@ def _pointer(
     _json_print(pointer)
 
 
-def _default_artifact_dir(workspace: Path) -> Path:
-    return workspace / ".artifacts" / "pixel-perfect"
+def _output_file(path: Path | str, description: str) -> dict[str, str]:
+    return {
+        "output_path": str(Path(path).expanduser().resolve()),
+        "description": description,
+    }
+
+
+def _output_files(
+    paths: dict[str, str], descriptions: dict[str, str]
+) -> dict[str, dict[str, str]]:
+    return {
+        name: _output_file(path, descriptions[name])
+        for name, path in paths.items()
+    }
+
+
+def _page_name(args: argparse.Namespace) -> str:
+    value = getattr(args, "page_name", None)
+    if value is None:
+        reference = getattr(args, "reference", None)
+        value = Path(reference).stem if reference else "default"
+    name = str(value).strip()
+    if (
+        not name
+        or name in {".", ".."}
+        or "/" in name
+        or "\\" in name
+        or "\x00" in name
+    ):
+        raise CliError("--page-name must be a non-empty single directory name")
+    return name
+
+
+def _default_artifact_dir(workspace: Path, page_name: str) -> Path:
+    return workspace / ".artifacts" / "pixel-perfect" / page_name
+
+
+def _page_scoped_path(
+    args: argparse.Namespace,
+    workspace: Path,
+    value: str,
+    *,
+    option: str,
+) -> Path:
+    page_name = _page_name(args)
+    page_dir = _default_artifact_dir(workspace, page_name).resolve()
+    raw = Path(value).expanduser()
+    if raw.is_absolute():
+        path = raw.resolve()
+    elif raw.parts[:2] == (".artifacts", "pixel-perfect"):
+        suffix = raw.parts[2:]
+        if suffix and suffix[0] == page_name:
+            suffix = suffix[1:]
+        path = page_dir.joinpath(*suffix).resolve()
+    else:
+        path = (page_dir / raw).resolve()
+    try:
+        path.relative_to(page_dir)
+    except ValueError:
+        filename = path.name
+        if not filename or filename in {".", ".."}:
+            raise CliError(f"{option} must name a file or directory under {page_dir}")
+        path = (page_dir / filename).resolve()
+    return path
+
+
+def _artifact_dir(args: argparse.Namespace, workspace: Path) -> Path:
+    page_name = _page_name(args)
+    output_dir = getattr(args, "output_dir", None)
+    if output_dir:
+        return _page_scoped_path(args, workspace, output_dir, option="--output-dir")
+    return _default_artifact_dir(workspace, page_name)
+
+
+def _stage_candidate(
+    args: argparse.Namespace, workspace: Path, value: str
+) -> Path:
+    source = _path(workspace, value)
+    assert source is not None
+    target = _page_scoped_path(args, workspace, value, option="--candidate")
+    source = source.resolve()
+    if source == target:
+        return target
+    if not source.is_file():
+        raise CliError(f"Candidate image not found: {source}")
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+    except OSError as exc:
+        raise CliError(f"Could not stage candidate image at {target}: {exc}") from exc
+    return target
 
 
 def _render_report_path(output: Path) -> Path:
@@ -308,18 +398,16 @@ def _render_report_path(output: Path) -> Path:
 
 
 def _error_directory(args: argparse.Namespace, workspace: Path) -> Path:
-    output_dir = getattr(args, "output_dir", None)
-    if output_dir:
-        path = _path(workspace, output_dir)
-        assert path is not None
-        return path
-    for option in ("report", "output"):
-        value = getattr(args, option, None)
-        if value:
-            path = _path(workspace, value)
-            assert path is not None
-            return path.parent
-    return _default_artifact_dir(workspace)
+    try:
+        if getattr(args, "output_dir", None):
+            return _artifact_dir(args, workspace)
+        for option in ("report", "output"):
+            value = getattr(args, option, None)
+            if value:
+                return _page_scoped_path(args, workspace, value, option=f"--{option}").parent
+        return _artifact_dir(args, workspace)
+    except CliError:
+        return _default_artifact_dir(workspace, "default")
 
 
 def _persist_error(args: argparse.Namespace, workspace: Path, exc: Exception) -> Path | None:
@@ -374,7 +462,7 @@ def _cmd_decompose(args: argparse.Namespace) -> int:
     from .images import inspect_image
 
     reference = _path(workspace, args.reference)
-    output_dir = _path(workspace, args.output_dir)
+    output_dir = _artifact_dir(args, workspace)
     sections_file = _path(workspace, args.sections_file)
     assert reference is not None and output_dir is not None
     if sections_file is not None and not sections_file.is_file():
@@ -398,8 +486,15 @@ def _cmd_decompose(args: argparse.Namespace) -> int:
     _pointer(
         plan["status"],
         "decompose",
-        output_dir=output_dir,
-        reports={"json": str(json_path), "markdown": str(markdown_path)},
+        reports={
+            "json": _output_file(
+                json_path, "Structured section plan and visual implementation contracts."
+            ),
+            "markdown": _output_file(
+                markdown_path,
+                "Concise human-readable section plan for implementation sequencing.",
+            ),
+        },
     )
     return 0
 
@@ -423,7 +518,7 @@ def _cmd_setup(args: argparse.Namespace) -> int:
         from .browser import browser_plan
 
         browser_plan(runtime, explicit="playwright", install=True)
-    report_path = _default_artifact_dir(workspace) / "setup.json"
+    report_path = _artifact_dir(args, workspace) / "setup.json"
     write_json(
         report_path,
         {
@@ -435,8 +530,11 @@ def _cmd_setup(args: argparse.Namespace) -> int:
     _pointer(
         "ready",
         "setup",
-        output_dir=report_path.parent,
-        reports={"json": str(report_path)},
+        reports={
+            "json": _output_file(
+                report_path, "Runtime, dependency, and browser setup details."
+            )
+        },
         runtime_dir=str(runtime.directory),
         runtime_python=str(runtime.python),
     )
@@ -451,9 +549,11 @@ def _cmd_inspect(args: argparse.Namespace) -> int:
     image_report = inspect_image(
         reference, points=[parse_point(value) for value in args.point]
     )
-    report_path = _path(workspace, args.output)
-    if report_path is None:
-        report_path = _default_artifact_dir(workspace) / "inspection.json"
+    report_path = (
+        _page_scoped_path(args, workspace, args.output, option="--output")
+        if args.output
+        else _artifact_dir(args, workspace) / "inspection.json"
+    )
     result: dict[str, Any] = {
         "status": "ok",
         "reference": image_report,
@@ -466,8 +566,11 @@ def _cmd_inspect(args: argparse.Namespace) -> int:
     _pointer(
         "ok",
         "inspect",
-        output_dir=report_path.parent,
-        reports={"json": str(report_path)},
+        reports={
+            "json": _output_file(
+                report_path, "Reference image facts and read-only project reconnaissance."
+            )
+        },
         reference=str(reference),
         viewport=image_report["viewport"],
     )
@@ -494,8 +597,11 @@ def _cmd_render(args: argparse.Namespace) -> int:
     reference = _path(workspace, args.reference)
     viewport = _reference_viewport(workspace, args.reference, args.viewport)
     url = resolve_target_url(root, workspace_root=workspace, url=args.url, entry=args.entry)
-    output = _path(workspace, args.output)
-    assert output is not None
+    output = (
+        _page_scoped_path(args, workspace, args.output, option="--output")
+        if args.output
+        else _artifact_dir(args, workspace) / "candidate.png"
+    )
     result = render_target(
         runtime,
         url=url,
@@ -512,15 +618,26 @@ def _cmd_render(args: argparse.Namespace) -> int:
     result["runtime"] = runtime.as_dict()
     if reference:
         result["reference"] = str(reference)
-    report_path = _path(workspace, args.report) or _render_report_path(output)
+    report_path = (
+        _page_scoped_path(args, workspace, args.report, option="--report")
+        if args.report
+        else _render_report_path(output)
+    )
     result["report"] = str(report_path)
     write_json(report_path, result)
     _pointer(
         "ok",
         "render",
-        output_dir=report_path.parent,
-        reports={"json": str(report_path)},
-        artifacts={"candidate": str(output)},
+        reports={
+            "json": _output_file(
+                report_path, "Browser capture metadata and runtime diagnostics."
+            )
+        },
+        artifacts={
+            "candidate": _output_file(
+                output, "Rendered candidate screenshot used for comparison."
+            )
+        },
         viewport=viewport,
     )
     return 0
@@ -530,9 +647,9 @@ def _cmd_compare(args: argparse.Namespace) -> int:
     root, workspace, runtime = _prepare_runtime(args)
     from .images import compare_images, inspect_image, save_visual_artifacts
     reference = _path(workspace, args.reference)
-    candidate = _path(workspace, args.candidate)
-    output_dir = _path(workspace, args.output_dir)
-    assert reference is not None and candidate is not None and output_dir is not None
+    candidate = _stage_candidate(args, workspace, args.candidate)
+    output_dir = _artifact_dir(args, workspace)
+    assert reference is not None
     reference_info = inspect_image(reference)
     image_size = (reference_info["width"], reference_info["height"])
     regions = _parse_regions(args.region, image_size)
@@ -552,11 +669,25 @@ def _cmd_compare(args: argparse.Namespace) -> int:
     _pointer(
         "ok",
         "compare",
-        output_dir=output_dir,
-        reports=reports,
-        artifacts=artifacts,
+        reports=_output_files(
+            reports,
+            {
+                "json": "Complete machine-readable pixel comparison report.",
+                "markdown": "Concise comparison summary; read before comparison.json.",
+            },
+        ),
+        artifacts=_output_files(
+            artifacts,
+            {
+                "overlay": "Blended reference and candidate screenshots for alignment diagnosis.",
+                "diff": "Enhanced visualization of pixel-level differences.",
+                "threshold_mask": "Mask showing pixels outside the configured tolerance.",
+            },
+        ),
         reference=str(reference.resolve()),
-        candidate=str(candidate.resolve()),
+        candidate=_output_file(
+            candidate, "Candidate screenshot used for the comparison."
+        ),
         viewport=report["viewport"],
     )
     return 0
@@ -662,8 +793,8 @@ def _cmd_verify(args: argparse.Namespace) -> int:
     from .images import compare_images, inspect_image, parse_viewport, save_visual_artifacts
     from .rendering import render_target, resolve_target_url, smoke_check
     reference = _path(workspace, args.reference)
-    output_dir = _path(workspace, args.output_dir)
-    assert reference is not None and output_dir is not None
+    output_dir = _artifact_dir(args, workspace)
+    assert reference is not None
     output_dir.mkdir(parents=True, exist_ok=True)
     reference_info = inspect_image(reference)
     viewport = args.viewport or reference_info["viewport"]
@@ -674,8 +805,7 @@ def _cmd_verify(args: argparse.Namespace) -> int:
 
     render_result: dict[str, Any] | None = None
     if args.candidate:
-        candidate = _path(workspace, args.candidate)
-        assert candidate is not None
+        candidate = _stage_candidate(args, workspace, args.candidate)
     else:
         url = resolve_target_url(root, workspace_root=workspace, url=args.url, entry=args.entry)
         candidate = output_dir / "candidate.png"
@@ -801,15 +931,36 @@ def _cmd_verify(args: argparse.Namespace) -> int:
     _pointer(
         result["status"],
         "verify",
-        output_dir=output_dir,
         reports={
-            "comparison_json": comparison_reports["json"],
-            "comparison_markdown": comparison_reports["markdown"],
-            "verification_json": str(verification_json),
-            "verification_markdown": str(verification_md),
+            "comparison_json": _output_file(
+                comparison_reports["json"],
+                "Complete machine-readable pixel comparison report.",
+            ),
+            "comparison_markdown": _output_file(
+                comparison_reports["markdown"],
+                "Concise comparison summary; read before comparison.json.",
+            ),
+            "verification_json": _output_file(
+                verification_json,
+                "Complete machine-readable verification verdict and diagnostics.",
+            ),
+            "verification_markdown": _output_file(
+                verification_md,
+                "Concise verification summary and acceptance checks.",
+            ),
         },
-        artifacts={**artifacts, "candidate": str(candidate.resolve())},
+        artifacts=_output_files(
+            artifacts,
+            {
+                "overlay": "Blended reference and candidate screenshots for alignment diagnosis.",
+                "diff": "Enhanced visualization of pixel-level differences.",
+                "threshold_mask": "Mask showing pixels outside the configured tolerance.",
+            },
+        ),
         reference=str(reference.resolve()),
+        candidate=_output_file(
+            candidate, "Candidate screenshot used for verification."
+        ),
         viewport=viewport,
         failed_checks=[check["name"] for check in checks if check["status"] != "pass"],
     )
@@ -841,11 +992,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             "error": _error_summary(exc),
         }
         if error_report is not None:
-            payload.update(
-                {
-                    "output_dir": str(error_report.parent.resolve()),
-                    "error_report": str(error_report.resolve()),
-                }
+            payload["error_report"] = _output_file(
+                error_report, "Full persisted details for this failed command."
             )
         print(json.dumps(payload, sort_keys=True), file=sys.stderr)
         return 2

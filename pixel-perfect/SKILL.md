@@ -54,7 +54,7 @@ The CLI automatically creates or repairs the workspace-local runtime when a comm
 
 The runtime installs Pillow and NumPy. Pillow is required for image I/O; NumPy is used for fast array metrics and is installed automatically. The analysis code has a standard-Python fallback if NumPy installation is unavailable, and the report states which engine ran. No pandas dependency is used. If no system Chrome/Chromium is available, the render path installs and uses Playwright Chromium in the same environment.
 
-Do not install packages globally. Do not add the runtime, generated screenshots, or reports to the implementation commit. Generated artifacts belong in `<cwd>/.artifacts/pixel-perfect/` unless the user requests another location.
+Do not install packages globally. Do not add the runtime, generated screenshots, or reports to the implementation commit. Generated artifacts are stored in `<cwd>/.artifacts/pixel-perfect/<page_name>/`. Pass `--page-name PAGE_NAME` to select the page directory; when omitted, the CLI uses the reference filename stem, or `default` when no reference exists. Every generated file, including the candidate screenshot, is kept under that page directory; manually supplied output paths are normalized there as well.
 
 ### Public CLI
 
@@ -70,10 +70,11 @@ Do not install packages globally. Do not add the runtime, generated screenshots,
 Common options:
 
 - `--project-root PATH` — target source checkout; defaults to the current directory. It does not control runtime or artifact placement.
+- `--page-name PAGE_NAME` — logical page name used by the default artifact directory `.artifacts/pixel-perfect/<page_name>/`; defaults to the reference filename stem, or `default` without a reference.
 - `--no-auto-setup` — use an already prepared workspace runtime and fail clearly if it is missing.
 - `--reference PATH` — raster reference image, resolved relative to `<cwd>` unless absolute.
-- `--candidate PATH`, `--sections-file PATH`, and `--previous-report PATH` — input/report paths resolved relative to `<cwd>` unless absolute.
-- `--output`, `--output-dir`, and `--report` — generated paths resolved relative to `<cwd>` unless absolute; `inspect` defaults to `.artifacts/pixel-perfect/inspection.json`, and `render` defaults its report next to the screenshot.
+- `--candidate PATH`, `--sections-file PATH`, and `--previous-report PATH` — input/report paths resolved relative to `<cwd>` unless absolute; an external candidate is copied into the page artifact directory before comparison.
+- `--output`, `--output-dir`, and `--report` — generated paths are normalized under `.artifacts/pixel-perfect/<page_name>/`; simple relative values are page-relative, and paths outside the page directory are re-rooted by filename/directory name.
 - `--entry PATH` — local render entrypoint resolved relative to `--project-root` unless absolute.
 - `--viewport WIDTHxHEIGHT` — explicit viewport; otherwise `render` and `verify` derive it from the reference.
 - `--url URL` — running HTTP(S) URL, `file:` URL, data URL, or existing local file path.
@@ -86,13 +87,36 @@ Exit codes are stable: `0` means the command passed, `1` means comparison/verifi
 
 ### File-first CLI output
 
-The CLI writes detailed JSON/Markdown/image evidence to the requested or default artifact paths and prints only one compact JSON pointer on stdout. The pointer contains the status, operation, output directory, and report/artifact paths; it does not inline comparison metrics, runtime records, or decomposition data. Read the returned paths only when deeper evidence is needed. On command failure, stderr contains a short error summary and a path to the persisted error JSON when the artifact directory is writable.
+The CLI writes detailed JSON/Markdown/image evidence to the page-scoped artifact paths and prints only one compact JSON pointer on stdout. The pointer contains the status, operation, lightweight context, and file descriptors; it does not inline comparison metrics, runtime records, decomposition data, `page_name`, or `output_dir`. Read the returned paths only when deeper evidence is needed. On command failure, stderr contains a short error summary and a descriptor for the persisted error JSON when the artifact directory is writable.
 
 Defaults that make this contract consistent:
 
-- `inspect` writes `.artifacts/pixel-perfect/inspection.json` when `--output` is omitted.
-- `render` writes a JSON render report next to the screenshot when `--report` is omitted.
-- `decompose`, `compare`, and `verify` keep their detailed reports under `--output-dir`.
+- `inspect` writes `.artifacts/pixel-perfect/<page_name>/inspection.json` when `--output` is omitted.
+- `render` writes `.artifacts/pixel-perfect/<page_name>/candidate.png` and a JSON render report next to it when `--output` and `--report` are omitted.
+- `decompose`, `compare`, and `verify` keep their detailed reports under `.artifacts/pixel-perfect/<page_name>/`; optional output directories are page-scoped as well.
+
+Each returned file uses an object with `output_path` and `description`. The pointer omits `page_name` and `output_dir`; the page scope is visible in every returned file path:
+
+```json
+{
+  "reports": {
+    "markdown": {
+      "output_path": "/workspace/.artifacts/pixel-perfect/dashboard/comparison.md",
+      "description": "Concise comparison summary; read before comparison.json."
+    }
+  },
+  "artifacts": {
+    "diff": {
+      "output_path": "/workspace/.artifacts/pixel-perfect/dashboard/diff.png",
+      "description": "Enhanced visualization of pixel-level differences."
+    }
+  },
+  "candidate": {
+    "output_path": "/workspace/.artifacts/pixel-perfect/dashboard/candidate.png",
+    "description": "Candidate screenshot used for the comparison."
+  }
+}
+```
 
 ### Recommended command sequence
 
@@ -101,28 +125,30 @@ From the project root, after resolving a reference image:
 ```bash
 python /path/to/pixel-perfect/scripts/pixel-perfect.py inspect \
   --project-root . \
-  --reference path/to/reference.png \
-  --output .artifacts/pixel-perfect/inspection.json
+  --page-name dashboard \
+  --reference path/to/reference.png
 
 python /path/to/pixel-perfect/scripts/pixel-perfect.py decompose \
   --project-root . \
+  --page-name dashboard \
   --reference path/to/reference.png \
   --section shell=0,0,1536,1024 \
   --section sidebar=0,44,252,934 \
   --section main=252,44,873,934 \
-  --section inspector=1125,44,411,934 \
-  --output-dir .artifacts/pixel-perfect
+  --section inspector=1125,44,411,934
 
 python /path/to/pixel-perfect/scripts/pixel-perfect.py render \
   --project-root . \
+  --page-name dashboard \
   --reference path/to/reference.png \
   --url http://localhost:3000 \
-  --output .artifacts/pixel-perfect/candidate-00.png
+  --output .artifacts/pixel-perfect/dashboard/candidate-00.png
 
 python /path/to/pixel-perfect/scripts/pixel-perfect.py compare \
   --project-root . \
+  --page-name dashboard \
   --reference path/to/reference.png \
-  --candidate .artifacts/pixel-perfect/candidate-00.png \
+  --candidate .artifacts/pixel-perfect/dashboard/candidate-00.png \
   --region sidebar=0,44,252,934 \
   --region main=252,44,873,934 \
   --region inspector=1125,44,411,934
@@ -135,10 +161,10 @@ For final acceptance:
 ```bash
 python /path/to/pixel-perfect/scripts/pixel-perfect.py verify \
   --project-root . \
+  --page-name dashboard \
   --reference path/to/reference.png \
   --url http://localhost:3000 \
   --responsive-viewport 390x844 \
-  --output-dir .artifacts/pixel-perfect \
   --max-mae 10 \
   --min-within-tolerance 0.85
 ```

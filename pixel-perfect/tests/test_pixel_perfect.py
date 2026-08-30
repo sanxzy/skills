@@ -9,6 +9,7 @@ import venv
 from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from pathlib import Path
+from types import SimpleNamespace
 
 from PIL import Image
 
@@ -18,7 +19,12 @@ FIXTURE = SKILL_ROOT / "tests" / "fixtures" / "screen.png"
 sys.path.insert(0, str(SCRIPT_ROOT))
 
 from pixel_perfect.bootstrap import runtime_directory  # noqa: E402
-from pixel_perfect.cli import main as cli_main  # noqa: E402
+from pixel_perfect.cli import (  # noqa: E402
+    CliError,
+    _page_name,
+    _page_scoped_path,
+    main as cli_main,
+)
 from pixel_perfect.decomposition import build_decomposition  # noqa: E402
 from pixel_perfect.images import (  # noqa: E402
     ImageAnalysisError,
@@ -121,6 +127,32 @@ class ImageAnalysisTests(unittest.TestCase):
 
 
 class WorkspaceStorageTests(unittest.TestCase):
+    def test_page_name_defaults_to_reference_stem_and_rejects_paths(self):
+        self.assertEqual(
+            _page_name(SimpleNamespace(page_name=None, reference="screens/login.png")),
+            "login",
+        )
+        with self.assertRaises(CliError):
+            _page_name(SimpleNamespace(page_name="../escape", reference=None))
+
+    def test_generated_paths_are_normalized_under_the_page_directory(self):
+        args = SimpleNamespace(page_name="dashboard", reference=None)
+        workspace = Path("/workspace")
+        page_dir = workspace / ".artifacts/pixel-perfect/dashboard"
+        self.assertEqual(
+            _page_scoped_path(
+                args,
+                workspace,
+                ".artifacts/pixel-perfect/iteration-06/diff.png",
+                option="--output",
+            ),
+            page_dir / "iteration-06/diff.png",
+        )
+        self.assertEqual(
+            _page_scoped_path(args, workspace, "/tmp/diff.png", option="--output"),
+            page_dir / "diff.png",
+        )
+
     def test_inspect_cli_returns_only_a_report_pointer(self):
         with tempfile.TemporaryDirectory() as directory:
             workspace = Path(directory)
@@ -138,6 +170,8 @@ class WorkspaceStorageTests(unittest.TestCase):
                     status = cli_main(
                         [
                             "inspect",
+                            "--page-name",
+                            "dashboard",
                             "--runtime-ready",
                             "--no-auto-setup",
                             "--project-root",
@@ -152,10 +186,16 @@ class WorkspaceStorageTests(unittest.TestCase):
             pointer = json.loads(stdout.getvalue())
             self.assertEqual(pointer["status"], "ok")
             self.assertEqual(pointer["operation"], "inspect")
+            self.assertNotIn("page_name", pointer)
+            self.assertNotIn("output_dir", pointer)
             self.assertNotIn("dominant_colors", pointer)
-            report = json.loads(Path(pointer["reports"]["json"]).read_text(encoding="utf-8"))
+            report = json.loads(
+                Path(pointer["reports"]["json"]["output_path"]).read_text(encoding="utf-8")
+            )
             self.assertEqual(report["reference"]["viewport"], "8x6")
-            self.assertEqual(report["report"], pointer["reports"]["json"])
+            self.assertEqual(
+                report["report"], pointer["reports"]["json"]["output_path"]
+            )
 
     def test_compare_cli_returns_only_artifact_pointers(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -176,6 +216,8 @@ class WorkspaceStorageTests(unittest.TestCase):
                     status = cli_main(
                         [
                             "compare",
+                            "--page-name",
+                            "dashboard",
                             "--runtime-ready",
                             "--no-auto-setup",
                             "--project-root",
@@ -184,6 +226,8 @@ class WorkspaceStorageTests(unittest.TestCase):
                             "reference.png",
                             "--candidate",
                             "candidate.png",
+                            "--output-dir",
+                            ".artifacts/pixel-perfect/iteration-06",
                         ]
                     )
             finally:
@@ -192,10 +236,27 @@ class WorkspaceStorageTests(unittest.TestCase):
             pointer = json.loads(stdout.getvalue())
             self.assertEqual(pointer["status"], "ok")
             self.assertEqual(pointer["operation"], "compare")
+            self.assertNotIn("page_name", pointer)
+            self.assertNotIn("output_dir", pointer)
             self.assertNotIn("metrics", pointer)
-            comparison = json.loads(Path(pointer["reports"]["json"]).read_text(encoding="utf-8"))
+            comparison = json.loads(
+                Path(pointer["reports"]["json"]["output_path"]).read_text(encoding="utf-8")
+            )
             self.assertEqual(comparison["metrics"]["mean_abs_error"], 0)
-            self.assertTrue(Path(pointer["artifacts"]["diff"]).is_file())
+            diff_path = Path(pointer["artifacts"]["diff"]["output_path"])
+            self.assertTrue(diff_path.is_file())
+            self.assertEqual(
+                diff_path.parent,
+                (workspace / ".artifacts/pixel-perfect/dashboard/iteration-06").resolve(),
+            )
+            self.assertIn("description", pointer["artifacts"]["diff"])
+            candidate_path = Path(pointer["candidate"]["output_path"])
+            self.assertEqual(
+                candidate_path.parent,
+                (workspace / ".artifacts/pixel-perfect/dashboard").resolve(),
+            )
+            self.assertTrue(candidate_path.is_file())
+            self.assertIn("description", pointer["candidate"])
 
     def test_cli_error_returns_a_persisted_error_pointer(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -228,7 +289,10 @@ class WorkspaceStorageTests(unittest.TestCase):
             pointer = json.loads(stderr.getvalue())
             self.assertEqual(pointer["status"], "error")
             self.assertEqual(pointer["operation"], "inspect")
-            error = json.loads(Path(pointer["error_report"]).read_text(encoding="utf-8"))
+            self.assertIn("description", pointer["error_report"])
+            error = json.loads(
+                Path(pointer["error_report"]["output_path"]).read_text(encoding="utf-8")
+            )
             self.assertEqual(error["status"], "error")
             self.assertIn("Image file not found", error["error"])
 
@@ -249,6 +313,8 @@ class WorkspaceStorageTests(unittest.TestCase):
                     status = cli_main(
                         [
                             "decompose",
+                            "--page-name",
+                            "dashboard",
                             "--runtime-ready",
                             "--no-auto-setup",
                             "--project-root",
@@ -263,12 +329,19 @@ class WorkspaceStorageTests(unittest.TestCase):
             pointer = json.loads(stdout.getvalue())
             self.assertEqual(pointer["status"], "draft")
             self.assertEqual(pointer["operation"], "decompose")
-            self.assertEqual(pointer["output_dir"], str((workspace / ".artifacts/pixel-perfect").resolve()))
+            self.assertNotIn("page_name", pointer)
+            self.assertNotIn("output_dir", pointer)
             self.assertNotIn("plan", pointer)
-            report = json.loads(Path(pointer["reports"]["json"]).read_text(encoding="utf-8"))
+            report = json.loads(
+                Path(pointer["reports"]["json"]["output_path"]).read_text(encoding="utf-8")
+            )
             self.assertEqual(report["runtime"]["directory"], str(runtime_path.resolve()))
-            self.assertTrue((workspace / ".artifacts/pixel-perfect/decomposition.json").is_file())
-            self.assertTrue((workspace / ".artifacts/pixel-perfect/decomposition.md").is_file())
+            self.assertTrue(
+                (workspace / ".artifacts/pixel-perfect/dashboard/decomposition.json").is_file()
+            )
+            self.assertTrue(
+                (workspace / ".artifacts/pixel-perfect/dashboard/decomposition.md").is_file()
+            )
             self.assertFalse((project / ".artifacts").exists())
             self.assertFalse((project / ".xzy-env").exists())
 
