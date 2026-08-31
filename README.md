@@ -103,15 +103,15 @@ npx skills add https://github.com/sanxzy/skills.git --skill dispatch-for-impleme
 
 ---
 
-### implement - Direct implementation, no orchestration.
+### implement - Direct, plan-first implementation with persistent review.
 
-The host-driven implementation path. Takes a `generate-plan` `plan.md` or free-form input, selects one phase, and implements it directly in the current checkout without worktrees, bundled agents, or independent review gates. It asks for `default` or `tdd` mode on each invocation, requires a clean working tree, runs normal project verification, and commits the completed phase. This intentionally does not use `dispatch-for-implementation`'s persisted mode file.
+The host-driven implementation path. It uses a canonical `generate-plan` `plan.md`; when no plan is supplied, the host uses the available `generate-plan` skill first and pauses if it is unavailable. It implements all unfinished phases sequentially, one phase at a time, runs normal verification, and uses `impl-reviewer` until each phase is explicitly approved. Reviewer reports persist incrementally under workspace `_xzy-ai`; approved code is committed before the plan completion state is updated. The host asks for `default` or `tdd` mode once per plan run, with explicit per-phase overrides, and does not use `dispatch-for-implementation`'s persisted mode file.
 
 ```
 npx skills add https://github.com/sanxzy/skills.git --skill implement -a opencode
 ```
 
-**Agents:** 0 — host implements directly &nbsp;·&nbsp; **Version:** 1.0.0
+**Agents:** 1 (`impl-reviewer`) — host implements directly; reviewer writes persistent reports &nbsp;·&nbsp; **Version:** 1.0.0
 
 ---
 
