@@ -193,8 +193,8 @@ When the user explicitly asks to resume:
 1. Read `progress.md` and continue the latest non-terminal workflow round.
 2. Trust the user's decision to reuse existing scout reports.
 3. Do not delete existing reports.
-4. Read every completed report needed by the recorded next action.
-5. Continue discovery only for missing information.
+4. Read every completed, blocked, or `in-progress` report needed by the recorded next action. Treat `in-progress` reports as partial evidence, not complete coverage.
+5. Continue discovery only for missing information, and resume each matching `in-progress` scout with `resume=true` from its checkpoint.
 6. Append a `resumed` event before taking the next action.
 
 If an explicit resume predates `progress.md` but scout reports exist, trust those reports, reconstruct the minimum state from the reports and current conversation, create `progress.md`, and record the reconstruction in `context-captured` before continuing.
@@ -271,11 +271,11 @@ Each topic must:
 
 Limited intentional overlap is allowed when separate questions require shared evidence. Tell scouts to cross-reference related topics and avoid duplicating another report's full analysis.
 
-Independent topics may run in parallel when the host supports it; otherwise run them sequentially. Before any delegation, sort topics by kebab-case name and append `scout-wave-planned` with the current cycle, wave, complete topic set, coverage targets, and a compact recoverable brief for every topic containing scope, questions, and report path.
+Independent topics may run in parallel when the host supports it; otherwise run them sequentially. Before any delegation, sort topics by kebab-case name and validate every complete brief (required inputs, bounded scope, explicit boolean `resume`, and safe topic-consistent report path). If validation fails, surface `REJECTED: missing required inputs: ...` for missing fields or `REJECTED: invalid input: ...` for invalid state, and fail the coordinator operation before appending `scout-wave-planned`, invoking a scout, or mutating a scout report. Only then append `scout-wave-planned` with the current cycle, wave, complete topic set, coverage targets, and a compact recoverable brief for every topic containing scope, questions, report path, and whether the delegation is fresh or resumed.
 
 ### Step 4: Delegate `feat-scout`
 
-For each topic, delegate to `feat-scout` with every required input:
+For each topic, delegate to `feat-scout` with every required input. Before appending `scout-started` or invoking the agent, validate that the complete bundle is present, `resume` is a boolean, the brief is bounded, and the report path is safe and matches the topic. If validation fails, fail the coordinator operation without invoking the scout or mutating its report.
 
 | Input | Description |
 |---|---|
@@ -288,28 +288,30 @@ For each topic, delegate to `feat-scout` with every required input:
 | `repository_root` | Absolute path to the active working-tree root. |
 | `project_root` | Absolute path to the project codebase root, resolved from `<repository_root>/_xzy-ai/project-root.md`. |
 | `report_path` | Exact path `_xzy-ai/sprints/<backlog_name>/feats/scouts/<topic>.md`. |
+| `resume` | Required boolean. Use `false` for a fresh report path and `true` to continue the matching existing `in-progress` report. |
 
-Before delegation, append one `scout-started` event per scout in deterministic topic order. After all results from that batch return, append one `scout-completed` or `scout-blocked` event per result in the same deterministic topic order, regardless of actual completion order.
+Before delegation, append one `scout-started` event per scout in deterministic topic order, including its cycle, wave, topic, scope, report path, attempt, and explicit `resume` value. Delegate with `resume=false` for a fresh path and `resume=true` for a matching existing `in-progress` report. After all results from that batch return, append `scout-completed` or `scout-blocked` only for terminal results in the same deterministic topic order; an `in-progress` result remains open under its existing `scout-started` event and is resumed later.
 
 A scout returns only:
 
 ```text
 report_path: <path>
-status: completed | blocked
+status: completed | in-progress | blocked
 reason: <required only when blocked>
 ```
 
-The on-disk report is canonical. Read every returned report before evaluating coverage.
+The on-disk report is canonical. Read every returned report, including `in-progress` reports as partial evidence, before evaluating coverage. Early input or state failures return only the scout's `REJECTED: ...` message; do not infer missing coordinator inputs.
 
 If a scout returns `REJECTED`:
 
 1. Treat the rejected delegation as a consumed scout invocation.
 2. Append `scout-blocked` with the current `cycle`, `wave`, original `topic`, `report=none`, escaped `reason=rejected:<message>`, and attempt number.
 3. Correct the missing or invalid coordinator input instead of inferring product or codebase facts.
-4. Append a new `scout-started` event with the same cycle, wave, topic, scope, and report path plus the incremented attempt, then re-delegate the same topic and scope once with corrected inputs. Do not rename the topic for an input rejection.
-5. Preserve the original `scout-wave-planned` brief; the corrected delegation fulfills that same planned topic.
-6. If the corrected delegation is rejected again, append its matching `scout-blocked`, then append `paused` with `reason=scout-contract-rejected`, the rejected topic in `pending`, and `resume-requires=correct-coordinator-inputs`; report the coordinator-contract failure. Do not continue to a narrower discovery scope because discovery never began.
-7. Never leave a `scout-started` event without a corresponding `scout-completed` or `scout-blocked` event.
+4. If the rejection reports a terminal report collision, do not retry or overwrite that report path. Append `paused` with `reason=scout-terminal-report-collision`, the rejected topic in `pending`, and `resume-requires=new-scout-round-or-report-path`; report that a fresh delegation must use a new round/path.
+5. For any other rejection, append a new `scout-started` event with the same cycle, wave, topic, scope, and report path plus the incremented attempt, then re-delegate the same topic and scope once with corrected inputs. Do not rename the topic for an input rejection.
+6. Preserve the original `scout-wave-planned` brief; a corrected delegation fulfills that same planned topic.
+7. If the corrected delegation is rejected again, append its matching `scout-blocked`, then append `paused` with `reason=scout-contract-rejected`, the rejected topic in `pending`, and `resume-requires=correct-coordinator-inputs`; report the coordinator-contract failure. Do not continue to a narrower discovery scope because discovery never began.
+8. A `scout-started` event may remain open while its report is `in-progress` or its delegation was interrupted; reconcile it on resume by reading the report and then append the matching terminal event.
 
 ### Step 5: Apply the discovery budget
 
@@ -330,6 +332,8 @@ If complete coverage still fails after the cycle:
 5. If declined, append `cancelled` and do not write `features.md`.
 
 ### Step 6: Recover from blocked scouts
+
+A `scout-blocked` event with `report=none` is a pre-report rejection and follows Step 4; the recovery below applies to an operationally blocked report.
 
 For a blocked scope:
 
@@ -365,6 +369,8 @@ Use status outcomes as follows:
 | `missing` | Include the required outcome as a candidate feature. |
 | `conflicting` | Follow up with discovery when the current state is unclear; use `discussion` when desired behavior or scope is ambiguous. |
 | `unknown` | Launch focused follow-up discovery. Never synthesize from unknown evidence. |
+
+An `in-progress` report may contribute already persisted evidence, but its remaining `Pending discovery` areas and unanswered questions are uncovered. Never synthesize final features from incomplete coverage.
 
 Append `coverage-checked` after every wave. Include covered goals, uncovered goals, conflicts, unknowns, and the next action.
 
@@ -521,11 +527,11 @@ Do not repeat the feature list in chat.
 
 `feat-scout` is a bundled read-only discovery agent.
 
-**Required inputs:** `backlog_name`, `topic`, `discovery_scope`, `product_goal`, `relevant_context`, `questions_to_resolve`, `repository_root`, `project_root`, `report_path`.
+**Required inputs:** `backlog_name`, `topic`, `discovery_scope`, `product_goal`, `relevant_context`, `questions_to_resolve`, `repository_root`, `project_root`, `report_path`, `resume`.
 
 **Canonical output:** `_xzy-ai/sprints/<backlog_name>/feats/scouts/<topic>.md` using the agent's embedded canonical schema, mirrored for human reference in [SCOUT-REPORT-FORMAT.md](./references/SCOUT-REPORT-FORMAT.md).
 
-**Return:** report path, `completed` or `blocked`, and blocked reason when applicable.
+**Return:** report path and `completed`, `in-progress`, or `blocked` status; blocked reason when applicable. Invalid or incomplete delegation returns the scout's `REJECTED: ...` response before report mutation.
 
 ## Constraints
 
@@ -540,8 +546,9 @@ Do not repeat the feature list in chat.
 9. Only the main host writes `feats/progress.md`.
 10. Do not exceed five scout invocations per wave, three waves, or fifteen invocations per authorized discovery cycle; run a wave concurrently only when supported.
 11. Do not proceed with incomplete discovery after a scout failure.
-12. Treat the active working tree, including uncommitted changes, as current state.
-13. Keep all workflow operations and artifacts inside the active repository root.
+12. Resume matching `in-progress` scout reports from their persisted checkpoints; partial reports do not satisfy coverage.
+13. Treat the active working tree, including uncommitted changes, as current state.
+14. Keep all workflow operations and artifacts inside the active repository root.
 
 ## References
 

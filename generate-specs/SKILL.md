@@ -226,7 +226,7 @@ When light host discovery verifies that no implementation relevant to the target
 
 #### Established repository
 
-Use fresh targeted discovery against the project codebase root (resolved from `_xzy-ai/project-root.md`), including uncommitted changes. Do not reuse `feat-scout` reports. An explicit resume may reuse only completed `spec-scout` reports produced by the same per-feature workflow round when their scopes remain valid.
+Use fresh targeted discovery against the project codebase root (resolved from `_xzy-ai/project-root.md`), including uncommitted changes. Do not reuse `feat-scout` reports. An explicit workflow resume may read completed reports or resume matching `in-progress` `spec-scout` reports produced by the same per-feature workflow round when their scopes and metadata remain valid; only the latter receives `resume=true`.
 
 ### Step 3: Plan scout scopes
 
@@ -243,11 +243,11 @@ Each topic must:
 
 Limited intentional overlap is allowed when separate questions require shared evidence. Tell scouts to cross-reference related topics and avoid duplicating another report's full analysis.
 
-Independent topics may run in parallel when supported; otherwise run sequentially. Before delegation, sort topics lexicographically and append `scout-wave-planned` with cycle, wave, topics, coverage targets, and recoverable briefs.
+Independent topics may run in parallel when supported; otherwise run sequentially. Before any delegation, sort topics lexicographically and validate every complete brief (required inputs, bounded scope, explicit boolean `resume`, and safe topic-consistent report path). If validation fails, surface `REJECTED: missing required inputs: ...` for missing fields or `REJECTED: invalid input: ...` for invalid state, and fail the coordinator operation before appending `scout-wave-planned`, invoking a scout, or mutating a scout report. Only then append `scout-wave-planned` with cycle, wave, topics, coverage targets, and recoverable briefs that include each report path and fresh/resume mode.
 
 ### Step 4: Delegate `spec-scout`
 
-Delegate with every required input:
+Delegate with every required input. Before appending `scout-started` or invoking the agent, validate that the complete bundle is present, `resume` is a boolean, the brief is bounded, and the report path is safe and matches the topic. If validation fails, fail the coordinator operation without invoking the scout or mutating its report.
 
 | Input | Description |
 |---|---|
@@ -260,8 +260,9 @@ Delegate with every required input:
 | `workspace_root` | Absolute workspace root. |
 | `project_root` | Absolute project codebase root resolved from `_xzy-ai/project-root.md`. |
 | `report_path` | Exact round-scoped scout report path. |
+| `resume` | Required boolean. Use `false` for a fresh report path and `true` to continue the matching existing `in-progress` report. |
 
-When the platform supports bundled subagent invocation, invoke `spec-scout` with the full contract and wait for its completion return. Parallel waves are expressed as multiple independent scout delegations when supported.
+Before each delegation, append `scout-started` with cycle, wave, topic, scope, report path, attempt, and the explicit `resume` value. When the platform supports bundled subagent invocation, invoke `spec-scout` with the full contract, including that value, and wait for its return. Parallel waves are expressed as multiple independent scout delegations when supported. A fresh delegation uses `resume=false`; a resumed matching report uses `resume=true`.
 
 If the platform lacks required subagent support, append a paused event containing the exact scout briefs and `resume-requires=subagent-delegation-support`; tell the user delegation support is required. The host must not replace `spec-scout` as the primary semantic discovery mechanism.
 
@@ -269,13 +270,19 @@ A scout returns only:
 
 ```text
 report_path: <path>
-status: completed | blocked
+status: completed | in-progress | blocked
 reason: <required only when blocked>
 ```
 
-The on-disk report is canonical. Read every returned report before evaluating coverage.
+The on-disk report is canonical. Read every returned report, including `in-progress` reports as partial evidence, before evaluating coverage. Early input or state failures return only the scout's `REJECTED: ...` message; do not infer missing coordinator inputs.
 
-If a scout returns `REJECTED`, treat it as a consumed invocation, record it as blocked, correct coordinator input, and retry the same topic once. If rejected again, pause with `resume-requires=correct-coordinator-inputs`.
+If a scout returns `REJECTED`:
+
+1. Treat the rejected delegation as a consumed scout invocation.
+2. Append `scout-blocked` with the current `cycle`, `wave`, topic, `report=none`, escaped `reason=rejected:<message>`, and attempt number.
+3. If the rejection reports a terminal report collision, do not retry or overwrite that report path; pause with `reason=scout-terminal-report-collision`, the topic in `pending`, and `resume-requires=new-scout-round-or-report-path`.
+4. For any other rejection, correct coordinator input or resume state, append a new `scout-started` event with the incremented attempt, and retry the same topic once. If rejected again, append its matching `scout-blocked`, then pause with `resume-requires=correct-coordinator-inputs`.
+5. A returned `in-progress` status is not terminal; retain its `scout-started` ledger entry and resume the same report later.
 
 ### Step 5: Apply the discovery budget
 
@@ -296,6 +303,8 @@ If complete evidence remains unavailable after the cycle:
 5. If declined, append `workflow-cancelled` and do not write `spec.md`.
 
 ### Step 6: Recover from blocked scouts
+
+A `scout-blocked` event with `report=none` is a pre-report rejection and follows Step 4; the recovery below applies to an operationally blocked report.
 
 For a blocked scope:
 
@@ -322,7 +331,7 @@ Before synthesis, verify that reports collectively establish enough evidence for
 - Existing or proposed testing seams.
 - Conflicts, unknowns, and dependency boundaries.
 
-If completed scout reports become stale because `discussion` changes feature scope, keep unaffected reports, mark affected topics stale in progress, and launch replacement or supplemental topics in a later wave within the same round and authorized cycle.
+An `in-progress` report may contribute already persisted evidence, but its remaining `Pending discovery` areas and unanswered questions are uncovered; it cannot satisfy coverage until terminal. If completed scout reports become stale because `discussion` changes feature scope, keep unaffected reports, mark affected topics stale in progress, and launch replacement or supplemental topics in a later wave within the same round and authorized cycle.
 
 ### Step 8: Resolve behavior-affecting ambiguity
 
@@ -464,11 +473,11 @@ Do not repeat the spec in chat.
 
 `spec-scout` is a bundled read-only discovery agent.
 
-**Required inputs:** `backlog_name`, `feature_id`, `feature_context`, `topic`, `discovery_scope`, `questions_to_resolve`, `workspace_root`, `project_root`, `report_path`.
+**Required inputs:** `backlog_name`, `feature_id`, `feature_context`, `topic`, `discovery_scope`, `questions_to_resolve`, `workspace_root`, `project_root`, `report_path`, `resume`.
 
 **Canonical output:** `_xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/scouts/round-<RRR>/<topic>.md` using the agent's embedded canonical schema, mirrored for human reference in [SCOUT-REPORT-FORMAT.md](./references/SCOUT-REPORT-FORMAT.md).
 
-**Return:** report path, `completed` or `blocked`, and blocked reason when applicable.
+**Return:** report path and `completed`, `in-progress`, or `blocked` status; blocked reason when applicable. Invalid or incomplete delegation returns the scout's `REJECTED: ...` response before report mutation.
 
 ## Constraints
 
@@ -483,8 +492,9 @@ Do not repeat the spec in chat.
 9. Keep `spec.md` free of project-root file paths except qualifying workspace-root-relative or absolute citations outside the project root; final citations are path-only, and the trailing `## References` index must be the deduplicated sorted union of inline citations. Keep it free of concrete function signatures, code snippets, unresolved alternatives, and open questions. Trust current-round scout reports for citation path validity; do not re-resolve paths at write time.
 10. Only the main host writes feature `progress.md`.
 11. Do not exceed five scout invocations per wave, three waves, or fifteen invocations per authorized discovery cycle.
-12. Treat the active working tree, including uncommitted changes, as current state.
-13. Keep all workflow operations and artifacts inside the active workspace root.
+12. Resume matching `in-progress` scout reports from their persisted checkpoints; partial reports do not satisfy coverage.
+13. Treat the active working tree, including uncommitted changes, as current state.
+14. Keep all workflow operations and artifacts inside the active workspace root.
 
 ## References
 

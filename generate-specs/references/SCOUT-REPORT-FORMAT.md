@@ -6,7 +6,7 @@ Every `spec-scout` writes one canonical technical evidence report to:
 _xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/scouts/round-<RRR>/<topic>.md
 ```
 
-The report exists for analysis, auditability, and resume. It may contain implementation details and source references, but those details must not be copied into the finalized `spec.md` as project-root file paths, concrete function signatures, code snippets, or scout citations.
+After validating its brief, the scout initializes the report and persists meaningful evidence incrementally. The report exists for analysis, auditability, and resume. It may contain implementation details and source references, but those details must not be copied into the finalized `spec.md` as project-root file paths, concrete function signatures, code snippets, or scout citations.
 
 ## Required Template
 
@@ -16,9 +16,11 @@ The report exists for analysis, auditability, and resume. It may contain impleme
 **Backlog:** `<backlog_name>`
 **Feature:** `<feature_id>`
 **Topic:** `<topic>`
-**Status:** `completed` | `blocked`
+**Status:** `in-progress` | `completed` | `blocked`
 **Workspace root:** `<absolute workspace root>`
 **Report path:** `<report_path>`
+**Last checkpoint:** `<discovery phase or checkpoint>`
+**Next step:** `<next discovery action or none>`
 
 ## Scope Investigated
 
@@ -128,6 +130,15 @@ Write `None` when no unknowns remain in the assigned scope.
 - **Recommended follow-up discovery:** <Evidence-only follow-up scope or `None`.>
 ```
 
+## Incremental Lifecycle
+
+- A fresh report is written as the complete template with `Status: in-progress` before discovery begins. Record the validated assigned scope, exclusions, and delegated questions in `Scope Investigated`; use `Pending discovery` only for evidence sections not yet investigated and `None` only after a section has been investigated and has no applicable content.
+- A resumed report must already exist with matching metadata and `Status: in-progress`. The coordinator passes the required explicit `resume=true` delegation value. Preserve its evidence and continue from `Last checkpoint` and `Next step`; never silently restart or overwrite it.
+- After every meaningful fact, observation, conclusion, or relevant finding, update the appropriate canonical section, update the checkpoint metadata, and persist the report before continuing. Provisional observations must be labeled as observed, inferred, or pending verification.
+- Keep the full header and section skeleton present while content is partial. Preserve contradictory observations, record the conflict, and update the conclusion rather than deleting earlier evidence.
+- A `completed` report contains no `Pending discovery` markers. A `blocked` report may retain them when the blocker prevents full investigation and the blocker is recorded in `Conclusions`.
+- An early invalid input or state returns `REJECTED: invalid input: <reason>` without creating or modifying a report. A graceful unfinished run may return `status: in-progress`.
+
 ## Required Sections
 
 Every report must contain all of these sections in this order:
@@ -143,14 +154,17 @@ Every report must contain all of these sections in this order:
 9. `Conflicts and Unknowns`
 10. `Conclusions`
 
-Use `None` rather than omitting an empty section.
+Use `Pending discovery` for an untouched section in an `in-progress` report, and use `None` only for an investigated section with no applicable content; never omit a required section.
 
 ## Status Rules
 
 ### Report status
 
-- `completed`: The assigned investigation ran to completion and every delegated question has an evidence-backed answer. A completed report may still contain conflicts or unknowns when those are themselves well-evidenced.
-- `blocked`: Operational constraints prevented adequate investigation, such as inaccessible repository content, unavailable required tools, prohibited mutation, or an unreadable dependency boundary.
+- `in-progress`: The scout has initialized the complete report but has not finished the assigned investigation. Section content may be partial and may contain `Pending discovery` markers.
+- `completed`: The assigned investigation ran to completion and every delegated question has an evidence-backed answer. Every section is investigated and no `Pending discovery` markers remain. A completed report may still contain conflicts or unknowns when those are themselves well-evidenced.
+- `blocked`: Operational constraints prevented adequate investigation after valid startup, such as inaccessible repository content, unavailable required tools, prohibited mutation, or an unreadable dependency boundary. A blocked report may retain `Pending discovery` markers when the blocker is recorded.
+
+A terminal report must not be overwritten by a fresh or resume delegation. A terminal collision returns `REJECTED: invalid input: terminal report already exists`; invalid delegation or resume state is rejected before report mutation.
 
 Do not mark a report blocked merely because the feature is currently unsupported or the current behavior conflicts with the desired behavior.
 
@@ -159,17 +173,18 @@ Do not mark a report blocked merely because the feature is currently unsupported
 1. Prefer reachable behavior over isolated implementation artifacts.
 2. Corroborate claims with behavioral tests, documentation, configuration, and integrations where available.
 3. For reference-material evidence, cite only sources outside the project root in either the canonical workspace-root-relative form `<path>:<line-range>` or absolute form `<absolute-path>:<line-range>`. For example, Codex sources under `references/codex/codex-rs/` are cited as `references/codex/codex-rs/config/src/state.rs:155-169`. Relative paths use forward slashes with no leading `./` or `/`, and no `.` or `..` segments.
-4. Before writing the report, verify that every cited reference-material path resolves to an existing regular file outside the project root. Symlinks are allowed only when they resolve to a regular file outside the project root.
-5. Include workspace-relative `path:line` or `path:line-range` references for target-codebase evidence whenever possible; these precise paths may stay in the report (a working artifact) but must be understood as NOT carried verbatim into the final `spec.md` — the coordinator re-expresses them as durable prose and feature identifiers.
-6. Include precise symbols such as functions, classes, routes, commands, test names, or configuration keys.
-7. Explain what each reference proves and what it does not prove.
-8. For commands, record the exact command, why it was safe and non-mutating, relevant result, and exit status when available.
-9. Distinguish documentation intent from verified current behavior.
-10. Do not treat a name, TODO, comment, stub, or dormant code path as proof of supported behavior.
-11. Record active-working-tree evidence when uncommitted changes affect the topic.
-12. Never fabricate a citation, command result, reachable path, or confidence level.
-13. Never include secret values, credentials, tokens, private keys, session material, personal data, or sensitive environment contents. Cite sensitive configuration keys by name and path only, redact values as `[REDACTED]`, and describe implications without reproducing protected data.
-14. Only the current round's scout reports feed final artifacts; do not silently reuse prior-round or stale reports as citation sources.
+4. Before persisting a reference-material citation, verify that its path resolves to an existing regular file outside the project root. Symlinks are allowed only when they resolve to a regular file outside the project root.
+5. Persist each meaningful fact, observation, conclusion, or relevant finding in the applicable canonical section as soon as it is discovered; do not wait for a final batch or copy raw tool output.
+6. Include workspace-relative `path:line` or `path:line-range` references for target-codebase evidence whenever possible; these precise paths may stay in the report (a working artifact) but must be understood as NOT carried verbatim into the final `spec.md` — the coordinator re-expresses them as durable prose and feature identifiers.
+7. Include precise symbols such as functions, classes, routes, commands, test names, or configuration keys.
+8. Explain what each reference proves and what it does not prove.
+9. For commands, record the exact command, why it was safe and non-mutating, relevant result, and exit status when available.
+10. Distinguish documentation intent from verified current behavior.
+11. Do not treat a name, TODO, comment, stub, or dormant code path as proof of supported behavior.
+12. Record active-working-tree evidence when uncommitted changes affect the topic.
+13. Never fabricate a citation, command result, reachable path, or confidence level.
+14. Never include secret values, credentials, tokens, private keys, session material, personal data, or sensitive environment contents. Cite sensitive configuration keys by name and path only, redact values as `[REDACTED]`, and describe implications without reproducing protected data.
+15. Only the current round's scout reports feed final artifacts; do not silently reuse prior-round or stale reports as citation sources.
 
 ## Scope and Overlap Rules
 

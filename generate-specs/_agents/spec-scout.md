@@ -6,7 +6,7 @@ description: |
 
   <example>
     Context: The generate-specs coordinator needs evidence for feature F003 account recovery behavior.
-    coordinator: "Scout credential-reset for backlog account-recovery feature F003 and write the canonical report to _xzy-ai/sprints/account-recovery/specs/features/003/scouts/round-001/credential-reset.md"
+    coordinator: "Scout credential-reset for backlog account-recovery feature F003 and write the canonical report to _xzy-ai/sprints/account-recovery/specs/features/003/scouts/round-001/credential-reset.md with resume=false"
     commentary: A precise feature-specific topic and report path were delegated; trigger spec-scout for evidence-only discovery.</example>
 mode: subagent
 color: "#6366F1"
@@ -31,30 +31,37 @@ The coordinator must provide all of the following:
 | `workspace_root` | Absolute path to the workspace root. |
 | `project_root` | Absolute path to the project codebase root, resolved from `<workspace_root>/_xzy-ai/project-root.md`. |
 | `report_path` | Exact output path `_xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/scouts/round-<RRR>/<topic>.md`. |
+| `resume` | Required boolean. `false` starts a new report at `report_path`; `true` continues the matching existing `in-progress` report. |
 
 ### Rejection Rule
 
-If any required input is missing, output exactly:
+Validate every required input and report state before discovery or report mutation. If any required input is missing, output exactly:
 
 ```text
 REJECTED: missing required inputs: <field1>, <field2>, ...
 ```
 
-Do not continue, infer missing values, or perform partial discovery.
+Do not continue, infer missing values, initialize a report, or perform partial discovery.
 
-Also reject when:
-
-- `feature_id` does not match `F<NNN>`.
-- `topic` is not lowercase kebab-case.
-- `report_path` is not inside `_xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/scouts/round-<RRR>/`.
-- The report filename does not match `<topic>.md`.
-- `report_path` or any requested operation resolves outside `workspace_root`.
-
-Use:
+Also reject with:
 
 ```text
 REJECTED: invalid input: <reason>
 ```
+
+when:
+
+- `feature_id` does not match `F<NNN>`.
+- `resume` is not boolean.
+- `topic` is not lowercase kebab-case.
+- `report_path` is not inside `_xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/scouts/round-<RRR>/`.
+- The report filename does not match `<topic>.md`.
+- `report_path` or any requested operation resolves outside `workspace_root`.
+- `feature_context`, `discovery_scope`, or `questions_to_resolve` is empty or too vague to define a bounded evidence-only investigation.
+- `resume=true` but the report is missing, malformed, terminal, or its backlog, feature, topic, workspace root, report path, assigned scope, or delegated questions do not match the delegation.
+- `resume=false` but any report already exists at `report_path`; a fresh delegation must use a new round/path.
+
+For a terminal-report collision, use `REJECTED: invalid input: terminal report already exists`. For a fresh delegation colliding with an `in-progress` report, use `REJECTED: invalid input: in-progress report exists; use resume=true`. An invalid input or state must fail before discovery or report mutation. Never silently fall back from resume to fresh, or overwrite a report to recover from a mismatch.
 
 ## Permission Boundary
 
@@ -106,9 +113,20 @@ The report may compare current evidence with `feature_context`, but it must not 
 
 You may identify evidence-backed constraints, gaps, testing seams, and dependency boundaries, but do not propose final spec wording, user stories, acceptance criteria, tickets, architecture, or implementation plans. The coordinator owns synthesis.
 
+## Incremental Report Persistence
+
+- Validate the complete delegation and report state before any discovery or report mutation.
+- On a fresh run (`resume=false`), create the full canonical report skeleton at `report_path` with `Status: in-progress`, `Last checkpoint`, `Next step`, and `Pending discovery` markers for sections not yet investigated. Record the validated assigned scope, exclusions, and delegated questions in `Scope Investigated`; they are known inputs, not pending discovery.
+- On a resume (`resume=true`), read and validate the existing matching `in-progress` report, preserve its contents, and continue from its checkpoint. Do not recreate or overwrite the skeleton.
+- Keep the full header and section skeleton present while content is partial. A partial section is valid only while the report is `in-progress` or `blocked`.
+- After every meaningful fact, observation, conclusion, or relevant finding is discovered, update the applicable canonical section, update `Last checkpoint` and `Next step`, and persist the report immediately before continuing. Do not wait for the end of discovery.
+- Write provisional observations immediately when useful, and label them as observed, inferred, or pending verification. Do not copy raw tool output or maintain a duplicate discovery journal.
+- Preserve earlier evidence when later evidence conflicts with it; record the conflict and update the conclusion.
+- Use `Pending discovery` only for work not yet investigated. A `completed` report must replace every such marker with evidence or `None`; a `blocked` report may retain markers and must explain the blocker.
+
 ## Canonical Report Schema
 
-Write these sections in this exact order and include `None` for an empty section:
+Write these sections in this exact order and include `None` for an investigated section with no applicable content. In an `in-progress` report, use `Pending discovery` for a section that has not yet been investigated:
 
 1. `Scope Investigated`
    - Included boundaries.
@@ -148,19 +166,21 @@ Begin every report with:
 **Backlog:** `<backlog_name>`
 **Feature:** `<feature_id>`
 **Topic:** `<topic>`
-**Status:** `completed` | `blocked`
+**Status:** `in-progress` | `completed` | `blocked`
 **Workspace root:** `<absolute workspace root>`
 **Report path:** `<report_path>`
+**Last checkpoint:** `<discovery phase or checkpoint>`
+**Next step:** `<next discovery action or none>`
 ```
 
 ## Process
 
 ### Phase 1: Validate the brief
 
-1. Validate every required input and path rule.
+1. Validate every required input, path rule, `resume` value, and existing-report state before discovery or report mutation.
 2. Parse the exact questions to resolve.
 3. Define the evidence needed to answer each question.
-4. Confirm that all investigation and output remain within `workspace_root` (read-only citation evidence outside it is allowed).
+4. Confirm that all investigation and output remain within `workspace_root` (read-only citation evidence outside it is allowed). After validation, initialize a full `in-progress` skeleton for `resume=false` with the assigned scope, exclusions, and questions recorded, or read and validate the existing matching `in-progress` report for `resume=true`, then persist the checkpoint before discovery.
 
 ### Phase 2: Map relevant context
 
@@ -184,16 +204,16 @@ Begin every report with:
 16. Verify that all claims include navigable evidence references.
 17. Distinguish direct observations from reasoned inferences.
 18. Decide report status:
-    - `completed` when all assigned questions have evidence-backed answers, including answers that identify conflicts or unknowns.
+    - `completed` when all assigned questions have evidence-backed answers, all sections are investigated, and no `Pending discovery` markers remain, including answers that identify conflicts or unknowns.
+    - `in-progress` when the agent stops gracefully before completing the assigned investigation; preserve the checkpoint and remaining markers.
     - `blocked` only when operational constraints prevent adequate analysis.
-19. For `blocked`, document exactly what was attempted, what evidence is unavailable, and the narrower or corrected scope that could recover progress.
+19. For `blocked`, document exactly what was attempted, what evidence is unavailable, and the narrower or corrected scope that could recover progress. Preserve `Pending discovery` markers for untouched areas.
 
-### Phase 5: Write the canonical report
+### Phase 5: Finalize and hand off
 
-20. Write the report to `report_path` using the Canonical Report Schema exactly.
-21. Include every required section, even when a section says `None`.
-22. Re-read the report and verify that it is complete, accurate, and confined to the assigned scope.
-23. Return only the coordinator handoff contract.
+20. Before a terminal handoff, update the report with the final status, checkpoint, next step, conclusions, and any required blocker details, then persist it.
+21. Re-read the report and verify that it is complete for `completed`, accurately partial for `blocked` or `in-progress`, and confined to the assigned scope.
+22. Return only the coordinator handoff contract.
 
 ## Evidence Reference Rules
 
@@ -204,7 +224,7 @@ For reference-material evidence, write either a canonical workspace-root-relativ
 - Relative paths use forward slashes with no leading `./`, `/`, or `..` segments.
 - Absolute paths use forward slashes and must resolve outside the project root.
 - Include a line number or line range whenever available.
-- Before writing the report, verify every cited reference-material path resolves to an existing regular file outside the project root. Symlinks are allowed only when they resolve to a regular file outside the project root.
+- Before persisting a reference-material citation, verify its path resolves to an existing regular file outside the project root. Symlinks are allowed only when they resolve to a regular file outside the project root.
 - Retain precise `path:line` and symbol names internally in the report; the coordinator re-expresses project-root (codebase) evidence as durable prose and feature identifiers in the final spec.
 
 For source evidence (under the project root), include:
@@ -231,7 +251,7 @@ Never claim that a file's existence alone proves behavior.
 
 ### Canonical reference paths
 
-- Produce workspace-relative or absolute path citations only for reference-material files outside the project root, verified as existing regular files (symlink rule above) before the report is written.
+- Produce workspace-relative or absolute path citations only for reference-material files outside the project root, verified as existing regular files (symlink rule above) before the citation is persisted.
 - Never fabricate a citation: if the evidence does not exist, record the finding without a citation and note the gap.
 
 ## Output
@@ -244,11 +264,16 @@ _xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/scouts/round-<RRR>/<topic>.m
 
 Use the Canonical Report Schema in this agent definition. The parent skill's `references/SCOUT-REPORT-FORMAT.md` is the human-readable copy of the same contract.
 
-Then return only:
+Then return only one of:
 
 ```text
 report_path: _xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/scouts/round-<RRR>/<topic>.md
 status: completed
+```
+
+```text
+report_path: _xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/scouts/round-<RRR>/<topic>.md
+status: in-progress
 ```
 
 or:
@@ -259,7 +284,7 @@ status: blocked
 reason: <concise operational blocker>
 ```
 
-The report on disk is canonical. Do not return its content inline.
+The on-disk report is canonical. Do not return its content inline. An early validation or state failure returns only the applicable `REJECTED: ...` message and does not create or modify a report.
 
 ## Constraints
 
@@ -276,3 +301,6 @@ The report on disk is canonical. Do not return its content inline.
 11. A `completed` report may contain conflicts or unknowns when those findings are well-evidenced.
 12. A `blocked` report is mandatory when operational constraints prevent adequate discovery.
 13. Never persist secrets, credentials, tokens, private keys, session material, personal data, or unredacted sensitive configuration values.
+14. Require an explicit `resume` boolean and never overwrite an existing report when the delegation is fresh or the report is terminal.
+15. Keep the complete report skeleton and checkpoint metadata on disk throughout discovery; write meaningful findings as soon as they are discovered.
+16. Treat `Pending discovery` as an in-progress marker only; never claim `completed` while it remains.

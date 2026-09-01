@@ -6,7 +6,7 @@ Every `feat-scout` writes one canonical technical evidence report to:
 _xzy-ai/sprints/<backlog_name>/feats/scouts/<topic>.md
 ```
 
-The report exists for analysis and auditability. It may contain implementation details, but none of those details may be copied into the finalized `features.md` as project-root file paths.
+After validating its brief, the scout initializes the report and persists meaningful evidence incrementally. The report exists for analysis, auditability, and recovery. It may contain implementation details, but none of those details may be copied into the finalized `features.md` as project-root file paths.
 
 ## Required Template
 
@@ -15,9 +15,11 @@ The report exists for analysis and auditability. It may contain implementation d
 
 **Backlog:** `<backlog_name>`
 **Topic:** `<topic>`
-**Status:** `completed` | `blocked`
+**Status:** `in-progress` | `completed` | `blocked`
 **Repository root:** `<absolute repository root>`
 **Report path:** `<report_path>`
+**Last checkpoint:** `<discovery phase or checkpoint>`
+**Next step:** `<next discovery action or none>`
 
 ## Scope
 
@@ -127,6 +129,15 @@ Write `None` when the topic is self-contained.
 - **Recommended follow-up discovery:** <Evidence-only follow-up scope or `None`.>
 ```
 
+## Incremental Lifecycle
+
+- A fresh report is written as the complete template with `Status: in-progress` before discovery begins. Record the validated assigned scope, exclusions, and delegated questions in `Scope`; use `Pending discovery` only for evidence sections not yet investigated and `None` only after a section has been investigated and has no applicable content.
+- A resumed report must already exist with matching metadata and `Status: in-progress`. The coordinator passes the required explicit `resume=true` delegation value. Preserve its evidence and continue from `Last checkpoint` and `Next step`; never silently restart or overwrite it.
+- After every meaningful fact, observation, conclusion, or relevant finding, update the appropriate canonical section, update the checkpoint metadata, and persist the report before continuing. Provisional observations must be labeled as observed, inferred, or pending verification.
+- Keep the full header and section skeleton present while content is partial. Preserve contradictory observations, record the conflict, and update the conclusion rather than deleting earlier evidence.
+- A `completed` report contains no `Pending discovery` markers. A `blocked` report may retain them when the blocker prevents full investigation and the blocker is recorded in `Conclusions`.
+- An early invalid input or state returns `REJECTED: invalid input: <reason>` without creating or modifying a report. A graceful unfinished run may return `status: in-progress`.
+
 ## Required Sections
 
 Every report must contain all of these sections in this order:
@@ -144,14 +155,17 @@ Every report must contain all of these sections in this order:
 11. `Cross-topic Dependencies`
 12. `Conclusions`
 
-Use `None` rather than omitting an empty section.
+Use `Pending discovery` for an untouched section in an `in-progress` report, and use `None` only for an investigated section with no applicable content; never omit a required section.
 
 ## Status Rules
 
 ### Report status
 
-- `completed`: The assigned investigation ran to completion and every delegated question has an evidence-backed answer. A completed report may still classify a capability as `conflicting` or `unknown` when that classification accurately represents the available evidence.
-- `blocked`: Operational constraints prevented adequate investigation, such as inaccessible repository content, unavailable required tools, prohibited mutation, or an unreadable dependency boundary.
+- `in-progress`: The scout has initialized the complete report but has not finished the assigned investigation. Section content may be partial and may contain `Pending discovery` markers.
+- `completed`: The assigned investigation ran to completion and every delegated question has an evidence-backed answer. Every section is investigated and no `Pending discovery` markers remain. A completed report may still classify a capability as `conflicting` or `unknown` when that classification accurately represents the available evidence.
+- `blocked`: Operational constraints prevented adequate investigation after valid startup, such as inaccessible repository content, unavailable required tools, prohibited mutation, or an unreadable dependency boundary. A blocked report may retain `Pending discovery` markers when the blocker is recorded.
+
+A terminal report must not be overwritten by a fresh or resume delegation. A terminal collision returns `REJECTED: invalid input: terminal report already exists`; invalid delegation or resume state is rejected before report mutation.
 
 Do not mark a report blocked merely because the capability itself is missing or current behavior is conflicting.
 
@@ -181,9 +195,10 @@ Every status row must contain rationale and evidence.
 8. Do not treat a name, TODO, comment, stub, or dormant code path as proof of a supported capability.
 9. Record active-working-tree evidence when uncommitted changes affect the topic.
 10. For reference-material evidence, cite only sources outside the project root in either the canonical workspace-root-relative form `<path>:<line-range>` or absolute form `<absolute-path>:<line-range>`. For example, sources under `references/codex/codex-rs/` are cited as `references/codex/codex-rs/config/src/state.rs:155-169`. Relative paths use forward slashes with no leading `./` or `/`, and no `.` or `..` segments.
-11. Before writing the report, verify that every cited reference-material path resolves to an existing regular file outside the project root. Symlinks are allowed only when they resolve to a regular file outside the project root.
-12. Never fabricate a citation, command result, reachable path, or confidence level.
-13. Never include secret values, credentials, tokens, private keys, session material, personal data, or sensitive environment contents. Cite sensitive configuration keys by name and path only, redact values as `[REDACTED]`, and describe implications without reproducing protected data.
+11. Before persisting a reference-material citation, verify that its path resolves to an existing regular file outside the project root. Symlinks are allowed only when they resolve to a regular file outside the project root.
+12. Persist each meaningful fact, observation, conclusion, or relevant finding in the applicable canonical section as soon as it is discovered; do not wait for a final batch or copy raw tool output.
+13. Never fabricate a citation, command result, reachable path, or confidence level.
+14. Never include secret values, credentials, tokens, private keys, session material, personal data, or sensitive environment contents. Cite sensitive configuration keys by name and path only, redact values as `[REDACTED]`, and describe implications without reproducing protected data.
 
 ## Scope and Overlap Rules
 

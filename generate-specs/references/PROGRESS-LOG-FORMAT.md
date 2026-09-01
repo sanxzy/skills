@@ -6,7 +6,7 @@ The authoritative per-feature workflow and recovery log lives at:
 _xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/progress.md
 ```
 
-It is pure Markdown, append-only, and written only by the main `generate-specs` host. `spec-scout` agents never read it for orchestration and never write it.
+It is pure Markdown, append-only, and written only by the main `generate-specs` host. `spec-scout` agents never read it for orchestration and never write it. Scouts persist their own report files incrementally; this log records coordinator lifecycle and recovery state only.
 
 ## Purpose
 
@@ -80,8 +80,8 @@ Use only these event types:
 | `context-captured` | `outcome`, `actors`, `in-scope`, `out-of-scope`, `dependencies`, `language`, `repository` | Normalized context was established or updated after discussion. |
 | `existing-spec-dispositioned` | `disposition`, `existing`, optional `revision-target` | User chose how to handle an existing canonical spec. |
 | `discovery-classified` | `mode`, `basis`, `repository` | Host light discovery classified greenfield or established mode. |
-| `scout-wave-planned` | `cycle`, `wave`, `topics`, `coverage-targets`, `briefs` | A bounded set of scout scopes was planned. |
-| `scout-started` | `cycle`, `wave`, `topic`, `scope`, `report`, `attempt` | A scout was delegated. |
+| `scout-wave-planned` | `cycle`, `wave`, `topics`, `coverage-targets`, `briefs` | A bounded set of scout scopes was planned; `briefs` records each report path and fresh/resume mode compactly enough for recovery. |
+| `scout-started` | `cycle`, `wave`, `topic`, `scope`, `report`, `attempt`, `resume` | A scout was delegated with explicit fresh (`false`) or resume (`true`) intent. |
 | `scout-completed` | `cycle`, `wave`, `topic`, `report` | A scout returned a completed canonical report. |
 | `scout-blocked` | `cycle`, `wave`, `topic`, `report`, `reason`, `attempt` | A scout was blocked or rejected. Use `report=none` when rejection occurred before a report was written. |
 | `coverage-evaluated` | `result`, `covered`, `uncovered`, `conflicts`, `unknowns`, `stale`, `reports` | Collective evidence coverage was evaluated. |
@@ -119,11 +119,14 @@ The host remains the sole progress writer.
 For one scout wave:
 
 1. Sort topics lexicographically by kebab-case topic.
-2. Append `scout-wave-planned` with the complete topic set and coverage targets.
-3. Append `scout-started` for each topic in sorted order before delegation.
-4. Delegate scouts in parallel when supported, otherwise sequentially.
-5. Wait for every result in the batch.
-6. Append `scout-completed` or `scout-blocked` for each topic in the same sorted order, regardless of actual completion order.
+2. Validate every brief before any delegation: all required inputs must be present, `resume` must be boolean, the scope must be bounded, and the report path must be safe and topic-consistent. On failure, surface `REJECTED: missing required inputs: ...` or `REJECTED: invalid input: ...` and reject the coordinator operation before `scout-started` or scout-report mutation.
+3. Append `scout-wave-planned` with the complete topic set and coverage targets.
+4. Append `scout-started` for each topic in sorted order before delegation.
+5. Delegate scouts in parallel when supported, otherwise sequentially.
+6. Wait for every result in the batch.
+7. Append `scout-completed` or `scout-blocked` only for terminal results, for each topic in the same sorted order, regardless of actual completion order. A returned or interrupted `in-progress` report remains open under its `scout-started` event.
+
+This preserves reproducible event ordering without allowing report agents to write progress state. The host remains the sole progress-log writer.
 
 ## Discovery Cycles and Scout Waves
 
@@ -135,9 +138,9 @@ One authorized discovery cycle permits:
 
 The progress log must include `cycle` and `wave` on every scout lifecycle event.
 
-Count discovery budget from `scout-started` events. In `coverage-evaluated`, `reports` counts readable canonical `.md` report files only. A rejected invocation recorded with `report=none` consumes budget but does not increase `reports`.
+Count discovery budget from `scout-started` events. In `coverage-evaluated`, `reports` counts readable canonical `.md` report files only; an `in-progress` report may be readable partial evidence but never satisfies complete coverage. A rejected invocation recorded with `report=none` consumes budget but does not increase `reports`.
 
-Retries after completed or blocked discovery and narrower replacements use unique topic names. A corrected re-delegation after input rejection keeps the original planned topic and report path because discovery never began, but it must append another `scout-started` event with an incremented attempt.
+Retries after completed or blocked discovery and narrower replacements use unique topic names. A corrected re-delegation after an ordinary input rejection keeps the original planned topic and report path because discovery never began, but it must append another `scout-started` event with an incremented attempt. A terminal-report collision is not an ordinary retry: preserve the terminal path, pause, and require a new scout round/path.
 
 When another bounded cycle is authorized, continue the same workflow round and increment `cycle` while wave numbering restarts at `1`.
 
@@ -171,8 +174,8 @@ On explicit resume:
 2. Reject resume when its latest event is terminal.
 3. Reconstruct feature identity from the latest `feature-resolved` event.
 4. Reconstruct normalized context from the latest `context-captured` event.
-5. Build the scout ledger from all scout lifecycle events; treat `report=none` as an input rejection with no artifact to read.
-6. Trust and read reports named by completed events and blocked events whose `report` is not `none`.
+5. Build the scout ledger from all scout lifecycle events; retain open entries whose reports are `in-progress`, and treat `report=none` as an input rejection with no artifact to read.
+6. Trust and read reports named by completed or blocked events, plus matching `in-progress` reports named by open `scout-started` events when present.
 7. Determine covered, uncovered, stale, conflicted, and unknown areas from the latest `coverage-evaluated` and `scope-updated` events.
 8. Determine pending discussion from unmatched `ambiguity-handoff-started` events.
 9. Determine quality, archival, and write state from the latest `quality-gate-evaluated`, `revision-archived`, and `spec-write-verified` events.
@@ -188,9 +191,9 @@ On explicit resume:
 | `context-captured` | Classify discovery mode. |
 | `existing-spec-dispositioned` | Follow disposition: stop, archive, or continue discovery. |
 | `discovery-classified` | Plan scouts or synthesize for validated greenfield mode. |
-| `scout-wave-planned` | Check report paths, then delegate scouts without completed reports. |
-| `scout-started` | Check assigned report path; record completion when valid, otherwise re-delegate under failure rules. |
-| `scout-completed` or `scout-blocked` | Read all available wave reports, reconcile unmatched planned topics, and complete the wave ledger. |
+| `scout-wave-planned` | Check report paths and modes; delegate fresh scouts only without an existing report and resume only matching `in-progress` reports. Do not overwrite terminal reports. |
+| `scout-started` | Check assigned report path. If it is a matching `in-progress` report, re-delegate the same topic with `resume=true`; if it is terminal and the current log names its matching terminal event, reconcile it; if it is a fresh collision with no matching terminal event, reject and pause for a new scout round/path; if it is missing or malformed, follow the rejection/recovery rules. |
+| `scout-completed` or `scout-blocked` | Read all available wave reports, skip `report=none` rejection events, reconcile unmatched planned topics, and complete the wave ledger. |
 | `coverage-evaluated` | Follow its `next` action: scout, discuss, synthesize, or request authorization. |
 | `ambiguity-handoff-started` | Resume or complete `discussion`; do not synthesize. |
 | `ambiguity-handoff-completed` | Capture clarified context, then revalidate affected evidence. |
@@ -214,9 +217,9 @@ On explicit resume:
 - 02 | feature-resolved | feature=F003; title=Password recovery; source=features-md; source-detail=_xzy-ai/sprints/account-recovery/features.md; spec-dir=_xzy-ai/sprints/account-recovery/specs/features/003 | next: capture-context
 - 03 | context-captured | outcome=customers recover account access safely; actors=registered customers; in-scope=request reset, verify identity, set replacement credential; out-of-scope=account registration; dependencies=notification delivery; language=English; repository=established | next: classify-discovery
 - 04 | discovery-classified | mode=established; basis=top-level app and tests present; repository=established | next: plan-scouts
-- 05 | scout-wave-planned | cycle=1; wave=1; topics=credential-reset,email-delivery; coverage-targets=behavior, contracts, failures, testing seams; briefs=credential-reset{scope:reset request through credential replacement,report:_xzy-ai/sprints/account-recovery/specs/features/003/scouts/round-001/credential-reset.md},email-delivery{scope:notification delivery dependency,report:_xzy-ai/sprints/account-recovery/specs/features/003/scouts/round-001/email-delivery.md} | next: start-scouts
-- 06 | scout-started | cycle=1; wave=1; topic=credential-reset; scope=reset request through credential replacement; report=_xzy-ai/sprints/account-recovery/specs/features/003/scouts/round-001/credential-reset.md; attempt=1 | next: await-wave
-- 07 | scout-started | cycle=1; wave=1; topic=email-delivery; scope=notification delivery dependency; report=_xzy-ai/sprints/account-recovery/specs/features/003/scouts/round-001/email-delivery.md; attempt=1 | next: await-wave
+- 05 | scout-wave-planned | cycle=1; wave=1; topics=credential-reset,email-delivery; coverage-targets=behavior, contracts, failures, testing seams; briefs=credential-reset{scope:reset request through credential replacement,report:_xzy-ai/sprints/account-recovery/specs/features/003/scouts/round-001/credential-reset.md,resume=false},email-delivery{scope:notification delivery dependency,report:_xzy-ai/sprints/account-recovery/specs/features/003/scouts/round-001/email-delivery.md,resume=false} | next: start-scouts
+- 06 | scout-started | cycle=1; wave=1; topic=credential-reset; scope=reset request through credential replacement; report=_xzy-ai/sprints/account-recovery/specs/features/003/scouts/round-001/credential-reset.md; attempt=1; resume=false | next: await-wave
+- 07 | scout-started | cycle=1; wave=1; topic=email-delivery; scope=notification delivery dependency; report=_xzy-ai/sprints/account-recovery/specs/features/003/scouts/round-001/email-delivery.md; attempt=1; resume=false | next: await-wave
 - 08 | scout-completed | cycle=1; wave=1; topic=credential-reset; report=_xzy-ai/sprints/account-recovery/specs/features/003/scouts/round-001/credential-reset.md | next: complete-wave
 - 09 | scout-completed | cycle=1; wave=1; topic=email-delivery; report=_xzy-ai/sprints/account-recovery/specs/features/003/scouts/round-001/email-delivery.md | next: check-coverage
 - 10 | coverage-evaluated | result=complete; covered=behavior, contracts, failures, testing seams; uncovered=none; conflicts=none; unknowns=none; stale=none; reports=2 | next: synthesize-spec
