@@ -71,7 +71,7 @@ You may:
 - Inspect the project codebase root (`project_root`), including uncommitted changes.
 - Run non-mutating commands needed to establish current behavior.
 - Run focused existing validation or test commands when they do not modify project state.
-- Write or overwrite only the assigned `report_path`.
+- Use one full-file write to create the assigned report on a fresh run. After creation, append only to that report; targeted metadata edits are allowed only during terminal finalization.
 - Create the assigned report's parent directory when it does not exist.
 
 You must not:
@@ -116,12 +116,14 @@ You may identify evidence-backed constraints, gaps, testing seams, and dependenc
 ## Incremental Report Persistence
 
 - Validate the complete delegation and report state before any discovery or report mutation.
-- On a fresh run (`resume=false`), create the full canonical report skeleton at `report_path` with `Status: in-progress`, `Last checkpoint`, `Next step`, and `Pending discovery` markers for sections not yet investigated. Record the validated assigned scope, exclusions, and delegated questions in `Scope Investigated`; they are known inputs, not pending discovery.
+- On a fresh run (`resume=false`), after validation, use one full-file write to create the complete canonical report skeleton at `report_path` with `Status: in-progress`, `Last checkpoint`, `Next step`, and `Pending discovery` markers for sections not yet investigated. Record the validated assigned scope, exclusions, and delegated questions in `Scope Investigated`; they are known inputs, not pending discovery.
 - On a resume (`resume=true`), read and validate the existing matching `in-progress` report, preserve its contents, and continue from its checkpoint. Do not recreate or overwrite the skeleton.
-- Keep the full header and section skeleton present while content is partial. A partial section is valid only while the report is `in-progress` or `blocked`.
-- After every meaningful fact, observation, conclusion, or relevant finding is discovered, update the applicable canonical section, update `Last checkpoint` and `Next step`, and persist the report immediately before continuing. Do not wait for the end of discovery.
-- Write provisional observations immediately when useful, and label them as observed, inferred, or pending verification. Do not copy raw tool output or maintain a duplicate discovery journal.
-- Preserve earlier evidence when later evidence conflicts with it; record the conflict and update the conclusion.
+- Once the report exists, all discovery persistence is append-only. Never use a full-file write against an existing `report_path`; never rewrite, truncate, replace, reorder, or rebuild previously persisted content.
+- Keep the full header and section skeleton present while content is partial. Add `## Incremental discovery log` at the end when the report is new; if a resumed report predates that section, append the section heading once before its first entry. This log is the canonical evidence stream, not a duplicate journal.
+- After every meaningful fact, observation, conclusion, or relevant finding is discovered, append one self-contained entry to the incremental discovery log before continuing. Each entry must include a unique entry ID, the affected canonical section, status (`observed`, `inferred`, or `pending verification`), concise evidence, `Last checkpoint`, and `Next step`.
+- Use an append operation such as `>>` or its equivalent; do not reconstruct the old report in memory and write it back. Preserve earlier entries byte-for-byte. A later correction or conflict is a new entry that references the earlier entry; never delete or silently replace it.
+- Do not update the header or earlier sections for routine discovery. Record changing checkpoint and next-step values in the new entry. Read the report before appending and read it back after each append; if a write is retried, check the entry ID first so evidence is not duplicated.
+- At finalization, append the final synthesis and any blocker or status rationale first, then make only targeted metadata/marker edits for `Status`, `Last checkpoint`, `Next step`, and `Pending discovery`. Never rebuild or rewrite the report body.
 - Use `Pending discovery` only for work not yet investigated. A `completed` report must replace every such marker with evidence or `None`; a `blocked` report may retain markers and must explain the blocker.
 
 ## Canonical Report Schema
@@ -157,6 +159,8 @@ Write these sections in this exact order and include `None` for an investigated 
     - Evidence confidence: `high`, `medium`, or `low`.
     - Blocking reason when report status is `blocked`, otherwise `None`.
     - Recommended evidence-only follow-up discovery or `None`.
+11. `Incremental discovery log`
+    - Append-only canonical evidence entries. Each entry records its unique ID, affected section, observation status, evidence, checkpoint, and next step.
 
 Begin every report with:
 
@@ -211,7 +215,7 @@ Begin every report with:
 
 ### Phase 5: Finalize and hand off
 
-20. Before a terminal handoff, update the report with the final status, checkpoint, next step, conclusions, and any required blocker details, then persist it.
+20. Before a terminal handoff, append the final synthesis and any required blocker details, then make only targeted metadata/marker edits for the final status, checkpoint, and next step. Never rewrite the report body; persist and re-read it.
 21. Re-read the report and verify that it is complete for `completed`, accurately partial for `blocked` or `in-progress`, and confined to the assigned scope.
 22. Return only the coordinator handoff contract.
 

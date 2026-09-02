@@ -127,14 +127,20 @@ Write `None` when the topic is self-contained.
 - **Evidence confidence:** `high` | `medium` | `low`
 - **Blocking reason:** <Required when report status is `blocked`; otherwise `None`.>
 - **Recommended follow-up discovery:** <Evidence-only follow-up scope or `None`.>
+
+## Incremental discovery log
+
+<Append-only canonical evidence entries. Each entry records its unique ID, affected section, observation status, evidence, checkpoint, and next step.>
 ```
 
 ## Incremental Lifecycle
 
-- A fresh report is written as the complete template with `Status: in-progress` before discovery begins. Record the validated assigned scope, exclusions, and delegated questions in `Scope`; use `Pending discovery` only for evidence sections not yet investigated and `None` only after a section has been investigated and has no applicable content.
-- A resumed report must already exist with matching metadata and `Status: in-progress`. The coordinator passes the required explicit `resume=true` delegation value. Preserve its evidence and continue from `Last checkpoint` and `Next step`; never silently restart or overwrite it.
-- After every meaningful fact, observation, conclusion, or relevant finding, update the appropriate canonical section, update the checkpoint metadata, and persist the report before continuing. Provisional observations must be labeled as observed, inferred, or pending verification.
-- Keep the full header and section skeleton present while content is partial. Preserve contradictory observations, record the conflict, and update the conclusion rather than deleting earlier evidence.
+- A fresh report is written as the complete template with `Status: in-progress` before discovery begins. This is the only full-file write. Record the validated assigned scope, exclusions, and delegated questions in `Scope`; use `Pending discovery` only for evidence sections not yet investigated and `None` only after a section has been investigated and has no applicable content.
+- A resumed report must already exist with matching metadata and `Status: in-progress`. The coordinator passes the required explicit `resume=true` delegation value. Preserve its evidence and continue from `Last checkpoint` and `Next step`; never silently restart or overwrite it. If the report predates the incremental log, append that section heading once before its first entry.
+- After initialization, all discovery persistence is append-only. Never use a full-file write on an existing report; never rewrite, truncate, replace, reorder, or rebuild prior content.
+- After every meaningful fact, observation, conclusion, or relevant finding, append one self-contained entry to the canonical `Incremental discovery log` before continuing. Each entry must identify its affected canonical section, observation status (`observed`, `inferred`, or `pending verification`), concise evidence, checkpoint, and next step. Preserve earlier entries; a correction or conflict is a new entry, not a replacement.
+- Keep the full header and section skeleton present while content is partial. Do not update earlier sections or header metadata for routine discovery; record changing checkpoint and next-step values in the appended entry. Read the report before and after each append.
+- At finalization, append the final synthesis and any blocker rationale, then make only targeted metadata/marker edits for status, checkpoint, next step, and `Pending discovery`; never rewrite the report body.
 - A `completed` report contains no `Pending discovery` markers. A `blocked` report may retain them when the blocker prevents full investigation and the blocker is recorded in `Conclusions`.
 - An early invalid input or state returns `REJECTED: invalid input: <reason>` without creating or modifying a report. A graceful unfinished run may return `status: in-progress`.
 
@@ -154,6 +160,7 @@ Every report must contain all of these sections in this order:
 10. `Unknowns`
 11. `Cross-topic Dependencies`
 12. `Conclusions`
+13. `Incremental discovery log`
 
 Use `Pending discovery` for an untouched section in an `in-progress` report, and use `None` only for an investigated section with no applicable content; never omit a required section.
 
@@ -196,7 +203,7 @@ Every status row must contain rationale and evidence.
 9. Record active-working-tree evidence when uncommitted changes affect the topic.
 10. For reference-material evidence, cite only sources outside the project root in either the canonical workspace-root-relative form `<path>:<line-range>` or absolute form `<absolute-path>:<line-range>`. For example, sources under `references/codex/codex-rs/` are cited as `references/codex/codex-rs/config/src/state.rs:155-169`. Relative paths use forward slashes with no leading `./` or `/`, and no `.` or `..` segments.
 11. Before persisting a reference-material citation, verify that its path resolves to an existing regular file outside the project root. Symlinks are allowed only when they resolve to a regular file outside the project root.
-12. Persist each meaningful fact, observation, conclusion, or relevant finding in the applicable canonical section as soon as it is discovered; do not wait for a final batch or copy raw tool output.
+12. Append each meaningful fact, observation, conclusion, or relevant finding as a self-contained entry in the canonical `Incremental discovery log` as soon as it is discovered; do not wait for a final batch, rewrite the report, or copy raw tool output.
 13. Never fabricate a citation, command result, reachable path, or confidence level.
 14. Never include secret values, credentials, tokens, private keys, session material, personal data, or sensitive environment contents. Cite sensitive configuration keys by name and path only, redact values as `[REDACTED]`, and describe implications without reproducing protected data.
 

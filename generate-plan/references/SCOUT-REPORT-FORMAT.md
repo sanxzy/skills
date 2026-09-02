@@ -56,13 +56,17 @@ Then include these sections in this exact order, using `Pending discovery` for u
    - Evidence confidence: `high`, `medium`, or `low`.
    - Blocking reason when report status is `blocked`, otherwise `None`.
    - Recommended evidence-only follow-up discovery or `None`.
+10. `Incremental discovery log`
+    - Append-only canonical evidence entries. Each entry records its unique ID, affected section, observation status, evidence, checkpoint, and next step.
 
 ## Incremental Lifecycle
 
-- A fresh report is written as the complete structure with `Status: in-progress` before discovery begins. Record the validated assigned scope, exclusions, and delegated questions in `Scope Investigated`; use `Pending discovery` only for evidence sections not yet investigated and `None` only after a section has been investigated and has no applicable content.
-- A resumed report must already exist with matching metadata and `Status: in-progress`. The coordinator passes the required explicit `resume=true` delegation value. Preserve its evidence and continue from `Last checkpoint` and `Next step`; never silently restart or overwrite it.
-- After every meaningful fact, observation, conclusion, or relevant finding, update the applicable section, update checkpoint metadata, and persist the report before continuing. Provisional observations must be labeled as observed, inferred, or pending verification.
-- Keep the full header and section skeleton present while content is partial. Preserve contradictory observations, record the conflict, and update the conclusion rather than deleting earlier evidence.
+- A fresh report is written as the complete structure with `Status: in-progress` before discovery begins. This is the only full-file write. Record the validated assigned scope, exclusions, and delegated questions in `Scope Investigated`; use `Pending discovery` only for evidence sections not yet investigated and `None` only after a section has been investigated and has no applicable content.
+- A resumed report must already exist with matching metadata and `Status: in-progress`. The coordinator passes the required explicit `resume=true` delegation value. Preserve its evidence and continue from `Last checkpoint` and `Next step`; never silently restart or overwrite it. If the report predates the incremental log, append that section heading once before its first entry.
+- After initialization, all discovery persistence is append-only. Never use a full-file write on an existing report; never rewrite, truncate, replace, reorder, or rebuild prior content.
+- After every meaningful fact, observation, conclusion, or relevant finding, append one self-contained entry to the canonical `Incremental discovery log` before continuing. Each entry must identify its affected canonical section, observation status (`observed`, `inferred`, or `pending verification`), concise evidence, checkpoint, and next step. Preserve earlier entries; a correction or conflict is a new entry, not a replacement.
+- Keep the full header and section skeleton present while content is partial. Do not update earlier sections or header metadata for routine discovery; record changing checkpoint and next-step values in the appended entry. Read the report before and after each append.
+- At finalization, append the final synthesis and any blocker rationale, then make only targeted metadata/marker edits for status, checkpoint, next step, and `Pending discovery`; never rewrite the report body.
 - A `completed` report contains no `Pending discovery` markers. A `blocked` report may retain them when the blocker is recorded in `Conclusions`.
 - An early invalid input or state returns `REJECTED: invalid input: <reason>` without creating or modifying a report. A graceful unfinished run may return `status: in-progress`.
 - A terminal report must not be overwritten by a fresh or resume delegation. A terminal collision returns `REJECTED: invalid input: terminal report already exists`.
@@ -84,7 +88,7 @@ For source evidence (under the project root), include:
 
 For reference-material evidence, use either a canonical workspace-root-relative form `<path>:<line-range>` or an absolute path with an optional line range for regular files outside the project root. Relative paths use forward slashes with no leading `./`, `/`, or `..` segments. For repository-internal references, prefix the repository-relative path with its workspace-root-relative base when applicable. No bare repo-internal paths are acceptable.
 
-Before persisting a reference-material citation, the scout MUST verify its path resolves to an existing regular file outside the project root. Symlinks are allowed only when they resolve to a regular file outside the project root. Persist each meaningful fact, observation, conclusion, or relevant finding in the applicable canonical section as soon as it is discovered; do not wait for a final batch or copy raw tool output. Do not fabricate citations: if a referenced file cannot be verified, record the claim without a citation and note the missing evidence in `Conflicts and Unknowns`.
+Before persisting a reference-material citation, the scout MUST verify its path resolves to an existing regular file outside the project root. Symlinks are allowed only when they resolve to a regular file outside the project root. Append each meaningful fact, observation, conclusion, or relevant finding as a self-contained entry in the canonical `Incremental discovery log` as soon as it is discovered; do not wait for a final batch, rewrite the report, or copy raw tool output. Do not fabricate citations: if a referenced file cannot be verified, record the claim without a citation and note the missing evidence in `Conflicts and Unknowns`.
 
 Project-root (codebase) evidence may keep precise paths and symbols inside the scout report (reports are working artifacts), but the coordinator re-expresses that evidence in the final `plan.md` as durable prose plus feature identifiers — project-root paths are not carried into `plan.md` verbatim.
 

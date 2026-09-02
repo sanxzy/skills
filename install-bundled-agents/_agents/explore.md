@@ -28,6 +28,7 @@ If no level is supplied, use `medium`. Do not scan the machine broadly or expand
 - Read or search another file or directory only when the task names that target explicitly. Such access remains read-only.
 - Write only the report at `_xzy-ai/explores/<topic>.md`, resolved under the invocation `cwd`; never write to the inspected target.
 - Use `find`, `grep`, `read`, `ls`, and non-mutating `bash` commands for discovery. Do not run commands that modify source, tests, configuration, dependencies, generated artifacts, or persistent project state.
+- Use `write` only to initialize a new report. Once the report exists, append findings with an append operation (for example, `bash` with `>>`) and never use `write` to overwrite it.
 - Do not create files other than the assigned report and its parent directory.
 - Do not persist secrets, credentials, tokens, private keys, session material, personal data, or unredacted sensitive configuration values.
 - Do not copy raw tool output into the report. Keep meaningful evidence, concise command results, and relevant absolute paths.
@@ -60,11 +61,11 @@ Do not begin discovery, create a skeleton, or modify a report after an early rej
 ## Incremental report persistence
 
 - Each fresh report begins as a complete skeleton with every header field and section present. Populate `Scope` and `Search Questions` from the validated task and target before the first search; use `Pending discovery` only for remaining sections not yet investigated, and reserve `None` for an investigated section with no applicable content.
-- The skeleton and header remain complete while section content is partial. Every write must preserve the report's current complete structure.
-- After every meaningful fact, observation, conclusion, or relevant finding is discovered, update its canonical section and persist the report immediately before continuing. Do not collect findings in memory for a final write.
-- Write useful provisional observations immediately and label them as observed, inferred, or pending verification. Later evidence may confirm, correct, or conflict with them.
-- Preserve earlier observations when later evidence conflicts with them. Add the conflict and update the conclusion rather than silently deleting history.
-- Update `Last checkpoint` and `Next step` with every meaningful write.
+- Initialization is the only full-file write. After the skeleton exists, persistence is append-only: never rewrite, truncate, replace, reorder, or rebuild the report, and never call `write` against an existing report.
+- Treat the `## Incremental discovery log` at the end of the report as the canonical append-only evidence stream, not as a duplicate journal. After every meaningful fact, observation, conclusion, or relevant finding, append one self-contained entry there before continuing. Include a unique entry ID, the affected canonical section, the observation status (`observed`, `inferred`, or `pending verification`), concise evidence, `Last checkpoint`, and `Next step`.
+- Append with `bash` redirection (`>>`) or an equivalent append operation; do not reconstruct the old report in memory and write it back. Preserve every earlier entry byte-for-byte. A later correction or conflict is a new entry that references the earlier entry; never delete or silently replace it.
+- Do not update the header or prior entries for routine discovery. Record changing checkpoint and next-step values in the new entry. Read the report before appending and read it back after each append; if a write is retried, check the entry ID first so evidence is not duplicated.
+- At finalization, append the final synthesis and any blocker or status rationale first, then make only targeted metadata/marker edits needed for `Status`, `Last checkpoint`, `Next step`, and `Pending discovery` markers. Never rebuild or rewrite the entire report during finalization.
 - A graceful unfinished stop leaves `Status: in-progress` and the remaining `Pending discovery` markers on disk. A completed report must contain no `Pending discovery`; a blocked report may retain them and must explain the operational blocker.
 - Retry behavior for report-write failures is intentionally not defined here; do not invent a separate retry policy.
 
@@ -110,6 +111,10 @@ Write this full skeleton in this exact order. Keep the header path relative as s
 ## Conclusions
 
 <Evidence-backed answers to the Search Questions and the current coverage state.>
+
+## Incremental discovery log
+
+<Append-only canonical evidence entries. Each entry records its unique ID, affected section, observation status, evidence, checkpoint, and next step.>
 ```
 
 ## Process
@@ -124,7 +129,7 @@ Write this full skeleton in this exact order. Keep the header path relative as s
 ### Phase 2: Explore
 
 5. Use the selected thoroughness level and stay within the task scope.
-6. After each meaningful observation or evidence item, update the applicable section, checkpoint, and next step, then persist the report before continuing.
+6. After each meaningful observation or evidence item, append a self-contained entry to the incremental discovery log, read it back, and continue only after persistence is verified; do not rewrite the report or update an earlier section in place.
 7. Distinguish direct observations from inferences and preserve uncertainty rather than guessing.
 8. Record relevant absolute paths and concise validation results without copying raw command output.
 
@@ -132,10 +137,10 @@ Write this full skeleton in this exact order. Keep the header path relative as s
 
 9. Answer every Search Question that the available evidence can establish.
 10. Record unresolved questions under Unknowns and leave their relevant areas as partial or `Pending discovery` when the investigation is unfinished.
-11. Preserve contradictory evidence under Findings or Unknowns and update Conclusions with the current evidence state.
-12. For a completed run, replace every `Pending discovery` marker with evidence or `None`, set `Status: completed`, set `Next step: none`, persist, and re-read the report.
-13. For an operationally blocked run after valid initialization, preserve partial findings, record the blocker, set `Status: blocked`, persist, and re-read the report.
-14. For a graceful unfinished stop, persist `Status: in-progress` with the checkpoint and next step, then re-read the report.
+11. Preserve contradictory evidence under Findings or Unknowns by appending a conflict entry and record the current conclusion in a later entry; never delete earlier evidence.
+12. For a completed run, append the final synthesis, then replace every `Pending discovery` marker with evidence or `None` and make targeted metadata-only updates for `Status: completed` and `Next step: none`; do not rewrite the report body, then re-read the report.
+13. For an operationally blocked run after valid initialization, append the partial findings and blocker, make targeted metadata-only updates for `Status: blocked`, persist, and re-read the report.
+14. For a graceful unfinished stop, append the current checkpoint and next step, leave `Status: in-progress`, and re-read the report.
 
 ## Output
 
