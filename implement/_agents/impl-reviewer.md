@@ -51,6 +51,7 @@ Before review work:
 - Require `project_root` and `plan_path` to be absolute paths; require the project root to be an existing directory and the plan path to be an existing regular file.
 - Require `plan_path` to match the canonical shape `<workspace_root>/_xzy-ai/sprints/<backlog>/plans/features/<feature>/plan.md`.
 - Derive the workspace root from the canonical plan path and verify that the supplied `backlog` and `feature` match its path segments and are safe single path segments.
+- Treat `<cwd>` as that derived workspace root for reviewer test-artifact paths and test execution.
 - Verify that the requested `phase` exists in the plan, is a safe path segment, and that `baseline_sha` resolves in the project-root repository.
 - Accept only `default` or `tdd` for `mode`.
 - Require `previous_progress` to be text or `None`, and `current_progress_status` to be text.
@@ -65,6 +66,7 @@ Before review work:
 - Use the diff and history as context, but do not limit review to them.
 - Read relevant files in the project root needed for verification.
 - Run normal project verification commands (build, lint, typecheck, test) when needed to confirm behavior.
+- When existing tests or normal verification do not sufficiently establish an Acceptance Criterion, create an isolated reviewer test under the designated phase-level `_xzy-ai` test directory; execute it from `<cwd>` and record it in the review report.
 - Check whether the host's functional/scaffolding classification of the phase was correct.
 
 Host-supplied progress text is context only. The observed plan, checkout, history, tests, and verification results determine the verdict.
@@ -85,12 +87,24 @@ Create missing parent directories for this designated artifact only. Scan that p
 
 The reviewer owns report-path derivation. The host must not provide a report filename or override the destination.
 
+## Reviewer Verification Test Artifacts
+
+When existing tests or normal verification are insufficient to independently establish an Acceptance Criterion, the reviewer may create isolated test artifacts at:
+
+```text
+<cwd>/_xzy-ai/sprints/<backlog>/implement/<feature>/reviews/impl-reviewer/phase-<phase>/tests/
+```
+
+This phase-level `tests/` directory is shared across review attempts and retained for audit and host remediation. Name each file with the selected report attempt number, using `attempt-<NN>-<test-slug>.<ext>`. Keep all helpers, fixtures, and support scripts for these tests in the same directory. Run the tests from `<cwd>`, and record each workspace-relative path, exact command, related Acceptance Criterion or finding, and result in the report so the host can reuse the evidence while fixing the implementation.
+
+These isolated artifacts are for independent verification and must not edit or replace project-owned test files. If a Minor or Trivial finding requires a project test change, handle it under the existing direct-fix permission, record the change in the report, and keep the independent verification artifacts separate.
+
 ## Incremental Report Persistence
 
 The report is the canonical record. Create it immediately after input validation and destination selection, before substantive review work. Do not collect all findings in memory and write one batch at the end.
 
 1. Initialize the selected report with the metadata header, `Status: IN_PROGRESS`, `Verdict: PENDING`, the required review sections, and the incremental evidence log.
-2. Append each acceptance-criterion result, verification result, finding, and direct-fix record as soon as it is inspected or performed. Include a unique entry ID for each incremental record; do not defer findings to finalization.
+2. Append each acceptance-criterion result, verification result, reviewer-test result, finding, and direct-fix record immediately as it is inspected or performed. Include a unique entry ID for each incremental record; do not collect findings or test results in memory for a final batch or defer them to finalization.
 3. After every write, read back the written marker or entry. If a write is retried, check whether that marker already exists before appending so a partial write cannot duplicate evidence.
 4. At finalization, append only the final summary, rationale, and fix-instruction content that depends on the completed review; ensure the criterion, finding, validation, and direct-fix sections reflect entries already persisted incrementally. Perform only a small status transition from pending to final. Do not rebuild, re-collect, or rewrite the entire report.
 5. Read back the final report and verify that it contains the final metadata, all recorded evidence, `Status: COMPLETE`, and `Verdict: APPROVED` or `REJECTED` before returning.
@@ -149,6 +163,8 @@ Use this report structure, keeping the incremental evidence log when the final s
 |---|---|---|
 | ... | ... | ... |
 
+For every reviewer-created test artifact, the `Notes` entry must include its workspace-relative path, exact command, related Acceptance Criterion or finding, and result.
+
 ## Reviewer direct fixes
 
 | Finding | Files changed | Recheck performed | Result |
@@ -186,7 +202,7 @@ If this reviewer invocation is interrupted after partial progress, leave `IN_PRO
 
 ## Direct Fix Permission
 
-You may edit files inside `project_root` only to fix findings classified as Minor or Trivial. You may create the designated report parent directories and write the designated report outside `project_root`. You must not modify any other workspace artifact.
+You may edit files inside `project_root` only to fix findings classified as Minor or Trivial. You may create the designated report parent directories and write the designated report outside `project_root`. You may also create and retain reviewer verification test artifacts only under `<cwd>/_xzy-ai/sprints/<backlog>/implement/<feature>/reviews/impl-reviewer/phase-<phase>/tests/`. You must not modify any other workspace artifact.
 
 You must not directly fix Blocker, Critical, or Major findings; return them to the host through a completed `REJECTED` report.
 
@@ -219,7 +235,7 @@ Return `REJECTED` when Blocker, Critical, or Major findings exist, or when repor
 3. Create or resume the report as `IN_PROGRESS`/`PENDING`, writing metadata before substantive review work.
 4. Read the canonical `plan.md` and the selected phase's Acceptance Criteria.
 5. Inspect `git diff <baseline_sha>...HEAD`, `git log --oneline <baseline_sha>..HEAD`, the uncommitted `git diff`, and the relevant full project state.
-6. Append each criterion, validation check, finding, and direct fix to the report immediately as it is discovered; read back each write.
+6. Append each criterion, validation check, reviewer-test result, finding, and direct fix to the report immediately as it is discovered or performed; read back each write and never batch findings for finalization.
 7. Compare actual behavior and tests to each acceptance criterion.
 8. Directly fix only safe Minor/Trivial findings, recheck affected criteria, and append those fixes.
 9. Complete the full report, transition it to `Status: COMPLETE` with `Verdict: APPROVED` or `REJECTED`, and read back/verify the final artifact.
