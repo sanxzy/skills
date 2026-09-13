@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- ═══════════════ THEME: SCIENCE & RESEARCH ═══════════════
+       Industries (industries.md #18): scientific research, biotechnology,
+       materials science, physics, chemistry, space technology, quantum
+       computing, genomics, climate science.
+       Vibe    : laboratory — reagent cyan, sample labels, status chip.
+       Motif   : specimen card "SAMPLE" (each step is a new observation).
+       Usage   : paste the blocks below into the lesson-template.html head
+                 (replace the universal font links + <style> blocks), then paste
+                 <div data-theme-signature…> into <section data-scn-stage>
+                 as the first element. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style type="text/tailwindcss">
+    @theme {
+      --color-brand: #0891B2;
+      --color-ink: #083344;
+      --color-steel: #64748B;
+      --color-paper: #F8FAFC;
+      --color-soft: #CFFAFE;
+      --color-panel: #083344;
+      --color-pinline: #155E75;
+      --color-ok: #059669;
+      --color-mut: #D97706;
+    }
+  </style>
+  <style>:root { --scn-accent: #0891B2; --scn-tint: #CFFAFE; --scn-ink: #083344; }</style>
+
+  <!-- Signature: specimen card -->
+  <div data-theme-signature class="mb-5 flex items-center gap-3 rounded-lg border border-brand/25 bg-soft/40 px-4 py-3">
+    <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-white">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M10 2v7.31a2 2 0 0 1-.55 1.38l-4.9 5.02A2 2 0 0 0 6 19h12a2 2 0 0 0 1.45-3.29l-4.9-5.02A2 2 0 0 1 14 9.31V2"></path>
+        <line x1="8.5" y1="2" x2="15.5" y2="2"></line>
+      </svg>
+    </span>
+    <div class="min-w-0">
+      <p class="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-steel">Specimen</p>
+      <p class="truncate text-sm font-semibold text-ink">SAMPLE-003 · observed</p>
+    </div>
+    <span class="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full bg-ok/10 px-2.5 py-1 font-mono text-[11px] font-medium text-ok">
+      <span class="h-1.5 w-1.5 rounded-full bg-ok"></span>VALID
+    </span>
+  </div>
+</head>
+</html>

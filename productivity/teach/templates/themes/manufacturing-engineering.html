@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- ═══════════════ THEME: MANUFACTURING & ENGINEERING ═══════════════
+       Industries (industries.md): #4 Manufacturing, #10 Real Estate & Construction,
+       #12 Chemicals & Materials, #13 Mining, #19 Defense & Aerospace.
+       Vibe    : drafting table — blueprint blue, schematic frame, dimension labels.
+       Motif   : drafting frame with a dimension line (A—B).
+       Usage   : paste the blocks below into the lesson-template.html head
+                 (replace the universal font links + <style> blocks), then paste
+                 <div data-theme-signature…> into <section data-scn-stage>
+                 as the first element. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style type="text/tailwindcss">
+    @theme {
+      --color-brand: #1D4ED8;
+      --color-ink: #111827;
+      --color-steel: #6B7280;
+      --color-paper: #F8FAFC;
+      --color-soft: #DBEAFE;
+      --color-panel: #1F2937;
+      --color-pinline: #374151;
+      --color-ok: #059669;
+      --color-mut: #D97706;
+    }
+  </style>
+  <style>:root { --scn-accent: #1D4ED8; --scn-tint: #DBEAFE; --scn-ink: #111827; }</style>
+
+  <!-- Signature: drafting frame (top-left, top-right, bottom-left, bottom-right) -->
+  <div data-theme-signature class="relative mb-5 overflow-hidden rounded-lg border border-ink/15 px-5 py-3.5">
+    <span class="absolute left-1 top-1 h-2.5 w-2.5 border-l-2 border-t-2 border-brand"></span>
+    <span class="absolute right-1 top-1 h-2.5 w-2.5 border-r-2 border-t-2 border-brand"></span>
+    <span class="absolute bottom-1 left-1 h-2.5 w-2.5 border-b-2 border-l-2 border-brand"></span>
+    <span class="absolute bottom-1 right-1 h-2.5 w-2.5 border-b-2 border-r-2 border-brand"></span>
+    <p class="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-steel">Schematic · not to scale</p>
+    <div class="mt-1.5 flex items-center gap-2">
+      <span class="h-px flex-1 bg-ink/20"></span>
+      <span class="font-mono text-[10px] text-steel">A—B</span>
+      <span class="h-px flex-1 bg-ink/20"></span>
+    </div>
+  </div>
+</head>
+</html>

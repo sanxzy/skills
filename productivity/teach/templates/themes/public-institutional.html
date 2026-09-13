@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- ═══════════════ THEME: PUBLIC & INSTITUTIONAL ═══════════════
+       Industries (industries.md): #16 Government & Public Sector,
+       #14 Professional & Business Services.
+       Vibe    : official document — navy + gold, government serif, revision stamp.
+       Motif   : document stamp "REV. n" — one deliberate aesthetic risk.
+       Usage   : paste the blocks below into the lesson-template.html head
+                 (replace the universal font links + <style> blocks), then paste
+                 <div data-theme-signature…> into <section data-scn-stage>
+                 as the first element. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Libre+Caslon+Text:wght@400;700&display=swap" rel="stylesheet">
+
+  <style type="text/tailwindcss">
+    @theme {
+      --color-brand: #B45309;
+      --color-ink: #0F172A;
+      --color-steel: #64748B;
+      --color-paper: #FBFBF9;
+      --color-soft: #FEF3C7;
+      --color-panel: #0F172A;
+      --color-pinline: #1E293B;
+      --color-ok: #059669;
+      --color-mut: #DC2626;
+    }
+  </style>
+  <style>:root { --scn-accent: #B45309; --scn-tint: #FEF3C7; --scn-ink: #0F172A; }</style>
+
+  <!-- Signature: document stamp -->
+  <div data-theme-signature class="mb-5 flex items-center justify-between gap-3 rounded-lg border border-ink/15 bg-white px-4 py-3">
+    <div class="min-w-0">
+      <p class="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-steel">Document</p>
+      <p class="truncate text-sm font-semibold text-ink">Public Service Guide</p>
+    </div>
+    <span class="shrink-0 rounded border-2 border-brand/60 px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-brand" style="transform: rotate(-4deg)">Rev. 02</span>
+  </div>
+</head>
+</html>

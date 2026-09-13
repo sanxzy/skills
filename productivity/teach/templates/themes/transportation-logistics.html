@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- ═══════════════ THEME: TRANSPORTATION & LOGISTICS ═══════════════
+       Industries (industries.md #6): airlines, railways, shipping, maritime,
+       automotive transport, public transport, logistics, freight, warehousing,
+       last-mile delivery, ride-hailing.
+       Vibe    : route & fleet — route blue, A→B track, ETD/ETA labels.
+       Motif   : route card with a midpoint waypoint (a journey is a real sequence).
+       Usage   : paste the blocks below into the lesson-template.html head
+                 (replace the universal font links + <style> blocks), then paste
+                 <div data-theme-signature…> into <section data-scn-stage>
+                 as the first element. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style type="text/tailwindcss">
+    @theme {
+      --color-brand: #2563EB;
+      --color-ink: #0F172A;
+      --color-steel: #6B7280;
+      --color-paper: #F8FAFC;
+      --color-soft: #DBEAFE;
+      --color-panel: #1E293B;
+      --color-pinline: #334155;
+      --color-ok: #059669;
+      --color-mut: #D97706;
+    }
+  </style>
+  <style>:root { --scn-accent: #2563EB; --scn-tint: #DBEAFE; --scn-ink: #0F172A; }</style>
+
+  <!-- Signature: route card A → B -->
+  <div data-theme-signature class="mb-5 rounded-lg border border-brand/25 bg-soft/40 px-4 py-3">
+    <p class="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-steel">Route</p>
+    <div class="mt-1.5 flex items-center gap-2">
+      <span class="font-mono text-sm font-semibold text-ink">A</span>
+      <span class="h-0.5 flex-1 bg-brand/30"></span>
+      <span class="h-2.5 w-2.5 rounded-full border-2 border-brand bg-paper"></span>
+      <span class="h-0.5 flex-1 bg-brand/30"></span>
+      <span class="font-mono text-sm font-semibold text-ink">B</span>
+    </div>
+    <div class="mt-1 flex justify-between font-mono text-[10px] text-steel">
+      <span>ETD 09:00</span><span>ETA 14:30</span>
+    </div>
+  </div>
+</head>
+</html>

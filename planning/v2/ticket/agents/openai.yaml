@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ticket"
+  short_description: "Split one proposal into small dependency-ordered tickets with optional reference-aware evidence"
+policy:
+  allow_implicit_invocation: false

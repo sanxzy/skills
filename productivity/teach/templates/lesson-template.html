@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>0001-dash-case-name — Short title</title>
+
+  <!-- Tailwind v4 browser CDN (dev-only CDN; fine for static lesson files) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <!-- ══════════════════════ INDUSTRY THEME SLOT ══════════════════════
+       Universal? leave this block as-is (neutral slate+teal).
+       For a field-specific look, replace the font links + both <style> blocks
+       with one ready-made theme from templates/themes/ (medical, education,
+       tech, engineering, finance, fitness). Themes only carry fonts, palette,
+       and a signature — the structure below never changes. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style type="text/tailwindcss">
+    @theme {
+      /* Semantic design tokens — swap VALUES per industry theme, never the names.
+         brand = single accent · ink/steel = text · paper = light docs side ·
+         panel/pinline = optional dark surface for the visual side · ok/mut = semantic status. */
+      --color-brand: #0D9488;
+      --color-ink: #0F172A;
+      --color-steel: #64748B;
+      --color-paper: #F8FAFC;
+      --color-soft: #CCFBF1;
+      --color-panel: #0F172A;
+      --color-pinline: #1E293B;
+      --color-ok: #059669;
+      --color-mut: #D97706;
+    }
+  </style>
+  <!-- Runtime CSS variables (scene highlight ring, why-box tint/ink). Keep in sync with the palette. -->
+  <style>:root { --scn-accent: #0D9488; --scn-tint: #CCFBF1; --scn-ink: #0F172A; }</style>
+
+  <!-- Shared runtime: copy templates/scenes.css + templates/scenes.js into ./assets/ once per workspace -->
+  <link rel="stylesheet" href="../assets/scenes.css">
+</head>
+<body class="bg-paper text-ink antialiased lg:overflow-hidden">
+
+  <!-- FIXED-VIEWPORT LAYOUT (desktop): the lesson fills the viewport height; the page never scrolls.
+       Only the right explanation pane has its own scrollbar. On mobile (<lg) the page scrolls normally. -->
+  <main data-scenes class="mx-auto flex w-full max-w-none flex-col px-4 py-5 sm:px-8 lg:py-6 lg:h-dvh">
+
+    <!-- Top bar (fixed chrome, one row): title/subtitle left, controls right — maximizes the material workspace. -->
+    <header class="mb-4 flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-ink/10 pb-3">
+      <div class="flex min-w-0 items-center gap-3">
+        <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-white">
+          <!-- Inline SVG icon (Lucide/Feather family), stroke="currentColor" -->
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline>
+          </svg>
+        </span>
+        <div class="min-w-0">
+          <p class="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-steel">Lesson 0001 · Category</p>
+          <h1 class="scn-display truncate text-lg font-bold text-ink lg:text-xl">Lesson title</h1>
+          <p class="truncate text-sm text-steel">One-line subtitle: what this lesson gives you.</p>
+        </div>
+      </div>
+      <div data-scn-controls class="flex shrink-0 items-center gap-3">
+        <button type="button" data-scn-prev class="inline-flex items-center gap-1 rounded-md bg-ink px-3 py-1.5 text-sm font-medium text-paper transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-40">← Previous</button>
+        <div data-scn-dots class="flex gap-2"></div>
+        <span data-scn-counter class="font-mono text-sm tabular-nums text-steel"></span>
+        <button type="button" data-scn-next class="inline-flex items-center gap-1 rounded-md bg-ink px-3 py-1.5 text-sm font-medium text-paper transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-40">Next →</button>
+      </div>
+    </header>
+
+    <!-- 50:50 split filling the remaining viewport height.
+         LEFT = the evolving visual, fixed, WITHOUT scroll (keep it compact).
+         RIGHT = the active step's explanation, WITH its own scrollbar.
+         No card chrome: the two sides sit flush on the paper background. -->
+    <div class="scn-grid grid min-h-0 flex-1 gap-8 lg:grid-cols-2">
+
+      <!-- ═══════════════ SIGNATURE SLOT (industry theme) ═══════════════
+           The theme's one memorable element goes here, above the visual.
+           Themes ship a ready <div data-theme-signature> snippet to paste.
+           ════════════════════════════════════════════════════════════ -->
+
+      <!-- THE STAGE: the one evolving visual. Common pattern: a progressive code/step panel
+           (class "scn-code" on a <pre>; lines tagged per scene), then the diagram/cards.
+           Author the FULL visual once. Tag each element with the scene at which it appears /
+           becomes the focus: data-step="N". Untagged elements are always visible. -->
+      <section data-scn-stage class="min-h-0 overflow-hidden">
+        <!-- example: <div data-step="1" class="...">Scene 1 element</div> -->
+      </section>
+
+      <!-- RIGHT: scrollable explanation pane (light, flush — no card chrome) -->
+      <div data-scn-scroll class="scn-pane min-h-0 overflow-y-auto">
+        <!-- Captions: the active step's FULL comprehensive explanation, filled by the runtime -->
+        <div data-scn-captions></div>
+
+        <div class="mt-8 border-t border-ink/10 pt-4 text-sm text-steel">
+          <p>Something unclear? Ask your teaching agent.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scene data: one object per scene. Scene count MUST equal the highest data-step.
+       Fields: title (string), paragraphs (array of strings), points (array, optional),
+       code (string, optional — shown as a code block), why (string, optional).
+       Use \n inside "code" for newlines. -->
+  <script type="application/json" id="scene-data">
+  [
+    {
+      "title": "Scene 1 title",
+      "paragraphs": ["First full paragraph.", "Second full paragraph."],
+      "points": ["Key point one", "Key point two"],
+      "code": "let x = 1;\nlet y = x;",
+      "why": "Why it matters."
+    }
+  ]
+  </script>
+
+  <!-- Shared runtime -->
+  <script src="../assets/scenes.js"></script>
+  <noscript>
+    <style>[data-step]{opacity:1;visibility:visible;transform:none}.scn-caption-item{display:block}</style>
+  </noscript>
+</body>
+</html>

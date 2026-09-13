@@ -2,139 +2,149 @@
 
 [![skills.sh](https://skills.sh/b/sanxzy/skills)](https://skills.sh/sanxzy/skills)
 
-A pipeline of composable agent skills that takes a rough idea from discussion through specification, ticket decomposition, architecture, design, and finally into implemented, reviewed, and merged code. No guesswork. No hand-waving. Every stage produces concrete, verifiable artifacts consumed by the next.
+A responsibility-organized collection of composable agent skills for discussion, product planning, architecture, implementation, media generation, document processing, and learning workflows. Skills communicate through explicit artifacts and verifiable contracts.
 
 ## Install
 
-```bash
-# Everything
-npx skills add https://github.com/sanxzy/skills.git -a opencode --all
+Install every skill:
 
-# Just what you need
-npx skills add https://github.com/sanxzy/skills.git --skill discussion -a opencode
-npx skills add https://github.com/sanxzy/skills.git --skill dispatch-for-implementation --skill generate-tickets -a opencode
+```bash
+npx skills add sanxzy/skills -a opencode --all
 ```
 
-## The Pipeline
+Install one or more skills by their `SKILL.md` frontmatter name:
+
+```bash
+npx skills add sanxzy/skills \
+  --skill proposal \
+  --skill ticket \
+  --skill implement \
+  -a opencode
+```
+
+The public skill name is independent of its responsibility folder. For example, the `proposal` skill is stored at `planning/v2/proposal/` but installed as `proposal`.
+
+## Repository layout
+
+```text
+architecting/                  Architecture and design-system guidance
+engineering/                   Direct implementation workflows
+general/                       Repository and agent utilities
+media/                         Visual, story, and image-prompt workflows
+office/                        Office-document workflows
+planning/v1/                   Feature, specification, and plan workflow
+planning/v2/                   Proposal and ticket workflow
+productivity/                  Conversation and learning workflows
+```
+
+Every skill is self-contained under its responsibility folder:
+
+```text
+<responsibility>/<skill-name>/           # or <responsibility>/<version>/<skill-name>/
+├── SKILL.md
+├── _agents/       # optional bundled subagents
+├── agents/        # optional platform metadata
+├── references/    # optional supporting contracts
+├── scripts/       # optional executable helpers
+└── examples/      # optional examples
+```
+
+## Planning and implementation pipeline
+
+The repository contains two planning tracks. Choose the track that matches the source artifact you have, then use `implement` for direct execution.
 
 ```mermaid
-flowchart TD
-    discussion["discussion<br/><small>gap analysis</small>"] --> generate-specs["generate-specs<br/><small>one-feature spec + quality gates</small>"]
-    generate-specs --> generate-tickets["generate-tickets<br/><small>tracer-bullet tickets</small>"]
-    generate-tickets --> generate-architecture["generate-architecture<br/><small>Clean Architecture rules</small>"]
-    generate-tickets --> generate-design-md["generate-design-md<br/><small>design tokens + prose</small>"]
-    generate-architecture --> dispatch-for-implementation["dispatch-for-implementation<br/><small>agent-orchestrated code + review</small>"]
-    generate-design-md --> dispatch-for-implementation
-    generate-architecture --> implement["implement<br/><small>direct host-driven code</small>"]
-    generate-design-md --> implement
+flowchart LR
+    discussion["discussion<br/><small>decision-driven interview</small>"] --> proposal["proposal<br/><small>product behavior</small>"]
+    proposal --> ticket["ticket<br/><small>vertical-slice tickets</small>"]
+    ticket --> implement["implement<br/><small>direct implementation + review</small>"]
+
+    discussion --> generate-features["generate-features<br/><small>feature backlog</small>"]
+    generate-features --> generate-specs["generate-specs<br/><small>one-feature specification</small>"]
+    generate-specs --> generate-plan["generate-plan<br/><small>tracer-bullet plan</small>"]
+    generate-plan --> implement
+
+    generate-architecture["generate-architecture<br/><small>architecture rules</small>"] -.-> implement
+    generate-design-md["generate-design-md<br/><small>design rules</small>"] -.-> implement
 ```
 
-## Skills
+- `planning/v1/` provides the `generate-features → generate-specs → generate-plan` workflow.
+- `planning/v2/` provides the `proposal → ticket` workflow.
+- `engineering/implement/` consumes either a canonical plan or a ticket set, implements one unit at a time, verifies it, and gates it with `impl-reviewer` before commit.
+- `architecting/` provides optional architecture and design references for downstream work.
+- `media/`, `office/`, and `productivity/` contain independent workflows and do not require the planning pipeline.
 
-### discussion - Shape the idea before you build it.
+## Skill catalog
 
-Turns a rough thought into a well-mapped decision tree. A brainstormer agent cross-references the conversation against codebase context and project docs to surface gaps, hidden assumptions, and missing branches — before a single line of code gets written.
+### Architecting
 
-```
-npx skills add https://github.com/sanxzy/skills.git --skill discussion -a opencode
-```
+| Skill | Path | Purpose |
+| --- | --- | --- |
+| `generate-architecture` | `architecting/generate-architecture/` | Generate `_xzy-ai/architecture.md` with principle-driven layers, boundaries, dependency direction, and adoption guidance. |
+| `generate-design-md` | `architecting/generate-design-md/` | Generate `_xzy-ai/design.md` with implementation-agnostic design tokens and UI rules. |
 
-**Agents:** 1 (`discussion-brainstormer`) &nbsp;·&nbsp; **Version:** 0.0.1
+### Engineering
 
----
+| Skill | Path | Purpose |
+| --- | --- | --- |
+| `implement` | `engineering/implement/` | Implement unfinished plan phases or tickets directly in the current checkout, verify them, and run the persistent reviewer gate. |
 
-### generate-specs - One feature. One finalized spec.
+### General
 
-Generates one engineering specification for exactly one explicitly selected feature from conversation context or a `features.md` artifact. A host coordinator resolves the feature, delegates codebase evidence gathering to `spec-scout`, applies quality gates, and writes `_xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/spec.md` with resumable progress and archived revisions.
+| Skill | Path | Purpose |
+| --- | --- | --- |
+| `install-bundled-agents` | `general/install-bundled-agents/` | Synchronize bundled agents into a user-selected agent directory. |
 
-```
-npx skills add https://github.com/sanxzy/skills.git --skill generate-specs -a opencode
-```
+### Media
 
-**Agents:** 1 (`spec-scout`) &nbsp;·&nbsp; **Version:** 1.0.0
+| Skill | Path | Purpose |
+| --- | --- | --- |
+| `canvas-design` | `media/canvas-design/` | Create visual philosophies and express them as original PNG or PDF artwork. |
+| `character-design` | `media/character-design/` | Create production-ready character design sheet prompts from briefs and optional visual references. |
+| `story-page` | `media/story-page/` | Create a single narrative story-page image prompt with explicit visual continuity. |
+| `storyboard` | `media/storyboard/` | Create a composite storyboard-sheet prompt for narrative and cinematic sequences. |
 
----
+### Office
 
-### generate-tickets - From spec to tracer bullets.
+| Skill | Path | Purpose |
+| --- | --- | --- |
+| `docx` | `office/docx/` | Create, read, edit, validate, and transform Word documents and templates. |
+| `pdf` | `office/pdf/` | Read, create, edit, extract, convert, validate, and fill PDF documents and forms. |
+| `pptx` | `office/pptx/` | Create, read, edit, validate, and render PowerPoint presentations and templates. |
+| `xlsx` | `office/xlsx/` | Create, read, edit, recalculate, validate, and analyze spreadsheets. |
 
-Decomposes a spec or plan into dependency-ordered tickets. Each ticket is a vertical slice with explicit blocking edges — the agent knows what must ship before what. Output is a single `ticket.md` that feeds directly into `dispatch-for-implementation`.
+### Planning v1
 
-```
-npx skills add https://github.com/sanxzy/skills.git --skill generate-tickets -a opencode
-```
+| Skill | Path | Purpose |
+| --- | --- | --- |
+| `generate-features` | `planning/v1/generate-features/` | Generate a durable product feature backlog from clarified context and targeted codebase discovery. |
+| `generate-specs` | `planning/v1/generate-specs/` | Generate or resume one finalized engineering specification for one selected feature. |
+| `generate-plan` | `planning/v1/generate-plan/` | Generate or resume one finalized tracer-bullet implementation plan for one selected feature. |
 
-**Agents:** 3 (`discovery-agent`, `ticket-planning-agent`, `assembler-agent`) &nbsp;·&nbsp; **Version:** 0.1.0
+### Planning v2
 
----
+| Skill | Path | Purpose |
+| --- | --- | --- |
+| `proposal` | `planning/v2/proposal/` | Turn an established product idea into one clear, behavior-first proposal. |
+| `ticket` | `planning/v2/ticket/` | Turn one finalized proposal into dependency-ordered, independently verifiable implementation tickets. |
 
-### generate-architecture - The rules every agent follows.
+### Productivity
 
-Produces `_xzy-ai/architecture.md` — a canonical reference for Clean Architecture principles, layering, dependency direction, module boundaries, and directory layout. Every downstream agent reads this first. 11 languages, 10 project types.
+| Skill | Path | Purpose |
+| --- | --- | --- |
+| `discussion` | `productivity/discussion/` | Conduct a thorough, decision-driven interview until the outcome is clear and agreed. |
+| `teach` | `productivity/teach/` | Teach a new skill or concept through a structured learning workspace. |
 
-```
-npx skills add https://github.com/sanxzy/skills.git --skill generate-architecture -a opencode
-```
+## Working principles
 
-**Version:** 0.1.0
+**Explicit contracts.** Each skill defines its inputs, outputs, boundaries, and completion criteria.
 
----
+**Independent verification.** Reviewers inspect the actual files and behavior instead of trusting implementation summaries.
 
-### generate-design-md - The design language everyone speaks.
+**Artifact-driven composition.** Downstream skills consume durable artifacts such as proposals, tickets, plans, architecture references, and design specifications.
 
-Produces `design.md` — YAML design tokens (colors via Material Color Utilities, typography scales, spacing grids) plus narrative prose across 12 categories. Platform-agnostic: web, mobile, desktop, TUI, embedded, kiosk.
+**Sequential where it matters.** Implementation units are processed in dependency order, verified, reviewed, and completed before the next unit begins.
 
-```
-npx skills add https://github.com/sanxzy/skills.git --skill generate-design-md -a opencode
-```
+**Deterministic and resumable.** Workflows persist enough state and evidence to resume from the last verified checkpoint.
 
-**Version:** 1.0.0
-
----
-
-### dispatch-for-implementation - Build it, review it, merge it.
-
-The agent-orchestrated implementation path. Takes a `ticket.md` and runs every work unit through a strict worker and review sequence with worktree isolation. Reviewers independently verify source code, security, and quality before merge.
-
-```
-npx skills add https://github.com/sanxzy/skills.git --skill dispatch-for-implementation -a opencode
-```
-
-**Agents:** 6 (`dispatch-code-worker`, `dispatch-code-with-ui-worker`, `dispatch-acs-reviewer`, `dispatch-security-reviewer`, `dispatch-quality-gate-reviewer`, `dispatch-worker-advisor`) &nbsp;·&nbsp; **Version:** 1.0.0
-
----
-
-### implement - Direct, plan-first implementation with persistent review.
-
-The host-driven implementation path. It uses a canonical `generate-plan` `plan.md`; when no plan is supplied, the host uses the available `generate-plan` skill first and pauses if it is unavailable. It implements all unfinished phases sequentially, one phase at a time, runs normal verification, and uses `impl-reviewer` until each phase is explicitly approved. Reviewer reports persist incrementally under workspace `_xzy-ai`; approved code is committed before the plan completion state is updated. The host asks for `default` or `tdd` mode once per plan run, with explicit per-phase overrides, and does not use `dispatch-for-implementation`'s persisted mode file.
-
-```
-npx skills add https://github.com/sanxzy/skills.git --skill implement -a opencode
-```
-
-**Agents:** 1 (`impl-reviewer`) — host implements directly; reviewer writes persistent reports &nbsp;·&nbsp; **Version:** 1.0.0
-
----
-
-## Principles
-
-**Strict contracts.** Every agent defines what it needs. If the coordinator delegates without providing required inputs, the agent rejects immediately — in plain text listing what's missing. No silent compensations. No guesswork.
-
-**Independent verification.** Reviewers never trust implementation reports. They inspect the actual files — source code, config, tests, docs. They confirm behavior by reading the code itself.
-
-**Sequential where it matters.** `dispatch-for-implementation` runs one work unit at a time globally. No concurrent workers, no merge serialization bugs, no worktree conflicts. Each unit goes from implementation through all three review gates before the next one starts.
-
-**Deterministic over clever.** Every output has an explicit format. Every stage has a completion criterion. Every agent knows when it's done. Resume from the last checkpoint, not from the beginning.
-
-**Composable, not monolithic.** Each skill does one thing well. Chain them. Skip them. Reorder them. Skills don't know about each other — they consume artifacts and produce artifacts.
-
-## Utilities
-
-### install-bundled-agents - Sync agents to your workspace.
-
-Scans all locally available skills and installs their bundled agents into your chosen directory. Delegates the work to a single script. Idempotent — safe to run whenever you add or update skills.
-
-```
-npx skills add https://github.com/sanxzy/skills.git --skill install-bundled-agents -a opencode
-```
-
-**Version:** 1.0.0
+**Responsibility-oriented structure.** Folder placement communicates purpose; each skill owns its instructions, references, agents, scripts, and examples.

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- ═══════════════ THEME: TECHNOLOGY & DIGITAL ═══════════════
+       Industries (industries.md #1): software/SaaS, AI/ML, cloud, cybersecurity,
+       data & analytics, fintech, blockchain/Web3, telecom, hardware & electronics,
+       semiconductor, robotics, IoT, AR/VR/XR, game dev, digital media, IT services.
+       Vibe    : compiler window — dark visual panel, mono labels, status LED.
+       Motif   : file tab + LED "compiler OK" (the signature above the left visual).
+       Usage   : paste the blocks below into the lesson-template.html head
+                 (replace the universal font links + <style> blocks), then paste
+                 <div data-theme-signature…> into <section data-scn-stage>
+                 as the first element. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style type="text/tailwindcss">
+    @theme {
+      --color-brand: #C2410C;
+      --color-ink: #18181B;
+      --color-steel: #71717A;
+      --color-paper: #F4F4F5;
+      --color-soft: #FFEDD5;
+      --color-panel: #171717;
+      --color-pinline: #27272A;
+      --color-ok: #059669;
+      --color-mut: #D97706;
+    }
+  </style>
+  <style>:root { --scn-accent: #C2410C; --scn-tint: #FFEDD5; --scn-ink: #18181B; }</style>
+
+  <!-- Signature: compiler window — paste into <section data-scn-stage> -->
+  <div data-theme-signature class="flex shrink-0 items-center justify-between rounded-t-xl border border-pinline border-b-0 bg-panel px-4 py-2">
+    <div class="flex items-center gap-2 font-mono text-xs text-zinc-400">
+      <span class="h-2.5 w-2.5 rounded-[3px] bg-zinc-600"></span>
+      <span>main.rs</span>
+    </div>
+    <span class="flex items-center gap-1.5 font-mono text-[11px] text-emerald-400">
+      <span class="h-2 w-2 rounded-full bg-ok shadow-[0_0_8px_#059669]"></span>
+      compiler OK
+    </span>
+  </div>
+</head>
+</html>

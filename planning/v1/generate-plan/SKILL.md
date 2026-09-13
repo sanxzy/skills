@@ -1,0 +1,481 @@
+---
+name: generate-plan
+version: 1.0.0
+description: |
+  Generate or resume one finalized tracer-bullet implementation plan for exactly one explicitly selected feature from conversation context or a `spec.md` artifact. Writes `_xzy-ai/sprints/<backlog_name>/plans/features/<NNN>/plan.md`, preserves per-feature progress and evidence, overwrites existing canonical plans without revisions, and delegates planning evidence discovery to bundled `plan-scout` subagents. Do not use for feature discovery, engineering specs, tickets, code implementation, or broad planning that does not identify one target feature.
+---
+
+Produces a durable implementation plan for exactly one feature per invocation. It synthesizes:
+
+1. The current conversation.
+2. A single source `spec.md`, when supplied or discoverable.
+3. Fresh feature-specific planning evidence from the active working tree, gathered by bundled `plan-scout` subagents when relevant code exists.
+
+The final artifact is written to:
+
+```text
+_xzy-ai/sprints/<backlog_name>/plans/features/<NNN>/plan.md
+```
+
+The main host owns source resolution, synthesis, quality validation, user interaction, overwrite handling, write verification, and the progress log. Scouts gather evidence only and never propose or write the final plan.
+
+## Trigger Boundary
+
+Run this skill only for an explicit request to create, regenerate, replace, revise, or resume an implementation plan for one named feature.
+
+Do not run it for:
+
+- Feature discovery or backlog generation.
+- Engineering spec generation.
+- Ticket generation.
+- Casual brainstorming.
+- Code implementation or modification.
+- Broad planning requests that do not identify exactly one target feature.
+
+## Core Invariants
+
+1. One invocation processes exactly one explicitly selected feature.
+2. Prefer `spec.md` as the behavioral baseline when supplied or discoverable.
+3. When no `spec.md` exists, proceed only after conversation context explicitly establishes backlog, feature identifier, feature title, behavior, scope, and exclusions.
+4. Never infer `<NNN>` through assumptions.
+5. Never process a whole `features.md` backlog in one invocation.
+6. Never guess through plan-affecting ambiguity.
+7. Never write source code, tests, configuration, dependencies, lockfiles, or unrelated artifacts.
+8. Always overwrite canonical `plan.md` on successful generation; do not create revisions.
+9. Always write and verify the canonical current plan at `plan.md`.
+10. Keep final `plan.md` durable and free of project-root file paths, concrete function names, concrete signatures, code snippets, command transcripts, unresolved alternatives, and open questions. Qualifying citation paths must be workspace-root-relative or absolute and must resolve to existing regular files outside the project root; their validity rests on the current-round scout reports, which the coordinator trusts without re-resolving at write time.
+
+## Project Location and Citation Scope
+
+The active workspace is the current working directory (`<cwd>`). Before any discovery, source resolution, citation handling, or artifact write:
+
+1. Read `<cwd>/_xzy-ai/project-root.md`.
+2. Require exactly one non-empty project-root entry. It must be a `<cwd>`-relative path (forward slashes, no leading `/`, no `.` or `..` segments) that resolves to a directory inside `<cwd>`.
+3. Treat `<cwd>/<project-root-entry>` as the project codebase root. For example, when the file contains `plugins`, the project root is `<cwd>/plugins`.
+4. Do not inspect, modify, or delegate discovery outside the active workspace except for citable reference files.
+5. Treat the project root as the only codebase for repository discovery and pass its absolute path to scouts as `project_root`.
+6. If `project-root.md` is missing, empty, malformed, or points outside `<cwd>`, pause and ask the user to correct it. Do not guess the project root.
+
+Reference-aware behavior is manual: the workflow enters reference-aware mode only when the user explicitly asks to use references as a source of truth. Citable material may be anywhere on the machine except inside the project codebase root resolved from `_xzy-ai/project-root.md`. A final citation is either a workspace-root-relative path (no leading `/`, no `./` or `..` segments) or an absolute path for any file outside the project root, in both cases using forward slashes; it must resolve to an existing regular file verified by current-round scouts. Cited files are read-only inputs to the current workflow; a workflow may still manage its own declared output paths.
+
+## Managed Paths
+
+For backlog `<backlog_name>` and feature `<NNN>`, this skill manages only:
+
+```text
+_xzy-ai/sprints/<backlog_name>/plans/features/<NNN>/plan.md
+_xzy-ai/sprints/<backlog_name>/plans/features/<NNN>/progress.md
+_xzy-ai/sprints/<backlog_name>/plans/features/<NNN>/scouts/round-<RRR>/
+```
+
+Preserve every unrelated artifact under the backlog directory.
+
+## Source Resolution
+
+The user must identify the target feature, for example `F003`, `003`, a path to `spec.md`, or explicit feature text containing a stable feature identifier.
+
+### Source from `spec.md`
+
+When a `spec.md` source is available:
+
+1. Read `spec.md`.
+2. Extract the feature identifier, title, problem, solution, user stories, acceptance criteria, implementation decisions, testing decisions, scope exclusions, and notes.
+3. Reuse the feature number for `<NNN>` and title identity.
+4. Infer `<backlog_name>` from the path when the path matches `_xzy-ai/sprints/<backlog_name>/specs/features/<NNN>/spec.md`.
+5. Focus the entire workflow on that one feature.
+6. Treat `spec.md` as the source behavior contract unless the user explicitly says it is stale.
+
+If the selected `spec.md` cannot be located unambiguously, ask once for the path or target feature. Do not choose a feature.
+
+When `spec.md` and conversation context materially disagree about actors, behavior, boundaries, dependencies, or outcomes, treat `spec.md` as baseline context but hand the conflict to `discussion`. Clarified decisions may refine or supersede the baseline; neither source silently overrides the other.
+
+### Source from conversation only
+
+When no `spec.md` source applies:
+
+1. Require explicit backlog name.
+2. Require explicit feature identifier matching `F<NNN>` or `<NNN>`.
+3. Require explicit feature title.
+4. Require explicit desired outcome, actors, in-scope behavior, out-of-scope behavior, and known dependencies.
+5. Use clarified conversation as the source behavior contract.
+
+If any required source identity or behavior context is missing, hand off to `discussion`. Do not infer or generate `<NNN>` through assumptions.
+
+## Required Context Gate
+
+Generation may proceed only when all of the following are clear for the one target feature:
+
+1. Backlog name.
+2. Feature identifier and title.
+3. Source behavior contract from `spec.md` or clarified conversation.
+4. Desired outcome.
+5. Relevant actors.
+6. User stories or behavior labels covered by the plan.
+7. In-scope behavior.
+8. Out-of-scope behavior or exclusions.
+9. Known dependencies and dependency boundaries.
+10. Whether existing implementation evidence is needed for planning.
+
+Use supplied input and current conversation. Discover objective source locations and repository facts yourself.
+
+If plan-affecting context is unclear or incomplete:
+
+1. Gather every known ambiguity into one handoff.
+2. Load and run the `discussion` skill in the same conversation when supported.
+3. Give `discussion` the named gaps and relevant background.
+4. Wait until `discussion` reaches explicit shared-understanding completion.
+5. Resume this workflow with the enriched context.
+
+If same-session loading or automatic resume is unavailable, append a paused event with `resume-requires=complete-discussion`, stop, and tell the user exactly which gaps must be resolved.
+
+If a discussion handoff is abandoned or not completed, keep the workflow paused. Do not synthesize or write `plan.md`.
+
+## Reference-Aware Mode
+
+Citable reference material is not limited to a single `references/` directory. Reference-aware mode is manual: enter it only when the user explicitly asks to use references. When active, embed durable, resolvable workspace-root-relative or absolute path citations in the substantive sections of `plan.md` so a downstream agent can re-open the referenced files and recover the nuance.
+
+### Citation scope
+
+- Any regular file anywhere on the machine outside the project codebase root (resolved from `_xzy-ai/project-root.md`) may be cited in the final `plan.md`, using a workspace-root-relative or absolute path.
+- Citable files are read-only inputs to the current workflow: neither the host nor scouts modify, move, rename, or delete them, except each workflow's own declared outputs.
+
+### Behavior by context
+
+- If the user explicitly asks to use references → enter reference-aware mode. Do not enter it automatically merely because citable reference material exists outside the project root. Include relevant path citations throughout wherever referenced files provide context, behavior, architecture, implementation-pattern, or other evidence — Architectural decisions, phase "What to build", phase acceptance criteria that depend on reference seams, and similar. Preserve any additional user reference-related instructions or notes verbatim (for example "create an original version in our project to avoid copyright issues") in the appropriate artifact section and in progress/generation notes. The `> Source:` blockquote is a durable logical source identifier and must NOT carry file paths; put user notes in the References section area or as durable prose.
+- If reference-aware mode is active but investigation finds no relevant evidence → report this to the user and ask how to proceed (continue without citations / add reference material first / other). Do not fabricate citations.
+- If the user explicitly REQUIRES citations but no citable material exists → reject the request rather than proceeding without it.
+
+### Relevance, not a fixed count
+
+Citations are relevance-based. Provenance-only citations (the Source blockquote or a notes area) do NOT satisfy the requirement when substantive evidence exists.
+
+### Preserving user reference instructions
+
+Capture the user's additional reference-related instructions/notes verbatim in both the artifact (as durable prose in the References section area or an appropriate body section) and in the progress/generation notes. Never silently drop or paraphrase the substance of these instructions.
+
+## Artifact Language
+
+Use the language of the source spec or product requirements in conversation. If mixed or unclear, use the repository's dominant documentation language. Preserve established product terms verbatim.
+
+Keep contract tokens unchanged, including:
+
+- `F001`, `F002`, and other feature identifiers.
+- `US001`, `US002`, and other user story identifiers.
+- Required section headings defined by reference formats.
+- Progress event types.
+
+## Progress and Recovery
+
+The authoritative per-feature workflow state is:
+
+```text
+_xzy-ai/sprints/<backlog_name>/plans/features/<NNN>/progress.md
+```
+
+Follow [PROGRESS-LOG-FORMAT.md](./references/PROGRESS-LOG-FORMAT.md) exactly.
+
+Only the main host may read workflow state for orchestration or append progress events. Scouts never write the progress log.
+
+A fresh generation appends the next `Round NNN` section. An explicit resume continues the latest non-terminal round. The current round number is used in scout report paths.
+
+Before starting fresh work for a feature, read `progress.md` when it exists. If the latest round is non-terminal, refuse overlap and require explicit resume or cancellation first.
+
+## Existing Plan Disposition
+
+If canonical `plan.md` already exists before fresh work:
+
+1. Treat the user's generation request as authorization to overwrite the canonical plan.
+2. Do not ask for archival or revision handling.
+3. Append `existing-plan-dispositioned` with `disposition=overwrite` and `existing=<path>`.
+4. Preserve progress history and scout reports.
+5. Overwrite `plan.md` only after the new plan passes quality gate.
+
+## Workflow
+
+### Step 1: Capture normalized context
+
+After the required context gate passes:
+
+1. Determine artifact language.
+2. Resolve source identity, backlog name, feature number, feature title, source text, desired outcome, actors, user stories or behavior labels, in-scope behavior, out-of-scope behavior, and known dependencies.
+3. Create the managed directories when needed.
+4. Read feature `progress.md` if present and apply recovery or overlap rules.
+5. Start or resume the workflow round.
+6. Append `source-resolved` and `context-captured` events.
+7. Append `existing-plan-dispositioned` after checking whether canonical `plan.md` exists.
+
+The progress log must contain enough normalized context to resume even when the original conversation is unavailable.
+
+### Step 2: Determine discovery mode
+
+The host may perform light objective discovery to classify the repository and set up the workflow, such as inspecting top-level structure, obvious project manifests, documentation indexes, source directories, and test directories.
+
+This is not the primary semantic investigation for the plan. If the host cannot confidently determine that no relevant implementation exists from light discovery, use `plan-scout`.
+
+#### Greenfield or no relevant implementation
+
+When light host discovery verifies that no implementation relevant to the target feature exists:
+
+- Launch zero scouts.
+- Record greenfield mode in progress.
+- Synthesize from confirmed source context.
+- Label architectural decisions and testing seams as proposed.
+- Append `coverage-evaluated` with `reports=0` and `reason=greenfield-context-sufficient` when adequate.
+
+#### Established repository
+
+Use fresh targeted discovery against the project codebase root (resolved from `_xzy-ai/project-root.md`), including uncommitted changes. Do not reuse `feat-scout` or `spec-scout` reports as canonical plan evidence. An explicit workflow resume may read completed reports or resume matching `in-progress` `plan-scout` reports produced by the same per-feature workflow round when their scopes and metadata remain valid; only the latter receives `resume=true`.
+
+### Step 3: Plan scout scopes
+
+The host defines focused discovery topics before delegation.
+
+Each topic must:
+
+- Use a concise kebab-case name.
+- Own a distinct feature-specific planning question or behavior area.
+- Contribute directly to stable contracts, vertical slice boundaries, dependencies, risks, or testing seams.
+- State included and excluded scope.
+- Name concrete questions to resolve.
+- Write to `_xzy-ai/sprints/<backlog_name>/plans/features/<NNN>/scouts/round-<RRR>/<topic>.md`.
+
+Useful topic categories include:
+
+- Existing implementation seams and integration boundaries.
+- Data, state, schema, migration, and contract implications.
+- User-facing, API-facing, job-facing, or operator-facing entry points.
+- Testing and validation seams.
+- Dependencies, reliability, security, privacy, accessibility, and operational constraints.
+- Natural end-to-end slice ordering.
+
+Limited intentional overlap is allowed when separate questions require shared evidence. Tell scouts to cross-reference related topics and avoid duplicating another report's full analysis.
+
+Independent topics may run in parallel when supported; otherwise run sequentially. Before any delegation, sort topics lexicographically and validate every complete brief (required inputs, bounded scope, explicit boolean `resume`, and safe topic-consistent report path). If validation fails, surface `REJECTED: missing required inputs: ...` for missing fields or `REJECTED: invalid input: ...` for invalid state, and fail the coordinator operation before appending `scout-wave-planned`, invoking a scout, or mutating a scout report. Only then append `scout-wave-planned` with cycle, wave, topics, coverage targets, and recoverable briefs that include each report path and fresh/resume mode.
+
+### Step 4: Delegate `plan-scout`
+
+Delegate with every required input. Before appending `scout-started` or invoking the agent, validate that the complete bundle is present, `resume` is a boolean, the brief is bounded, and the report path is safe and matches the topic. If validation fails, fail the coordinator operation without invoking the scout or mutating its report.
+
+| Input | Description |
+|---|---|
+| `backlog_name` | Normalized backlog identifier. |
+| `feature_id` | `F<NNN>` for the selected feature. |
+| `feature_context` | Feature title, source behavior contract, user stories or behavior labels, relevant conversation decisions, scope, exclusions, and known dependencies. |
+| `topic` | Unique kebab-case discovery topic for the current round. |
+| `discovery_scope` | Precise included and excluded discovery boundaries. |
+| `questions_to_resolve` | Specific planning evidence questions this report must answer. |
+| `workspace_root` | Absolute workspace root. |
+| `project_root` | Absolute project codebase root resolved from `_xzy-ai/project-root.md`. |
+| `report_path` | Exact round-scoped scout report path. |
+| `resume` | Required boolean. Use `false` for a fresh report path and `true` to continue the matching existing `in-progress` report. |
+
+Before each delegation, append `scout-started` with cycle, wave, topic, scope, report path, attempt, and the explicit `resume` value. When the platform supports bundled subagent invocation, invoke `plan-scout` with the full contract, including that value, and wait for its return. Parallel waves are expressed as multiple independent scout delegations when supported. A fresh delegation uses `resume=false`; a resumed matching report uses `resume=true`.
+
+If the platform lacks required subagent support, append a paused event containing the exact scout briefs and `resume-requires=subagent-delegation-support`; tell the user delegation support is required. The host must not replace `plan-scout` as the primary semantic discovery mechanism for established repositories.
+
+A scout returns only:
+
+```text
+report_path: <path>
+status: completed | in-progress | blocked
+reason: <required only when blocked>
+```
+
+The on-disk report is canonical. Read every returned report, including `in-progress` reports as partial evidence, before evaluating coverage. Early input or state failures return only the scout's `REJECTED: ...` message; do not infer missing coordinator inputs. A returned `in-progress` status is not terminal; retain its `scout-started` ledger entry and resume the same report later.
+
+If a scout returns `REJECTED`:
+
+1. Treat the rejected delegation as a consumed scout invocation.
+2. Append `scout-blocked` with the current `cycle`, `wave`, topic, `report=none`, escaped `reason=rejected:<message>`, and attempt number.
+3. If the rejection reports a terminal report collision, do not retry or overwrite that report path; pause with `reason=scout-terminal-report-collision`, the topic in `pending`, and `resume-requires=new-scout-round-or-report-path`.
+4. For any other rejection, correct coordinator input or resume state, append a new `scout-started` event with the incremented attempt, and retry the same topic once. If rejected again, append its matching `scout-blocked`, then pause with `resume-requires=correct-coordinator-inputs`.
+5. A returned `in-progress` status is not terminal; retain its `scout-started` ledger entry and resume the same report later.
+
+### Step 5: Apply the discovery budget
+
+One authorized discovery cycle allows:
+
+- At most five scout invocations per wave.
+- At most three waves.
+- At most fifteen total scout invocations.
+
+Initial scouts, corrected retries, blocked retries, and narrower replacements all consume budget.
+
+If complete evidence remains unavailable after the cycle:
+
+1. Append `coverage-evaluated` with uncovered areas.
+2. Append `workflow-paused` with `reason=discovery-cycle-exhausted`, uncovered areas, and exact authorization needed.
+3. Ask whether to authorize another bounded cycle.
+4. If authorized, append `workflow-resumed` and continue with the next cycle number inside the same round.
+5. If declined, append `workflow-cancelled` and do not write `plan.md`.
+
+### Step 6: Recover from blocked scouts
+
+A `scout-blocked` event with `report=none` is a pre-report rejection and follows Step 4; the recovery below applies to an operationally blocked report.
+
+For a blocked scope:
+
+1. Read the blocked report and reason.
+2. Retry the same scope once with corrected instructions and a unique topic such as `<topic>-retry`.
+3. If still blocked, try one narrower replacement scope with a unique topic such as `<topic>-narrowed`.
+4. Preserve every report for auditability.
+5. If recovery requires more discovery budget, pause for authorization.
+6. If adequate evidence remains unavailable, pause with unresolved coverage and do not write `plan.md`.
+
+Never skip a failed required scope and claim complete coverage.
+
+### Step 7: Evaluate evidence sufficiency
+
+Before synthesis, verify that source context and scout reports collectively establish enough evidence for the selected feature's:
+
+- Source behavior contract.
+- Stable architectural decisions.
+- Current relevant implementation seams, or valid greenfield mode.
+- Interface, data, state, integration, and dependency boundaries relevant to slicing.
+- Testing and verification seams.
+- Natural vertical slice ordering and prerequisites.
+- Failure, security, privacy, reliability, accessibility, migration, rollout, and operational constraints when relevant.
+- Conflicts, unknowns, and dependency boundaries.
+
+An `in-progress` report may contribute already persisted evidence, but its remaining `Pending discovery` areas and unanswered questions are uncovered; it cannot satisfy coverage until terminal. If completed scout reports become stale because `discussion` changes feature scope, keep unaffected reports, mark affected topics stale in progress, and launch replacement or supplemental topics in a later wave within the same round and authorized cycle.
+
+### Step 8: Resolve plan-affecting ambiguity
+
+When source context and codebase evidence leave behavior, material scope, stable contracts, dependencies, testing seams, or vertical slice ordering ambiguous:
+
+1. Gather all known ambiguities into one handoff.
+2. Append `ambiguity-handoff-started` with affected topics and questions.
+3. Run the same-session `discussion` handoff described in the Required Context Gate.
+4. Append `ambiguity-handoff-completed` after explicit shared-understanding confirmation.
+5. Append a new `context-captured` event with clarified decisions.
+6. Keep unaffected scout reports.
+7. Replace or supplement only affected reports.
+8. Reapply coverage evaluation.
+
+Do not send ordinary missing implementation to `discussion`.
+
+### Step 9: Synthesize the plan
+
+Synthesize only after complete coverage and resolved intent.
+
+Follow [PLAN-FORMAT.md](./references/PLAN-FORMAT.md) exactly.
+
+The final plan must:
+
+1. Use `# Plan: F<NNN> — <Feature Title>`.
+2. Include exactly one `> Source: ...` blockquote.
+3. Include `## Architectural decisions`.
+4. Include sequential `## Phase <N>: <Title>` sections.
+5. Use tracer-bullet vertical slices.
+6. Include `**User stories covered**`, `### What to build`, and `### Acceptance criteria` for every phase.
+7. Preserve stable story identifiers such as `US001` when available.
+8. Describe durable implementation guidance without brittle source references, except qualifying path-only citations that resolve to existing regular files outside the project root. Citations are path-only and appear inline wherever the referenced files provide evidence.
+9. Include a trailing `## References` section listing the deduplicated, lexicographically sorted union of all inline citations; when the plan carries no inline citations its body is `None`. Index-only paths are prohibited (every entry must also appear inline).
+10. In reference-aware mode, carry relevant path citations in substantive sections throughout and preserve the user's additional reference-related instructions/notes verbatim in the artifact and in progress/generation notes.
+11. Order phases by prerequisites and natural user journey.
+12. Keep the plan independently understandable.
+
+### Step 10: Apply the quality gate
+
+The main host alone performs this gate. Do not delegate to a reviewer.
+
+Before writing `plan.md`, verify all of the following:
+
+#### Source traceability
+
+- Exactly one target feature is identified.
+- Source identity is recorded in progress.
+- The plan source is `spec.md` or clarified conversation.
+- Source conflicts, if any, were resolved through discussion.
+
+#### Tracer-bullet quality
+
+- Every phase is a thin vertical slice.
+- Every phase is demoable or verifiable on its own.
+- No phase is merely a horizontal technical layer.
+- Phase ordering reflects prerequisites and the natural user journey.
+- User stories or behavior labels are covered completely without unrelated additions.
+
+#### Planning completeness
+
+- Architectural decisions are durable and sufficient to keep phases coherent.
+- Relevant success, non-success, boundary, permission, validation, accessibility, security, privacy, reliability, dependency, and operational behavior is represented in the appropriate phase.
+- Testing and verification expectations are included in phase acceptance criteria or durable testing-seam decisions.
+- No unresolved plan-affecting ambiguity remains.
+
+#### Format and durability
+
+- Required sections and headings match `PLAN-FORMAT.md`.
+- Phase numbers are continuous.
+- No file paths appear in `plan.md` except qualifying path-only citations accepted from current-round evidence as existing regular files outside the project root; citations may be workspace-root-relative or absolute.
+- No concrete function signatures, function names, code snippets, or command transcripts appear.
+- No unresolved alternatives or open questions appear.
+- The `## References` section is present and equals the deduplicated, lexicographically sorted union of all inline citations, and contains no index-only paths (body is `None` when there are no inline citations).
+- In reference-aware mode, evidence-backed architectural decisions, phase "What to build" content, and phase acceptance criteria that depend on reference seams carry nearby path citations.
+- The plan remains understandable without project source code or the original conversation, except for the specific files it cites.
+- No write-time path resolution is performed: path validity rests on the current-round scout reports the coordinator trusts; do not re-resolve citation paths here.
+
+If a check fails:
+
+- Return plan ambiguity to `discussion`.
+- Return missing or conflicting evidence to scouting.
+- Fix synthesis or formatting defects internally and repeat the gate.
+- Never write a partial or draft `plan.md`.
+
+Append `quality-gate-evaluated` only after the gate passes or after recording the defect path.
+
+### Step 11: Write and verify the finalized artifact
+
+After quality gate:
+
+1. Write `plan.md` using the quality-gated content.
+2. Re-read `plan.md` before declaring it finalized.
+3. Verify it matches the quality-gated content and required format, including the presence of the `## References` section and its index consistency (deduplicated, sorted union of inline citations, no index-only paths). This verification must NOT re-resolve citation paths: path validity rests on the current-round scout reports the coordinator trusts, and scouts verify paths before reporting.
+4. If incomplete, malformed, or inconsistent, correct that same write and re-read.
+5. If a verified artifact cannot be established, append `workflow-paused` with `reason=plan-write-verification-failed` and do not complete.
+6. Once verified, append `plan-write-verified` with `overwritten=true` when a prior canonical plan existed, otherwise `overwritten=false`.
+7. Append `workflow-completed` with artifact path, phase count, overwritten status, and scout report count.
+8. Retain all scout reports and progress history.
+
+## Completion Response
+
+Return only:
+
+- Finalized `plan.md` path.
+- Number of phases.
+- Whether an existing plan was overwritten.
+- Number of retained scout reports for the completed round.
+
+Do not repeat the plan in chat.
+
+## `plan-scout` Reference
+
+`plan-scout` is a bundled read-only discovery agent.
+
+**Required inputs:** `backlog_name`, `feature_id`, `feature_context`, `topic`, `discovery_scope`, `questions_to_resolve`, `workspace_root`, `project_root`, `report_path`, `resume`.
+
+**Canonical output:** `_xzy-ai/sprints/<backlog_name>/plans/features/<NNN>/scouts/round-<RRR>/<topic>.md` using the agent's embedded canonical schema, mirrored for human reference in [SCOUT-REPORT-FORMAT.md](./references/SCOUT-REPORT-FORMAT.md).
+
+**Return:** report path and `completed`, `in-progress`, or `blocked` status; blocked reason when applicable. Invalid or incomplete delegation returns the scout's `REJECTED: ...` response before report mutation.
+
+## Constraints
+
+1. Do not process more than one feature per invocation.
+2. Do not choose a feature automatically.
+3. Do not infer `<NNN>` without explicit source identity.
+4. Do not write `plan.md` before complete evidence coverage and a passed quality gate.
+5. Do not write source code, tests, configuration, dependencies, lockfiles, or unrelated artifacts.
+6. Overwrite canonical `plan.md` only after quality gate; do not create revisions.
+7. Preserve all scout reports and progress history.
+8. Keep `plan.md` free of project-root file paths except qualifying citations that resolve to existing regular files outside the project root (workspace-root-relative or absolute); keep citations path-only and trust the current-round scout reports for their validity (do not re-resolve at write time). Keep it free of concrete function signatures, function names, code snippets, and command transcripts, unresolved alternatives, and open questions.
+9. Only the main host writes feature `progress.md`.
+10. Do not exceed five scout invocations per wave, three waves, or fifteen invocations per authorized discovery cycle.
+11. Resume matching `in-progress` scout reports from their persisted checkpoints; partial reports do not satisfy coverage.
+12. Treat the active working tree, including uncommitted changes, as current state.
+13. Keep all workflow operations and artifacts inside the active workspace root.
+
+## References
+
+- [Plan Artifact Format](./references/PLAN-FORMAT.md)
+- [Scout Report Format](./references/SCOUT-REPORT-FORMAT.md)
+- [Progress Log Format](./references/PROGRESS-LOG-FORMAT.md)

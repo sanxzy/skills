@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- ═══════════════ THEME: FINANCE ═══════════════
+       Generic — ALL money topics: personal finance, investing, accounting,
+       economics, taxes, budgeting. Deliberately NOT specific to any one
+       sub-industry (banking/VC/etc.): one face for every money topic.
+       Vibe    : ledger & gold — deep green, big numbers, summary strip.
+       Motif   : summary card with a big number (numbers speak this field's language).
+       Usage   : paste the blocks below into the lesson-template.html head
+                 (replace the universal font links + <style> blocks), then paste
+                 <div data-theme-signature…> into <section data-scn-stage>
+                 as the first element. Adjust the example values to your lesson. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <style type="text/tailwindcss">
+    @theme {
+      --color-brand: #B45309;
+      --color-ink: #064E3B;
+      --color-steel: #64748B;
+      --color-paper: #FAFAF9;
+      --color-soft: #FEF3C7;
+      --color-panel: #064E3B;
+      --color-pinline: #065F46;
+      --color-ok: #059669;
+      --color-mut: #DC2626;
+    }
+  </style>
+  <style>:root { --scn-accent: #B45309; --scn-tint: #FEF3C7; --scn-ink: #064E3B; }</style>
+
+  <!-- Signature: summary strip with a big number -->
+  <div data-theme-signature class="mb-5 flex items-end justify-between gap-3 rounded-lg border border-brand/25 bg-soft/50 px-4 py-3">
+    <div class="min-w-0">
+      <p class="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-steel">Summary</p>
+      <p class="scn-display truncate text-2xl font-bold text-ink">Rp 100.000</p>
+    </div>
+    <span class="shrink-0 font-mono text-xs font-semibold text-ok">▲ +10%</span>
+  </div>
+</head>
+</html>

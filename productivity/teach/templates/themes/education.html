@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- ═══════════════ THEME: EDUCATION ═══════════════
+       Industries (industries.md #9): schools, universities, vocational education,
+       edtech, online courses, corporate training, tutoring, educational publishing.
+       Vibe    : friendly & motivating — warm violet, step chips, rounded type.
+       Motif   : "STEPS" chip row (the lesson really is an ordered sequence).
+       Usage   : paste the blocks below into the lesson-template.html head
+                 (replace the universal font links + <style> blocks), then paste
+                 <div data-theme-signature…> into <section data-scn-stage>
+                 as the first element. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Nunito+Sans:wght@600;700;800;900&family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style type="text/tailwindcss">
+    @theme {
+      --color-brand: #7C3AED;
+      --color-ink: #1E1B4B;
+      --color-steel: #6B7280;
+      --color-paper: #F8FAFC;
+      --color-soft: #EDE9FE;
+      --color-panel: #1E1B4B;
+      --color-pinline: #312E81;
+      --color-ok: #059669;
+      --color-mut: #D97706;
+    }
+  </style>
+  <style>:root { --scn-accent: #7C3AED; --scn-tint: #EDE9FE; --scn-ink: #1E1B4B; }</style>
+
+  <!-- Signature: step chips (chip count = scene count) -->
+  <div data-theme-signature class="mb-5 flex items-center gap-2">
+    <span class="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-brand">Steps</span>
+    <span class="ml-1 flex gap-1.5">
+      <span class="h-2.5 w-6 rounded-full bg-brand"></span>
+      <span class="h-2.5 w-2.5 rounded-full bg-ink/15"></span>
+      <span class="h-2.5 w-2.5 rounded-full bg-ink/15"></span>
+      <span class="h-2.5 w-2.5 rounded-full bg-ink/15"></span>
+    </span>
+  </div>
+</head>
+</html>
