@@ -8,8 +8,9 @@ Xzy Skills is a repository of composable agent skills. Skills are organized by r
 architecting/                  Architecture and design-system guidance
   generate-architecture/
   generate-design-md/
-engineering/                   Direct implementation workflows
+engineering/                   Direct and delegated implementation workflows
   implement/
+  squad/
 general/                       Repository and agent utilities
   install-bundled-agents/
 media/                         Visual, story, and image-prompt workflows

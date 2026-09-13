@@ -33,7 +33,7 @@ Do not begin implementation or proceed with the requested task until the user ex
 3. Map the decision tree — identify all decisions and their dependencies.
 4. Resolve prerequisite decisions before moving to dependent ones.
 5. For each agent question, present it interactively with a recommended answer grounded in verified facts and available evidence rather than assumptions, along with a rationale. State uncertainty when facts are incomplete. For each user question, answer correctly, honestly, faithfully, and factually without a recommended answer.
-6. After each response, append the Q&A to the transcript using the speaker-aware labels defined in [TRANSCRIPT-FORMAT.md](./TRANSCRIPT-FORMAT.md).
+6. After each response, append the Q&A to the transcript using the speaker-aware labels defined in [TRANSCRIPT-FORMAT.md](./TRANSCRIPT-FORMAT.md). When the user provides a custom or free-form answer, copy it into the transcript verbatim: preserve the original language, line breaks, indentation, punctuation, Markdown, code, diagrams, and meaningful whitespace; do not translate, summarize, paraphrase, correct, normalize, rewrap, or convert it. The Mermaid rule applies only to diagrams created by the agent, never to a diagram supplied by the user.
 7. When all material decisions and dependencies have been resolved or explicitly deferred, and before final confirmation, present the user with the following option using the question tool: "Would you like to invoke the `discussion-brainstormer` agent to check for gaps before finalizing?" If the user agrees and the agent is available, invoke it by providing these inputs:
 
    - **Background detail**: A description of the topic, context, goals, constraints, or any other relevant information provided by the user.

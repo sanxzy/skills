@@ -21,6 +21,7 @@ Conduct a thorough, decision-driven interview until we reach a shared understand
 - Use simple words and explanations suitable for a high-school reading level. Avoid unnecessary technical terms; explain any technical term that is needed.
 - When a topic is difficult or abstract, use a clear analogy when it helps the user reason about or understand it.
 - Write the final discussion transcript in English. Translate the discussion faithfully while preserving the user's decisions, reasoning, constraints, and important nuances.
+- When the user gives a custom or free-form answer, preserve that answer verbatim in the transcript, including its original language, line breaks, indentation, Markdown, code, and diagrams. Do not translate, summarize, paraphrase, normalize, or reformat the verbatim answer; follow [TRANSCRIPT-FORMAT.md](./references/TRANSCRIPT-FORMAT.md) for the required representation.
 
 ## Modules
 

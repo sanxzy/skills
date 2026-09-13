@@ -19,6 +19,7 @@ npx skills add sanxzy/skills \
   --skill proposal \
   --skill ticket \
   --skill implement \
+  --skill squad \
   -a opencode
 ```
 
@@ -28,7 +29,7 @@ The public skill name is independent of its responsibility folder. For example, 
 
 ```text
 architecting/                  Architecture and design-system guidance
-engineering/                   Direct implementation workflows
+engineering/                   Direct and delegated implementation workflows
 general/                       Repository and agent utilities
 media/                         Visual, story, and image-prompt workflows
 office/                        Office-document workflows
@@ -51,13 +52,14 @@ Every skill is self-contained under its responsibility folder:
 
 ## Planning and implementation pipeline
 
-The repository contains two planning tracks. Choose the track that matches the source artifact you have, then use `implement` for direct execution.
+The repository contains two planning tracks. Choose the track that matches the source artifact you have, then use `implement` for direct execution or `squad` for delegated multi-worker execution.
 
 ```mermaid
 flowchart LR
     discussion["discussion<br/><small>decision-driven interview</small>"] --> proposal["proposal<br/><small>product behavior</small>"]
     proposal --> ticket["ticket<br/><small>vertical-slice tickets</small>"]
     ticket --> implement["implement<br/><small>direct implementation + review</small>"]
+    ticket --> squad["squad<br/><small>autonomous multi-worker orchestration</small>"]
 
     discussion --> generate-features["generate-features<br/><small>feature backlog</small>"]
     generate-features --> generate-specs["generate-specs<br/><small>one-feature specification</small>"]
@@ -71,6 +73,7 @@ flowchart LR
 - `planning/v1/` provides the `generate-features → generate-specs → generate-plan` workflow.
 - `planning/v2/` provides the `proposal → ticket` workflow.
 - `engineering/implement/` consumes either a canonical plan or a ticket set, implements one unit at a time, verifies it, and gates it with `impl-reviewer` before commit.
+- `engineering/squad/` consumes one canonical ticket set and coordinates dedicated workers, reviewers, run-level QA, durable recovery, and controlled integration.
 - `architecting/` provides optional architecture and design references for downstream work.
 - `media/`, `office/`, and `productivity/` contain independent workflows and do not require the planning pipeline.
 
@@ -88,6 +91,7 @@ flowchart LR
 | Skill | Path | Purpose |
 | --- | --- | --- |
 | `implement` | `engineering/implement/` | Implement unfinished plan phases or tickets directly in the current checkout, verify them, and run the persistent reviewer gate. |
+| `squad` | `engineering/squad/` | Autonomously orchestrate one canonical ticket set through dedicated workers, independent reviewers, run-level QA, durable recovery, and controlled integration. |
 
 ### General
 
