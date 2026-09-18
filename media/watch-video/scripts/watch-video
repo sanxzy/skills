@@ -1,0 +1,3 @@
+#!/bin/sh
+# Public shell-free entrypoint; all user data is passed as argv, never eval'd.
+exec "${PYTHON:-python3}" "$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)/watch_video.py" "$@"

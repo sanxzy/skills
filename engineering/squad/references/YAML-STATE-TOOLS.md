@@ -1,19 +1,19 @@
 # Squad YAML State Tools
 
-Squad uses separate `.mjs` entrypoints for each responsibility. The public
-scripts are not interchangeable:
+Squad has a host workflow entrypoint and separate responsibility-specific YAML
+entrypoints. The public scripts are not interchangeable:
 
 | Responsibility | Entry point | Writable purpose |
 |---|---|---|
-| Host | `scripts/squad-host-state.mjs` | Canonical run/work-unit state, operations, transitions, and host-owned indexes |
+| Host workflow | `scripts/squad.mjs` | Typed handoffs, execution manifests, Git identity checks, legal transitions, preflight, recovery, status, and run verification |
+| Host primitive | `scripts/squad-host-state.mjs` | Low-level canonical run/work-unit state, operations, transitions, and host-owned indexes |
 | Worker | `scripts/squad-worker-report.mjs` | The assigned worker report and incremental worker log |
 | Reviewer | `scripts/squad-reviewer-report.mjs` | The assigned reviewer report and incremental review log |
 | QA | `scripts/squad-qa-report.mjs` | The run-level QA report and incremental QA log |
 | Analysis | `scripts/squad-analysis-report.mjs` | The assigned analysis/reconciliation report and incremental analysis log |
 
-The entrypoints use the private `_yaml-io.mjs` and `_role-report.mjs` modules
-for safe YAML primitives. Those modules are not public commands and do not
-replace the responsibility-specific boundary.
+The high-level host command contracts, canonical identity schema, quickstart,
+and failure runbook are in [WORKFLOW-COMMANDS.md](./WORKFLOW-COMMANDS.md).
 
 ## Runtime and authority
 
@@ -21,21 +21,50 @@ The scripts are `.mjs` files executed with Bun and use Bun's built-in YAML
 parser/serializer. No third-party package dependency is required:
 
 ```text
-bun <squad-skill-root>/scripts/<responsibility-script>.mjs <command> ...
+bun <squad-skill-root>/scripts/<entrypoint>.mjs <command> ...
 ```
 
-The scripts perform file operations only. They do not grant authority, choose a
-lifecycle transition, authorize a capability, or broaden a role's writable
-scope. The host remains the sole writer of canonical run/work-unit state and
-committed transitions. An agent may use only its own entrypoint for its
-designated report, evidence index, and permitted worktree files.
+The high-level `squad.mjs` entrypoint performs cross-artifact and Git checks,
+then composes the low-level YAML primitives. It does not spawn agents, choose
+capacity, mutate the target branch, or delete retained artifacts.
+
+The low-level host entrypoint and role report entrypoints perform file
+operations only. They do not grant authority, choose a lifecycle transition,
+authorize a capability, or broaden a role's writable scope. The host remains
+the sole writer of canonical run/work-unit state and committed transitions. An
+agent may use only its own entrypoint for its designated report, evidence index,
+and permitted worktree files.
 
 Use the exact host-provided path. Do not use an agent entrypoint to modify
 `tickets.md`, proposal scope, another role's report, or a target branch.
 
-## Commands
+## Host workflow commands
 
-The host entrypoint supports arbitrary canonical YAML paths:
+Use the host workflow entrypoint for normal operations:
+
+```text
+squad.mjs validate-handoff <handoff.yaml>
+squad.mjs manifest --run <run.yaml> --state <state.yaml> [--ticket <ticket.md>] --role worker
+squad.mjs handoff --manifest <manifest.yaml>
+squad.mjs prepare --run <run.yaml> --state <state.yaml> --role worker
+squad.mjs bind-agent <job-id> --operation <operation.yaml>
+squad.mjs preflight --run <run.yaml>
+squad.mjs transition T004 --state <state.yaml> --from REVIEWING --to FIXING --reason <finding>
+squad.mjs reconcile-agent <job-id> --state <state.yaml>
+squad.mjs resume-ticket T004 --state <state.yaml>
+squad.mjs status RUN-001 --run <run.yaml> --explain
+squad.mjs verify-run RUN-001 --run <run.yaml>
+```
+
+`prepare`/`dispatch` validates and persists the dispatch operation before
+returning a handoff-ready result; it does not create an agent. `transition`
+uses the legal state table and writes the transition ledger. Recovery commands
+preserve dirty worktrees and make a new attempt rather than overwriting the old
+one. See the linked workflow reference for the exact schema and behavior.
+
+## Low-level primitive commands
+
+The host primitive supports arbitrary canonical YAML paths:
 
 ```text
 squad-host-state.mjs create --file <path> --data <json|yaml|@file|->
@@ -62,14 +91,10 @@ using its report helper to target another report section. Agent `create`
 ensures the expected `role` and fixed incremental log exist. Agent `update`,
 `read`, `digest`, and `verify` reject a report with a different role. Input
 values may be inline JSON/YAML, read from `@<path>`, or read from stdin with
-`-`. `update` uses RFC 6901 JSON Pointer paths. For example,
-`--set /status=COMPLETE` sets a scalar string and
-`--set /coverage/exercised='["CSC-001"]'` sets a JSON array.
-
-Mutation commands print a JSON result containing `command`, absolute `file`,
-`changed`, and digest fields. `digest` prints the current `sha256:<hex>` value;
-`read` prints the selected YAML/JSON value; `verify` prints a parse-validity
-result and digest.
+`-`. Mutation commands print a JSON result containing `command`, absolute
+`file`, `changed`, and digest fields. `digest` prints the current
+`sha256:<hex>` value; `read` prints the selected YAML/JSON value; `verify`
+prints a parse-validity result and digest.
 
 ## Safe mutation protocol
 
@@ -107,14 +132,11 @@ For a worker, reviewer, QA, or analysis report:
   environment side effect;
 - `append` each proof, criterion, strategy, operation, evidence, finding, or
   limitation immediately with a stable entry ID;
-- `update` only explicit fields such as final `status` and `verdict`, always
-  with the current digest;
-- read back after every mutation and retain the returned digest/evidence
-  pointer;
+- read back after every mutation and retain the returned digest/evidence pointer;
 - on interruption, resume the same report path and idempotently retry the same
   entry; create a new report path for a new attempt or invalidated revision;
 - never claim a final verdict from an unverified or inline-only report.
 
 The helper's atomic write and digest check protect the file, but the caller is
-still responsible for validating schema, canonical revision, authority,
-entry meaning, and outcome semantics.
+still responsible for validating schema, canonical revision, authority, entry
+meaning, and outcome semantics.

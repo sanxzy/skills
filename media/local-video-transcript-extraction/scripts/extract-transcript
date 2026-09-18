@@ -1,0 +1,10 @@
+#!/bin/sh
+# Use the fixed local runtime when it exists; the Python entrypoint reports a
+# structured environment failure instead of creating or mutating it.
+set -eu
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+VENV_PYTHON="$HOME/.local/models/.venv/bin/python"
+if [ -x "$VENV_PYTHON" ]; then
+  exec "$VENV_PYTHON" "$SCRIPT_DIR/extract_transcript.py" "$@"
+fi
+exec python3 "$SCRIPT_DIR/extract_transcript.py" "$@"

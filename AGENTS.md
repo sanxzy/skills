@@ -10,14 +10,19 @@ architecting/                  Architecture and design-system guidance
   generate-design-md/
 engineering/                   Direct and delegated implementation workflows
   implement/
+  pixel-perfect/
   squad/
-general/                       Repository and agent utilities
+general/                       Repository, agent, and desktop-computer utilities
+  computer-use/
   install-bundled-agents/
-media/                         Visual, story, and image-prompt workflows
+  session-reader/
+media/                         Visual, story, image-prompt, and media-evidence workflows
   canvas-design/
   character-design/
+  local-video-transcript-extraction/
   story-page/
   storyboard/
+  watch-video/
 office/                        Office-document workflows
   docx/
   pdf/

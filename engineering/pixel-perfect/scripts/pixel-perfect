@@ -1,0 +1,55 @@
+#!/bin/sh
+# Predictable dispatcher: forward argv without shell evaluation.
+set -e
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+PYTHON_BIN=${PYTHON:-python3}
+
+if [ "$#" -lt 1 ]; then
+  printf '%s\n' '{"status":"invalid_input","error":"a subcommand is required: quick, preflight, normalize, compare, grid, diff, browser, iteration, accept, or runtime"}'
+  exit 2
+fi
+
+command=$1
+shift
+case "$command" in
+  normalize)
+    script="$SCRIPT_DIR/normalize_images.py"
+    ;;
+  quick)
+    script="$SCRIPT_DIR/quick.py"
+    ;;
+  preflight)
+    script="$SCRIPT_DIR/preflight.py"
+    ;;
+  compare)
+    script="$SCRIPT_DIR/compare_images.py"
+    ;;
+  diff)
+    script="$SCRIPT_DIR/generate_diff.py"
+    ;;
+  grid)
+    script="$SCRIPT_DIR/analyze_grid.py"
+    ;;
+  browser)
+    script="$SCRIPT_DIR/render_browser.py"
+    ;;
+  iteration)
+    script="$SCRIPT_DIR/iteration.py"
+    ;;
+  accept)
+    script="$SCRIPT_DIR/verify_acceptance.py"
+    ;;
+  runtime)
+    exec "$PYTHON_BIN" "$SCRIPT_DIR/runtime.py" "$@"
+    ;;
+  help|--help|-h)
+    printf '%s\n' 'Usage: pixel-perfect {quick|preflight|normalize|compare|grid|diff|browser|iteration|accept|runtime} [options]'
+    exit 0
+    ;;
+  *)
+    printf '%s\n' '{"status":"invalid_input","error":"unknown subcommand"}'
+    exit 2
+    ;;
+esac
+
+exec "$PYTHON_BIN" "$SCRIPT_DIR/runtime.py" --cwd "$(pwd -P)" --script "$script" -- "$@"

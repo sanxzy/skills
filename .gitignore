@@ -4,5 +4,11 @@
 .opencode
 _xzy-ai
 skills-lock.json
+
+# Generated Python runtime/test artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
 generate-design-md/scripts/generate-colors
 .pi/

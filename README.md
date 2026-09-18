@@ -91,13 +91,16 @@ flowchart LR
 | Skill | Path | Purpose |
 | --- | --- | --- |
 | `implement` | `engineering/implement/` | Implement unfinished plan phases or tickets directly in the current checkout, verify them, and run the persistent reviewer gate. |
+| `pixel-perfect` | `engineering/pixel-perfect/` | Reproduce reference images as native runnable UI through deterministic renders, Pillow comparison, adaptive grids, focused correction, and auditable evidence. |
 | `squad` | `engineering/squad/` | Autonomously orchestrate one canonical ticket set through dedicated workers, independent reviewers, run-level QA, durable recovery, and controlled integration. |
 
 ### General
 
 | Skill | Path | Purpose |
 | --- | --- | --- |
+| `computer-use` | `general/computer-use/` | Operate desktop applications through observed, coordinate-aware, verified computer interactions. |
 | `install-bundled-agents` | `general/install-bundled-agents/` | Synchronize bundled agents into a user-selected agent directory. |
+| `session-reader` | `general/session-reader/` | Read a Pi agent session by ID and export its conversation/tool timeline as clean timestamp-ordered Markdown in the active project. |
 
 ### Media
 
@@ -105,8 +108,10 @@ flowchart LR
 | --- | --- | --- |
 | `canvas-design` | `media/canvas-design/` | Create visual philosophies and express them as original PNG or PDF artwork. |
 | `character-design` | `media/character-design/` | Create production-ready character design sheet prompts from briefs and optional visual references. |
+| `local-video-transcript-extraction` | `media/local-video-transcript-extraction/` | Extract local video/audio into timestamped Faster Whisper JSON with durable recovery and subtitle projections. |
 | `story-page` | `media/story-page/` | Create a single narrative story-page image prompt with explicit visual continuity. |
 | `storyboard` | `media/storyboard/` | Create a composite storyboard-sheet prompt for narrative and cinematic sequences. |
+| `watch-video` | `media/watch-video/` | Resolve remote video URLs into structured, timestamp-grounded context with persistent per-URL media/transcript caching, adaptive frames, timelines, and explicit limitations. |
 
 ### Office
 

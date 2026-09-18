@@ -90,7 +90,8 @@ These rules are non-negotiable:
    separation authorize concurrency. High-confidence overlap or uncertainty is
    serialized.
 5. **Isolation:** every active implementation worker has one dedicated Git
-   worktree and never writes another worktree or the target branch.
+   worktree under `<cwd>/worktrees/squad/<backlog>/<run-id>/<work-unit-id>/` and
+   never writes another worktree or the target branch.
 6. **Validated handoff:** no role receives incomplete, inconsistent, stale, or
    unverifiable required context.
 7. **Durable-before-action:** persist and verify the state that authorizes an
@@ -155,7 +156,46 @@ target. If external interference is observed, the host still protects this
 run by detecting target drift and blocking target-mutating actions until
 reconciliation.
 
-### 3.3 Resolve worker mode
+### 3.3 Dedicated worktree location
+
+`<cwd>` is the workspace root that contains `_xzy-ai/project-root.md`. Squad
+uses this fixed worktree namespace and never places worker worktrees in the
+resolved project root, the skill checkout, or the orchestration artifact tree:
+
+```text
+worktree root:
+<cwd>/worktrees/squad/
+
+per-work-unit path:
+<cwd>/worktrees/squad/<backlog>/<run-id>/<work-unit-id>/
+```
+
+Use canonical identity segments for `<backlog>`, `<run-id>`, and
+`<work-unit-id>`. Reject separators, empty segments, `.`/`..`, symlink escapes,
+and path collisions. The host persists the absolute path, relative path,
+repository identity, branch, baseline, and ownership in the work-unit state
+and every relevant handoff.
+
+Provision each worktree only after the admission checkpoint is persisted and
+verified:
+
+```text
+prepare CREATE_WORKTREE operation with the canonical path
+→ persist and read back the operation
+→ create the branch/worktree from the recorded baseline
+→ verify `git worktree list --porcelain`, repository identity, branch, and HEAD
+→ persist and verify the worktree record
+→ dispatch the worker
+```
+
+The same per-work-unit path remains attached through normal correction and
+review attempts; an attempt does not create an ad hoc sibling path. If the
+canonical path becomes unusable and recovery requires a replacement, use an
+explicitly recorded `recovery-<NNN>` child under the same run namespace only
+after the original worktree and its effects are reconciled. Retain every
+worktree until the explicit cleanup operation after terminalization.
+
+### 3.4 Resolve worker mode
 
 Resolve one run-level worker mode before admission:
 
@@ -191,7 +231,9 @@ Do not partially dispatch an invalid or materially ambiguous graph.
 
 Create the run record and preflight checkpoint only after source, project,
 target, mode, and graph validation have passed. Persist and read back the
-checkpoint before creating a worktree or dispatching an agent.
+checkpoint before creating a worktree or dispatching an agent. The first
+worktree path must be the canonical `<cwd>/worktrees/squad/<backlog>/<run-id>/<work-unit-id>/`
+location defined above.
 
 A run admission record includes at least:
 
@@ -241,6 +283,9 @@ _xzy-ai/sprints/<backlog>/orchestration/<run-id>/
 
 Structured YAML or JSON is canonical for current state, checkpoints,
 operations, transitions, handoffs, reports, proof maps, and evidence indexes.
+Git worktrees are not stored below the orchestration artifact tree; their
+canonical paths are under `<cwd>/worktrees/squad/<backlog>/<run-id>/` and are
+recorded in the corresponding work-unit state and handoffs.
 `history/events.md` is append-only and records chronology. A summary or current
 projection is never a second mutable source of truth.
 
@@ -330,6 +375,50 @@ construct operation and handoff
 If a write or read-back fails, do not continue as if it succeeded. Keep the
 previous authoritative state, record the failure or uncertainty, and use the
 appropriate blocker/reconciliation path.
+
+### 4.4 Typed host workflow and generated context
+
+Use the host-only workflow entrypoint in
+[`references/WORKFLOW-COMMANDS.md`](./references/WORKFLOW-COMMANDS.md) for
+normal execution. It provides `validate-handoff`, `manifest`, `handoff`,
+`prepare`/`dispatch`, `preflight`, `transition`, `reconcile-agent`,
+`resume-ticket`, `bind-agent`, `status`, and `verify-run`. The commands compose the
+responsibility-specific YAML primitives with Git identity and cross-artifact
+checks; they do not spawn agents, manage capacity, mutate the target branch,
+or delete retained evidence.
+
+A typed handoff is generated from one immutable per-ticket execution manifest.
+The manifest derives source/state/report/evidence paths, SHA digests, branch,
+worktree, baseline, current HEAD, target HEAD, operation identity, attempt
+identity, and dependency snapshots from the latest durable artifacts. The host
+supplies substantive decisions such as role, mode, scope, authority, and
+acceptance context; it does not manually duplicate identifiers across YAML
+files. A manifest or handoff with a conflicting immutable snapshot is rejected
+rather than overwritten.
+
+`validate-handoff` is a pre-dispatch gate, not an advisory lint. It resolves
+all referenced revisions with Git, checks the actual repository/worktree and
+registered worktree path, compares source/report/state/operation/attempt
+identities, verifies dependency `DONE` status, and rejects illegal transition
+or naming variants. Errors identify the exact field plus actual and expected
+values. The host must run it before creating an agent.
+
+The state-machine command is the only normal workflow entrypoint for lifecycle
+transitions. It requires the durable `--from` value to match, checks the legal
+transition table, persists a transition ledger through
+`PREPARED → COMMITTING → COMMITTED`, updates the projection, and reads both
+artifacts back. Generic JSON Pointer updates remain available in
+`squad-host-state.mjs` as low-level primitives, not as the operator's primary
+workflow.
+
+Interruption follows one durable path: `reconcile-agent` inspects the actual
+report, commit, branch, HEAD, and dirty worktree, records `UNKNOWN`/
+`RECONCILING` operation state and an `AGENT_UNAVAILABLE` blocker, and preserves
+all effects. `resume-ticket` creates a fresh attempt and generated handoff,
+reuses the same worktree when safe, or requires a pre-provisioned
+`recovery-<NNN>` child without destructive reset. `status` and `verify-run`
+expose the next legal action, latest operation/transition, reviewer/QA proof,
+dependency readiness, dirty state, and unresolved uncertainty.
 
 ## 5. Work-unit lifecycle and scheduling
 

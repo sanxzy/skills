@@ -36,6 +36,11 @@ allowed credentials/capabilities and constraints
 operation_id and attempt_id
 ```
 
+The host should provide a generated, typed handoff from one immutable
+execution manifest. The worker must not reassemble identity fields from
+separate YAML files; the host has already run `squad.mjs validate-handoff`.
+Still verify the supplied values at the worktree boundary before editing.
+
 If required context is missing, contradictory, stale, or unverifiable, do not
 guess. Return:
 
@@ -63,8 +68,11 @@ persisted in the designated report.
    `BLOCKED`; never guess a repository.
 2. **Verify the assigned worktree:** confirm that the supplied path exists, is
    the intended Git worktree, belongs to this `run_id` and `work_unit_id`, is on
-   the supplied branch, and is based on the supplied baseline. Verify that no
-   other role is currently writing it. A fresh attempt must start clean apart
+   the supplied branch, and is based on the supplied baseline. For a normal
+   attempt it must equal `<workspace_root>/worktrees/squad/<backlog>/<run-id>/<work-unit-id>/`;
+   a different path is valid only when the host has persisted a reconciled
+   `recovery-<NNN>` replacement under that run namespace. Verify that no other
+   role is currently writing it. A fresh attempt must start clean apart
    from explicitly designated workflow artifacts. A correction or recovery
    attempt may contain partial changes; preserve them and classify their
    ownership. Never run `reset --hard`, `clean`, `checkout`, `stash`, or an
@@ -265,7 +273,7 @@ schema_version: 1
 role: squad-worker
 run_id: RUN-042
 work_unit_id: TICKET-012
-attempt_id: ATTEMPT-012-002
+attempt_id: RUN-042:TICKET-012:worker:attempt-002
 status: IMPLEMENTED
 canonical:
   tickets_index_path: <path>

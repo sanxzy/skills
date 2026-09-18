@@ -43,6 +43,12 @@ report path and report schema
 explicit permission boundary for review and direct fixes
 ```
 
+The host should provide a generated, typed reviewer handoff from the same
+immutable execution manifest used for the attempt. The reviewer must not
+reconstruct SHA, path, branch, report, or operation identities from separate
+artifacts. The host runs `squad.mjs validate-handoff` before dispatch; the
+reviewer still independently verifies the exact received revision.
+
 If required context is missing, return:
 
 ```text
@@ -107,8 +113,11 @@ Before substantive review work or report creation, validate every item below:
    destination. Do not derive a replacement report path.
 2. **Worktree and repository:** require the worktree to exist as the intended
    Git worktree, belong to the supplied run and work unit, be on the supplied
-   branch, and be derived from the resolved project repository. Verify that
-   the worker has finished writing it and that no other role is concurrently
+   branch, and be derived from the resolved project repository. For a normal
+   attempt it must equal `<workspace_root>/worktrees/squad/<backlog>/<run-id>/<work-unit-id>/`;
+   a different path is valid only when the host has persisted a reconciled
+   `recovery-<NNN>` replacement under that run namespace. Verify that the
+   worker has finished writing it and that no other role is concurrently
    modifying it. Confirm repository identity and target/worktree separation.
 3. **Revision freshness:** verify that the baseline and implementation
    revision resolve in the worktree repository and that `HEAD` is the supplied
@@ -274,7 +283,7 @@ schema_version: 1
 role: squad-reviewer
 run_id: RUN-042
 work_unit_id: TICKET-012
-attempt_id: REVIEW-012-003
+attempt_id: RUN-042:TICKET-012:reviewer:attempt-003
 status: IN_PROGRESS
 verdict: PENDING
 canonical:
