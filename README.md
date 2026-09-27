@@ -31,7 +31,7 @@ The public skill name is independent of its responsibility folder. For example, 
 architecting/                  Architecture and design-system guidance
 engineering/                   Direct and delegated implementation workflows
 general/                       Repository and agent utilities
-media/                         Visual, story, and image-prompt workflows
+media/                         Visual, script, editing, and media-evidence workflows
 office/                        Office-document workflows
 planning/v1/                   Feature, specification, and plan workflow
 planning/v2/                   Proposal and ticket workflow
@@ -106,11 +106,13 @@ flowchart LR
 
 | Skill | Path | Purpose |
 | --- | --- | --- |
+| `audio-script` | `media/audio-script/` | Direct a timed SRT narration by hand into segmented Eleven v3 voice text and a separate timecode map. |
 | `canvas-design` | `media/canvas-design/` | Create visual philosophies and express them as original PNG or PDF artwork. |
 | `character-design` | `media/character-design/` | Create production-ready character design sheet prompts from briefs and optional visual references. |
 | `local-video-transcript-extraction` | `media/local-video-transcript-extraction/` | Extract local video/audio into timestamped Faster Whisper JSON with durable recovery and subtitle projections. |
-| `story-page` | `media/story-page/` | Create a single narrative story-page image prompt with explicit visual continuity. |
-| `storyboard` | `media/storyboard/` | Create a composite storyboard-sheet prompt for narrative and cinematic sequences. |
+| `video-assets-finder` | `media/video-assets-finder/` | Coordinate parallel visual asset research, acquire verified source media, and track provenance, rights and unresolved timeline requirements in a resumable asset package. |
+| `video-editing` | `media/video-editing/` | Plan, render, inspect, and verify original MoviePy/Manim/Pillow editorial explainer videos with project-local auto-provisioning, keyframed motion, compositing, data/map adapters, transitions, and audio. |
+| `video-timeline-mapping` | `media/video-timeline-mapping/` | Plan a self-contained, style-aware editorial blueprint from timestamped narration, without acquiring or editing media. |
 | `watch-video` | `media/watch-video/` | Resolve remote video URLs into structured, timestamp-grounded context with persistent per-URL media/transcript caching, adaptive frames, timelines, and explicit limitations. |
 
 ### Office

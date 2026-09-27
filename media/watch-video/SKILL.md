@@ -229,6 +229,8 @@ flowchart TD
     F -->|yes| G[Reuse metadata transcript timeline frames]
     F -->|no| H[Ensure yt-dlp; create/reuse <cwd>/.venv if absent]
     H --> I[yt-dlp metadata only]
+    I -->|YouTube source unavailable| F1[Direct YouTube player metadata]
+    F1 --> J
     I --> J{Persistent transcript available?}
     G --> T[Agent inspects evidence and synthesizes answer]
     J -->|no| K{Human subtitles in bounded language set?}
@@ -236,7 +238,10 @@ flowchart TD
     K -->|yes| M[Normalize timestamped transcript]
     K -->|no| N{Automatic captions in bounded set?}
     N -->|yes| M
-    N -->|no| O[Extract local audio]
+    N -->|no; YouTube| F2{Direct YouTube caption track?}
+    F2 -->|yes| M
+    F2 -->|no| O[Extract local audio]
+    N -->|no; other source| O
     O --> P{ASR available?}
     P -->|yes| M
     P -->|no| Q[Keep transcript unavailable warning]
@@ -265,11 +270,15 @@ Use the following predictable path:
 3. cached normalized transcript, then human-created subtitles, choosing a
    bounded target-first language set;
 4. platform automatic captions;
-5. reuse (or, when absent, locally derive) the persistent WAV from the cached
+5. if yt-dlp cannot obtain usable YouTube caption evidence, try a bounded direct
+   YouTube caption track through the watch page and Innertube player API; this
+   can also recover player metadata when yt-dlp metadata is unavailable, but
+   does not recover video or audio media;
+6. reuse (or, when absent, locally derive) the persistent WAV from the cached
    video, falling back to a bounded provider audio download for video-only
    caches, then use an installed ASR adapter when subtitle evidence is
    unavailable; and
-6. periodic visual sampling from the same persistent video when requested by
+7. periodic visual sampling from the same persistent video when requested by
    intent or `--visual always`, using `--frame-interval` (default 5 seconds).
 
 The persistent video is intentionally downloaded even for transcript-only
@@ -307,6 +316,7 @@ fixtures.
 | `scripts/bootstrap_ytdlp.py` | Create/reuse `<cwd>/.venv`, install/update only yt-dlp in that environment, verify its import/version, and report setup failures. |
 | `scripts/resolve_media.py` | Resolve metadata through yt-dlp and expose only safe metadata summaries; signed media URLs never enter the public source record. |
 | `scripts/transcript.py` | Select a bounded target-first human/automatic track set, resolve destinations, parse VTT/SRT/JSON3-style cues, preserve timestamps, and expose strict plus recoverable best-effort quality metrics. |
+| `scripts/youtube_caption_fallback.py` | When yt-dlp cannot obtain usable YouTube metadata/captions, request bounded public player metadata and a caption track without exposing signed track URLs, normalize through `transcript.py`, and return the same subtitle contract. |
 | `scripts/transcript_markdown.py` | Read only normalized transcript JSON, group nearby cues with bounded timestamps/length, and write the deterministic Markdown presentation. |
 | `scripts/media_assets.py` | Download fallback audio, extract local audio from the persistent video, probe duration, extract periodic frames, and remove intermediate media. |
 | `scripts/media_cache.py` | Verify/download each URL's persistent video once under `~/.local/videos/`, retain its derived WAV and normalized transcript evidence beside it, and validate read-back. |
@@ -317,9 +327,11 @@ fixtures.
 | `scripts/cache.py` | Atomically publish and validate workspace-local semantic cache entries. |
 | `scripts/watch-video` | Small executable wrapper that forwards argv without evaluating it. |
 
-The scripts use Python's standard library. `yt-dlp` is the primary extractor;
-FFmpeg/ffprobe provide media operations; Whisper or MLX-Whisper is optional
-speech-to-text support. Each URL's downloaded video is persisted separately
+The scripts use Python's standard library. `yt-dlp` is the primary extractor.
+When its YouTube metadata or subtitle path cannot provide usable evidence,
+the direct YouTube caption fallback uses standard-library HTTP to fetch bounded
+player metadata and a timestamped caption track. FFmpeg/ffprobe provide media
+operations; Whisper or MLX-Whisper is optional speech-to-text support. Each URL's downloaded video is persisted separately
 from semantic run artifacts under `~/.local/videos/<safe-url-key>/`; when FFmpeg
 is available, its derived WAV is persisted there as well. This prevents repeated
 video downloads and local audio extraction across task names; a video-only legacy
@@ -446,6 +458,20 @@ and within bounded paragraph duration/length; each block covers the first cue
 start through the last cue end. Ads, intros, outros, jokes, and contextual
 speech are never filtered by this presentation layer. An empty normalized
 transcript renders a readable header with no cue blocks.
+
+For YouTube only, a failed yt-dlp metadata request with `source_unavailable`
+can recover safe metadata from YouTube player `videoDetails`, then fetch a
+caption track. If yt-dlp metadata succeeds but subtitles fail, the same direct
+track fallback runs before ASR. It follows the existing bounded, target-first
+human/automatic language policy and produces the normal `004-transcript.json`
+and `004-transcript.md` artifacts. Its downloaded XML is converted to an owned
+VTT process artifact and cleaned up like other temporary subtitles; signed
+caption URLs and player responses are never published. Fallback errors remain
+visible as warnings. It never bypasses authentication or an explicitly
+unavailable yt-dlp executable. Browser-cookie extraction is not implemented
+for this HTTP adapter; use an authorized Netscape cookies file or the primary
+yt-dlp path. Without a verified video cache, a transcript-only request may
+complete but a request requiring visual frames remains partial.
 
 ASR is optional. The default adapter discovers an installed `whisper` or
 `mlx_whisper` executable/module and uses the configured model; it does not
@@ -808,7 +834,7 @@ Before declaring the video understood, verify all applicable checks:
 - when yt-dlp was missing, setup created or reused `<cwd>/.venv`, installed
   only yt-dlp there, verified its import/version, and did not clear or replace
   an existing venv;
-- yt-dlp metadata was actually obtained, or a hard failure is reported;
+- yt-dlp metadata was actually obtained, or YouTube player metadata was recovered through the explicit direct-caption fallback, or a hard failure is reported;
 - platform, ID, title, creator, duration, subtitles, and formats are included
   only when the extractor returned them;
 - no signed URLs, cookies, or fabricated missing metadata entered the public

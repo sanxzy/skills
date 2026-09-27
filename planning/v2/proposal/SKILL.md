@@ -9,11 +9,57 @@ argument-hint: "Describe the product idea, intended users, problem, or desired o
 
 Create a proposal from the product idea already established in the current conversation context.
 
-The proposal will be consumed by users, developers, planners, architects, and AI agents, so write it as a clear upstream product specification that can be used as shared context for later planning and implementation.
+The proposal will be consumed by users, developers, planners, architects, and AI agents, so write it as a clear upstream product specification that can be used as shared context for later planning and implementation. It is also the canonical product contract consumed by `planning/v2/ticket/`; a finalized proposal must be directly ticket-compatible without downstream normalization, restructuring, or inferred identifiers.
 
 Focus primarily on end-to-end behavioral specifications and the experience that should be realized in the application.
 
 Describe the product in terms of what actors do, what the system does in response, what state changes occur, what information is visible, and how the experience behaves from beginning to end.
+
+## Canonical output contract
+
+Every finalized proposal must use this exact top-level structure, in this exact order:
+
+1. `## 1. Overview`
+2. `## 2. Actors and authority`
+3. `## 3. Scope and non-goals`
+4. `## 4. End-to-end journey`
+5. `## 5. Capability contracts`
+6. `## 6. State model and transitions`
+7. `## 7. Cross-experience interactions`
+8. `## 8. Information, truth, and uncertainty`
+9. `## 9. Validation, review, finalization, and revision`
+10. `## 10. Failure and recovery`
+11. `## 11. Edge cases and quality expectations`
+12. `## 12. Final expected experience and success criterion`
+
+The first line must be `# Proposal: <title>`. Keep the twelve headings unchanged and ordered; use `###` or deeper headings for detail inside them. Do not add another top-level `##` section. This heading structure is part of the proposal-to-ticket interface, not a suggested presentation format.
+
+Use stable, unique identifiers whenever the corresponding concept applies:
+
+- `CAP-001`, `CAP-002`, ... for capability contracts in section 5;
+- `J-01`, `J-02`, ... for journey steps or independently meaningful journey branches in section 4;
+- `STATE-01`, `STATE-02`, ... for user-visible states in section 6;
+- `INT-001`, `INT-002`, ... for cross-experience hand-offs in section 7;
+- `REC-001`, `REC-002`, ... for distinct failure and recovery paths in section 10.
+
+Start each identifier family at its documented prefix and number it sequentially. Never reuse an identifier for a different behavior, and retain identifiers for unchanged behavior when revising a proposal. If a category does not apply, state `Not applicable` and explain why instead of inventing an identifier.
+
+The twelve sections must establish the following contract:
+
+- **Overview** records product intent, problem, expected outcome, work type, and any current-versus-desired or compatibility boundary that applies.
+- **Actors and authority** identifies every important actor and who may provide, approve, correct, publish, revise, or merely observe each important piece of information.
+- **Scope and non-goals** separates in-scope behavior, non-goals, explicitly deferred behavior with its boundary/reason/next step, and unknown items requiring a decision. Material unknowns must be clarified before finalization.
+- **End-to-end journey** uses `J-*` identifiers to show the main successful journey and meaningful incomplete, failure, correction, or revision branches from actor trigger to visible outcome.
+- **Capability contracts** uses `CAP-*` identifiers. Each capability states its observable trigger, actor-visible outcome, boundary, required or optional status, and relevant validation or failure handling. Split independently verifiable outcomes instead of hiding them in umbrella capabilities.
+- **State model and transitions** uses `STATE-*` identifiers for states the actor can observe or act within, and names the trigger and visible result for every material transition.
+- **Cross-experience interactions** uses `INT-*` identifiers for hand-offs between actors or experience areas, including the information or decision transferred and the visible acknowledgement. If none apply, say why.
+- **Information, truth, and uncertainty** distinguishes owner-provided, verified, detected, estimated, inferred, generated, simulated, and unknown information, including which source has authority when they conflict.
+- **Validation, review, finalization, and revision** describes input validation, review and correction, explicit finalization or publication, later updates, version boundaries, and what remains unchanged while a revision is prepared.
+- **Failure and recovery** uses `REC-*` identifiers for meaningful failure paths, including the cause, explanation, preserved progress, user choice, retry/correction path, and unrecoverable outcome when applicable.
+- **Edge cases and quality expectations** records relevant permission, privacy, safety, integrity, accessibility, device, performance, offline, interruption, and unsupported-condition behavior as observable outcomes.
+- **Final expected experience and success criterion** states the resulting experience for each important actor and the clear actor-visible condition that defines product success.
+
+The ticket skill validates this contract and consumes the proposal as written; it must not be expected to rename headings, infer missing identifiers, redistribute content, or repair ambiguity.
 
 The proposal should describe:
 
@@ -149,9 +195,9 @@ Preserve the original product intent exactly while making implicit behavioral re
 
 Run a proposal self-check before finalizing.
 
-Confirm every inventoried conversation decision appears in the proposal or is explicitly recorded as deferred, non-goal, or unknown; every capability is falsifiable from actor-visible behavior; every journey step, state, interaction, and recovery path has corresponding capability detail; no deferred or unknown item was silently dropped; no diagram introduces behavior absent from the prose; and no implementation prescription slipped in beyond an explicitly required product technology.
+Confirm every inventoried conversation decision appears in the proposal or is explicitly recorded as deferred, non-goal, or unknown; the first line is `# Proposal: <title>`; all twelve canonical sections are present in the required order with no extra top-level sections; identifier families are unique, sequential, and stable; every capability is falsifiable from actor-visible behavior; every journey step, state, interaction, and recovery path has corresponding capability detail; no deferred or unknown item was silently dropped; no diagram introduces behavior absent from the prose; and no implementation prescription slipped in beyond an explicitly required product technology.
 
-The resulting document should function as a durable upstream behavioral specification that downstream agents can later use to derive architecture, plans, technical specifications, tests, and implementation decisions.
+The resulting document should function as a durable upstream behavioral specification that downstream agents can later use to derive architecture, plans, technical specifications, tests, and implementation decisions. It must be usable by the `ticket` skill without normalization or a second interpretation pass.
 
 ## References
 

@@ -1,0 +1,140 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { validateWorkerResult } from './verify-worker-result.mjs';
+
+function fixture(t) {
+  const root = mkdtempSync(join(tmpdir(), 'finder-worker-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const directory = join(root, '.assets', 'example', '.cache', 'workers', '001', 'forest');
+  const inspection = join(directory, 'inspection');
+  mkdirSync(inspection, { recursive: true });
+  const timeline = join(root, 'example.timeline.md');
+  writeFileSync(timeline, 'Visual: VIS-001 — canopy\nAudio: MUS-001 — bed\n');
+  const sample = join(inspection, 'frame.png');
+  writeFileSync(sample, 'sample');
+  const handoffPath = join(directory, 'handoff.json');
+  const resultPath = join(directory, 'result.json');
+  const digest = createHash('sha256').update('Visual: VIS-001 — canopy\nAudio: MUS-001 — bed\n').digest('hex');
+  const handoff = { schemaVersion: 1, role: 'asset-finder-worker', phase: 'SEARCH', assignmentId: 'AFW-001', timeline, timelineSha256: digest, resultPath, inspectionDirectory: inspection, requirements: [{ id: 'VIS-001', intent: 'canopy', hardConstraints: ['forest'] }, { id: 'MUS-001', intent: 'bed', hardConstraints: [] }] };
+  const result = { schemaVersion: 1, role: 'asset-finder-worker', phase: 'SEARCH', assignmentId: 'AFW-001', timelineSha256: digest, status: 'COMPLETE', findings: [ { requirementId: 'VIS-001', status: 'FOUND', queries: [{ provider: 'youtube', query: 'forest canopy', outcome: 'candidate' }], candidates: [{ provider: 'youtube', sourceId: 'video', url: 'https://example.org/video', title: 'Forest', relevantRange: { startMs: 10, endMs: 2000 }, hardConstraints: [{ constraint: 'forest', result: 'PASS', basis: 'OBSERVED' }], evidence: [{ kind: 'OBSERVED', sourceTimeMs: 100, description: 'Canopy', sample }], rights: { status: 'REVIEW_REQUIRED' } }] }, { requirementId: 'MUS-001', status: 'NOT_FOUND', queries: [{ provider: 'youtube', query: 'quiet ambient music', outcome: 'no suitable match' }], candidates: [] } ] };
+  writeFileSync(handoffPath, JSON.stringify(handoff));
+  writeFileSync(resultPath, JSON.stringify(result));
+  return { root, workspace: root, handoff, result, handoffPath, resultPath, timeline };
+}
+
+test('accepts bounded worker result for exact assignment, not canonical resolution', t => {
+  const f = fixture(t);
+  assert.deepEqual(validateWorkerResult(f.handoff, f.result, f), []);
+  const script = fileURLToPath(new URL('./verify-worker-result.mjs', import.meta.url));
+  const run = spawnSync(process.execPath, [script, f.handoffPath, f.resultPath], { cwd: f.root, encoding: 'utf8' });
+  assert.equal(run.status, 0, run.stderr);
+  assert.match(run.stdout, /Verified worker AFW-001 \(SEARCH\): 2 assigned needs/);
+});
+
+test('rejects missing/foreign findings, stale timeline and unobserved visual claims', t => {
+  const f = fixture(t);
+  f.result.assets = [{ assetId: 'AST-VID-001' }];
+  assert.match(validateWorkerResult(f.handoff, f.result, f).join('\n'), /SEARCH cannot approve or report final acquired assets/);
+  delete f.result.assets;
+  f.result.findings.pop();
+  assert.match(validateWorkerResult(f.handoff, f.result, f).join('\n'), /Missing assigned finding: MUS-001/);
+  f.result.findings.push({ requirementId: 'VIS-999', status: 'NOT_FOUND', queries: [], candidates: [] });
+  assert.match(validateWorkerResult(f.handoff, f.result, f).join('\n'), /Unknown\/duplicate finding: VIS-999/);
+  f.result.findings[0].candidates[0].evidence[0].sourceTimeMs = 5000;
+  assert.match(validateWorkerResult(f.handoff, f.result, f).join('\n'), /lacks observed timestamped samples/);
+  f.result.findings[0].candidates[0].evidence = [];
+  assert.match(validateWorkerResult(f.handoff, f.result, f).join('\n'), /lacks observed timestamped samples/);
+  f.result.findings[0].candidates[0].hardConstraints = [];
+  assert.match(validateWorkerResult(f.handoff, f.result, f).join('\n'), /lacks evidence for hard constraint/);
+  writeFileSync(f.timeline, 'changed');
+  assert.match(validateWorkerResult(f.handoff, f.result, f).join('\n'), /Timeline changed/);
+});
+
+test('local source candidates must be explicitly assigned within the workspace', t => {
+  const f = fixture(t);
+  const url = pathToFileURL(f.timeline).href;
+  f.handoff.localSources = [url];
+  f.result.findings[0].candidates[0].provider = 'local';
+  f.result.findings[0].candidates[0].sourceId = 'provided-001';
+  f.result.findings[0].candidates[0].url = url;
+  assert.deepEqual(validateWorkerResult(f.handoff, f.result, f), []);
+  f.handoff.localSources = [];
+  assert.match(validateWorkerResult(f.handoff, f.result, f).join('\n'), /incomplete\/unsafe source identity/);
+});
+
+test('ACQUIRE requires host approval bound to searched source and exact output file', t => {
+  const f = fixture(t);
+  const sourceResultSha256 = createHash('sha256').update(JSON.stringify(f.result)).digest('hex');
+  const scope = join(f.root, '.assets', 'example', '.cache', 'workers', '002', 'approved-forest');
+  mkdirSync(join(scope, 'inspection'), { recursive: true });
+  const target = join(f.root, '.assets', 'example', 'video', 'AST-VID-001.mp4');
+  mkdirSync(join(f.root, '.assets', 'example', 'video'));
+  writeFileSync(target, 'approved media');
+  const approved = { assetId: 'AST-VID-001', requirementIds: ['VIS-001'], provider: 'youtube', sourceId: 'video', url: 'https://example.org/video', relevantRange: { startMs: 10, endMs: 2000 }, acquiredRange: { startMs: 0, endMs: 3000 }, localFile: target };
+  const handoffPath = join(scope, 'handoff.json');
+  const resultPath = join(scope, 'result.json');
+  const handoff = { ...f.handoff, phase: 'ACQUIRE', assignmentId: 'AFW-002', requirements: [f.handoff.requirements[0]], resultPath, inspectionDirectory: join(scope, 'inspection'), sourceResultPath: f.resultPath, sourceResultSha256, approvedAssets: [approved] };
+  const result = { schemaVersion: 1, role: 'asset-finder-worker', phase: 'ACQUIRE', assignmentId: 'AFW-002', timelineSha256: f.handoff.timelineSha256, status: 'COMPLETE', findings: [{ requirementId: 'VIS-001', status: 'ACQUIRED', assetIds: ['AST-VID-001'] }], assets: [{ ...approved, verification: { technical: 'PASS' } }] };
+  writeFileSync(handoffPath, JSON.stringify(handoff));
+  writeFileSync(resultPath, JSON.stringify(result));
+  const input = { handoffPath, resultPath, workspace: f.root };
+  assert.deepEqual(validateWorkerResult(handoff, result, input), []);
+  const script = fileURLToPath(new URL('./verify-worker-result.mjs', import.meta.url));
+  const run = spawnSync(process.execPath, [script, handoffPath, resultPath], { cwd: f.root, encoding: 'utf8' });
+  assert.equal(run.status, 0, run.stderr);
+  assert.match(run.stdout, /Verified worker AFW-002 \(ACQUIRE\)/);
+  result.assets[0].url = 'https://example.org/substitute';
+  assert.match(validateWorkerResult(handoff, result, input).join('\n'), /differs from approved source/);
+  result.assets[0].url = approved.url;
+  result.assets[0].localFile = join(f.root, 'outside.mp4');
+  assert.match(validateWorkerResult(handoff, result, input).join('\n'), /differs from approved source/);
+  result.assets[0].localFile = target;
+  result.findings[0].status = 'BLOCKED';
+  result.findings[0].reason = 'download failed';
+  result.findings[0].assetIds = [];
+  result.assets = [];
+  assert.deepEqual(validateWorkerResult(handoff, result, input), []);
+  result.findings[0] = { requirementId: 'VIS-001', status: 'ACQUIRED', assetIds: ['AST-VID-001'] };
+  result.assets = [{ ...approved, verification: { technical: 'PASS' } }];
+  handoff.approvedAssets[0].requirementIds = null;
+  assert.match(validateWorkerResult(handoff, result, input).join('\n'), /unassigned\/duplicate requirement IDs/);
+  handoff.approvedAssets[0].requirementIds = ['VIS-001'];
+  handoff.approvedAssets[0].sourceId = 'unknown';
+  assert.match(validateWorkerResult(handoff, result, input).join('\n'), /not found in accepted SEARCH result/);
+  handoff.approvedAssets[0].sourceId = 'video';
+  writeFileSync(f.resultPath, JSON.stringify({ ...f.result, phase: 'ACQUIRE' }));
+  handoff.sourceResultSha256 = createHash('sha256').update(JSON.stringify({ ...f.result, phase: 'ACQUIRE' })).digest('hex');
+  assert.match(validateWorkerResult(handoff, result, input).join('\n'), /SEARCH result missing, stale/);
+  writeFileSync(f.resultPath, '{}');
+  assert.match(validateWorkerResult(handoff, result, input).join('\n'), /SEARCH result missing, stale/);
+});
+
+test('refuses result identity/path drift and samples outside the worker inspection directory', t => {
+  const f = fixture(t);
+  f.result.assignmentId = 'AFW-OTHER';
+  assert.match(validateWorkerResult(f.handoff, f.result, f).join('\n'), /identity\/phase does not match/);
+  f.result.assignmentId = 'AFW-001';
+  f.result.findings[0].candidates[0].evidence[0].sample = f.timeline;
+  assert.match(validateWorkerResult(f.handoff, f.result, f).join('\n'), /outside inspection directory/);
+  assert.match(validateWorkerResult(f.handoff, f.result, { ...f, resultPath: join(f.root, 'result.json') }).join('\n'), /Result path does not match/);
+  const foreign = join(f.root, 'foreign');
+  mkdirSync(foreign);
+  writeFileSync(join(foreign, 'handoff.json'), JSON.stringify(f.handoff));
+  assert.match(validateWorkerResult(f.handoff, f.result, { ...f, handoffPath: join(foreign, 'handoff.json') }).join('\n'), /outside active worker namespace/);
+  const linked = join(f.root, 'external-inspection');
+  mkdirSync(linked);
+  const scope = join(f.root, '.assets', 'example', '.cache', 'workers', '001', 'foreign');
+  mkdirSync(scope);
+  symlinkSync(linked, join(scope, 'inspection'));
+  writeFileSync(join(scope, 'handoff.json'), JSON.stringify(f.handoff));
+  writeFileSync(join(scope, 'result.json'), JSON.stringify(f.result));
+  f.handoff.inspectionDirectory = join(scope, 'inspection');
+  f.handoff.resultPath = join(scope, 'result.json');
+  assert.match(validateWorkerResult(f.handoff, f.result, { ...f, handoffPath: join(scope, 'handoff.json'), resultPath: join(scope, 'result.json') }).join('\n'), /Inspection directory escapes/);
+});

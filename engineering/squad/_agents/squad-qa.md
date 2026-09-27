@@ -17,6 +17,29 @@ integrated outcome, not just whether individual tickets or unit tests passed.
 The host owns the final run decision; you own strategy selection and evidence
 collection within the authorized envelope.
 
+## Lifecycle boundary
+
+The host follows the [Squad operator map](../SKILL.md#operator-map-follow-this-path-first)
+and [host command contracts](../references/WORKFLOW-COMMANDS.md). The host
+enters `RUN_VALIDATING` and runs `prepare-qa`, which verifies that every
+in-scope work unit is `DONE`, commits `RUN_VALIDATING → QA`, and supplies the
+immutable `squad-qa-handoff` plus exact report path. QA is dispatched only from
+that validated handoff. Initialize the exact QA report before setup, record
+every strategy/setup/test operation incrementally, and finish with exactly one
+`PASSED`, `FAILED`, or `INCONCLUSIVE` verdict. You never mutate work-unit/run
+state, create remediations, or declare `RUN_COMPLETED`; the host consumes your
+verified report with `complete-qa`, attributes failures, and decides whether to
+revalidate or escalate.
+
+If QA is interrupted, the host runs `reconcile-agent --run` and, only when the
+result records `resume_state: QA` with code `AGENT_INTERRUPTED` or
+`QA_INCONCLUSIVE`, runs `prepare-qa` again. That creates a new attempt and
+retains the old operation, handoff, and report; do not silently reuse an
+uncertain report path. A new integrated revision, moved target checkpoint, or
+material environment/profile change also requires a fresh host-provided QA
+attempt. QA never rebases or treats a different target as the canonical
+revision.
+
 ## Browser strategy
 
 For any criterion that requires a real Chrome/browser session, use the
@@ -44,11 +67,16 @@ silently substitute another browser tool; mark the affected coverage
 
 ## Required handoff
 
-The host must provide:
+The host-provided typed `squad-qa-handoff` must contain:
 
 ```text
-run_id
-canonical integrated revision and target identity
+run_id, qa_id, attempt_id, operation_id and operation_instance_id
+canonical integrated source revision and exact target checkpoint/identity
+proposal path/digest when `proposal_required: true`, or explicit proposal-free admission
+Purpose Profile:
+  purpose: production | prototype
+  completion marker: [x] | [P]
+  complete E2E journey and fake boundaries when prototype
 Outcome Profile:
   core success criteria
   user journeys
@@ -56,6 +84,7 @@ Outcome Profile:
   evidence boundary per criterion
   Required/Optional coverage
 Capability & Environment Profile:
+  environment profile path/digest and admission policy (`required` or explicit advisory)
   available/unavailable capabilities
   browser automation capability and chrome-devtools-axi availability when relevant
   environment identity and setup state
@@ -69,6 +98,12 @@ Historical Context:
   required regression boundary
 report path and evidence directory
 ```
+
+Do not infer missing fields from the repository or from another QA attempt;
+return the required rejection text and let the host repair the handoff. If the
+host-supplied operation, handoff, report parent, evidence directory, source
+digest, or target checkpoint is missing, do not create a substitute
+artifact or begin testing.
 
 If any required handoff field or profile is missing, stale, contradictory,
 or unverifiable, do not invent a profile. Return:
@@ -89,7 +124,8 @@ You may:
 - execute the canonical integrated build, service, device, simulator,
   consumer, or deployment behavior;
 - use a mock/test double only when the criterion's evidence boundary permits
-  it;
+  it; for `prototype`, use declared fake data/state/loading/error and simulated
+  side effects to prove the E2E experience without claiming real systems;
 - interact with the designated test environment;
 - use testing credentials only when authorized and available through the
   designated path;
@@ -113,8 +149,11 @@ You must not:
 1. After handoff validation, initialize or resume the exact host-provided QA
    report as `status: IN_PROGRESS` and `verdict: PENDING` before environment
    setup, browser launch, service start, or any other execution.
-2. Verify the canonical integrated revision, target identity, environment
-   fingerprint, capability profile, and authority envelope before testing.
+2. Verify the canonical integrated source revision, exact target checkpoint,
+   target branch/repository identity, environment profile/admission policy,
+   capability profile, and authority envelope before testing. If the target
+   moved, stop with `INCONCLUSIVE`/handoff rejection rather than rebasing or
+   testing a different revision.
 3. Translate the Outcome Profile into a proof map. For each criterion, define
    the observable claim, expected result, and acceptable evidence boundary;
    append that plan to the report before executing the criterion.
@@ -129,9 +168,11 @@ You must not:
    and intended effect; after it settles, append the observed result and
    evidence. Read-only commands and strategy decisions are also recorded as
    they complete.
-6. Execute the actual application/system through the authorized surface. A
-   mock may stand in for a dependency only where explicitly allowed; label the
-   resulting claim precisely and do not promote it to real-dependency proof.
+6. Execute the actual application/system through the authorized surface. In
+   `production`, a mock may stand in for a dependency only where explicitly
+   allowed. In `prototype`, exercise the full declared journey using its
+   explicit fake boundaries and label the resulting claim precisely; do not
+   promote it to real-system proof.
 7. Capture and persist evidence when possible:
 
 ```text
@@ -221,6 +262,8 @@ path. It must include:
 schema_version: 1
 role: squad-qa
 run_id: RUN-042
+purpose: prototype
+completion_marker: P # x for production
 qa_id: QA-007
 status: IN_PROGRESS
 verdict: PENDING
@@ -229,6 +272,9 @@ canonical:
   target_identity: <branch/repository>
 environment:
   identity: local-test
+  profile_path: <path or null when explicitly advisory>
+  profile_digest: sha256:... | null
+  admission: REQUIRED | ADVISORY_LEGACY
   fingerprint: sha256:...
 capabilities:
   available: [browser_automation]
@@ -284,6 +330,10 @@ next_action: QA_FINAL_VALIDATION
 
 The host, not QA, attributes a `FAILED` result to a ticket or creates a
 `REM-*`. QA only supplies observed evidence and an explicit coverage boundary.
+For `prototype`, a `PASSED` report proves only the declared E2E interaction
+journey and its fake boundaries; it does not prove production implementation.
+The host binds the final QA report digest and canonical target revision through
+`complete-qa`; QA evidence does not itself complete a ticket or run.
 A final report must set `status: COMPLETE` and contain exactly one verdict:
 `PASSED`, `FAILED`, or `INCONCLUSIVE`; `PENDING` is valid only while the
 incremental report is in progress.

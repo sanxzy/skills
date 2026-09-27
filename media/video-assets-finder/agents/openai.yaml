@@ -1,0 +1,5 @@
+interface:
+  display_name: "Video Assets Finder"
+  short_description: "Find and verify timeline media with host-coordinated parallel research"
+policy:
+  allow_implicit_invocation: false

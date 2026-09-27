@@ -48,7 +48,8 @@ try:
         remove_temporary_media,
     )
     from .media_cache import PersistentTranscript, VideoCache, ensure_audio, ensure_video, store_transcript, update_source
-    from .resolve_media import resolve_media
+    from .resolve_media import normalize_metadata, resolve_media
+    from .youtube_caption_fallback import acquire_youtube_subtitles, fetch_youtube_captions, is_youtube_url
     from .timeline import build_timeline, focus_ranges_from_matches, search_transcript
     from .transcribe_audio import asr_artifact, find_asr_tool, transcribe_audio
     from .translate_transcript import translate_segments
@@ -92,7 +93,8 @@ except ImportError:  # pragma: no cover - direct executable path
         remove_temporary_media,
     )
     from media_cache import PersistentTranscript, VideoCache, ensure_audio, ensure_video, store_transcript, update_source  # type: ignore
-    from resolve_media import resolve_media  # type: ignore
+    from resolve_media import normalize_metadata, resolve_media  # type: ignore
+    from youtube_caption_fallback import acquire_youtube_subtitles, fetch_youtube_captions, is_youtube_url  # type: ignore
     from timeline import build_timeline, focus_ranges_from_matches, search_transcript  # type: ignore
     from transcribe_audio import asr_artifact, find_asr_tool, transcribe_audio  # type: ignore
     from translate_transcript import translate_segments  # type: ignore
@@ -679,6 +681,7 @@ def run_watch(config: WatchConfig, *, runner=None) -> dict[str, object]:
 
         resolved_info: Mapping[str, object]
         resolved_tool: str
+        direct_youtube = None
         local_source = (
             _source_from_media_manifest(persistent_video, normalized_url)
             if persistent_video is not None and (
@@ -702,19 +705,46 @@ def run_watch(config: WatchConfig, *, runner=None) -> dict[str, object]:
                     runner=runner,
                 )
             except WatchVideoError as exc:
-                return _failure_context(
-                    normalized_url,
-                    config,
-                    run,
-                    journal,
-                    status=exc.status,
-                    error=str(exc),
-                    warnings=warnings,
-                    media_cache=persistent_video,
-                )
-            source = dict(resolved.source)
-            resolved_info = resolved.info
-            resolved_tool = resolved.tool
+                # A provider-specific yt-dlp failure need not mean that the
+                # public YouTube player has no timestamped caption track.
+                # Do not use this path to bypass explicit authentication or
+                # an invalid local tool configuration.
+                if is_youtube_url(normalized_url) and exc.status == "source_unavailable":
+                    try:
+                        direct_youtube = fetch_youtube_captions(
+                            normalized_url,
+                            timeout=config.metadata_timeout,
+                            preferred_language=_target_language(config),
+                            cookies=config.cookies,
+                            cookies_from_browser=config.cookies_from_browser,
+                        )
+                    except WatchVideoError as fallback_error:
+                        if fallback_error.status == "authentication_required":
+                            return _failure_context(
+                                normalized_url, config, run, journal,
+                                status=fallback_error.status, error=str(fallback_error),
+                                warnings=warnings, media_cache=persistent_video,
+                            )
+                        warnings.append(f"direct YouTube caption fallback unavailable: {fallback_error}")
+                if direct_youtube is None:
+                    return _failure_context(
+                        normalized_url,
+                        config,
+                        run,
+                        journal,
+                        status=exc.status,
+                        error=str(exc),
+                        warnings=warnings,
+                        media_cache=persistent_video,
+                    )
+                resolved_info = direct_youtube.info
+                source = normalize_metadata(resolved_info, normalized_url)
+                resolved_tool = "YouTube player caption fallback"
+                warnings.append("yt-dlp metadata unavailable; safe metadata was recovered from the YouTube player")
+            else:
+                source = dict(resolved.source)
+                resolved_info = resolved.info
+                resolved_tool = resolved.tool
             if persistent_video is not None:
                 try:
                     refreshed_media_cache = update_source(persistent_video, source)
@@ -776,7 +806,7 @@ def run_watch(config: WatchConfig, *, runner=None) -> dict[str, object]:
                     journal.record("transcript_cache", "hit")
 
         subtitle: SubtitleResult | None = None
-        if not transcript_segments:
+        if not transcript_segments and direct_youtube is None:
             try:
                 subtitle = acquire_subtitles(
                     normalized_url,
@@ -814,6 +844,43 @@ def run_watch(config: WatchConfig, *, runner=None) -> dict[str, object]:
                 )
             else:
                 journal.record("subtitle", subtitle.status)
+
+        if not transcript_segments and is_youtube_url(normalized_url):
+            try:
+                if direct_youtube is None:
+                    direct_youtube = fetch_youtube_captions(
+                        normalized_url,
+                        timeout=config.metadata_timeout,
+                        preferred_language=target_language,
+                        cookies=config.cookies,
+                        cookies_from_browser=config.cookies_from_browser,
+                    )
+                fallback_subtitle = acquire_youtube_subtitles(
+                    direct_youtube,
+                    run.process_directory / "001-subtitles" / "007-direct-youtube",
+                    preferred_languages=config.preferred_languages,
+                    max_attempts=config.max_subtitle_attempts,
+                    timeout=min(config.download_timeout, 300.0),
+                    cookies=config.cookies,
+                )
+                warnings.extend(fallback_subtitle.warnings)
+                if fallback_subtitle.status in {"usable", "best_effort"} and fallback_subtitle.quality is not None:
+                    transcript_segments = fallback_subtitle.segments
+                    transcript_source = fallback_subtitle.choice.source if fallback_subtitle.choice else "automatic"
+                    transcript_source_language = fallback_subtitle.choice.language if fallback_subtitle.choice else None
+                    transcript_output_language = transcript_source_language
+                    transcript_quality = fallback_subtitle.quality.as_dict()
+                    transcript_raw_path = fallback_subtitle.path
+                    journal.record(
+                        "transcript", "complete", source=transcript_source,
+                        adapter="direct_youtube_caption", quality=fallback_subtitle.status,
+                        attempts=fallback_subtitle.attempted,
+                    )
+                else:
+                    journal.record("youtube_caption_fallback", fallback_subtitle.status)
+            except WatchVideoError as exc:
+                warnings.append(f"direct YouTube caption fallback unavailable: {exc}")
+                journal.record("youtube_caption_fallback", "unavailable")
 
         if not transcript_segments:
             asr_available = config.asr_command is not None

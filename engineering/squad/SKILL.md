@@ -4,7 +4,8 @@ version: 0.1.0
 description: |
   Autonomously execute one canonical ticket set through dedicated workers,
   independent reviewers, run-level QA, durable recovery, and controlled
-  integration while preserving outcome ownership.
+  integration while preserving outcome ownership across production and E2E
+  prototype purposes.
 argument-hint: "Provide a canonical tickets.md path or ask to resume a squad run."
 ---
 
@@ -23,6 +24,34 @@ Workers implement. Reviewers independently verify individual work units. A
 run-level QA agent verifies the integrated outcome. The host owns readiness,
 context integrity, lifecycle state, evidence acceptance, recovery, target
 integration, and the final outcome decision.
+
+## Purpose and completion markers
+
+Resolve one run-level **purpose** before admission:
+
+- `production` — implement and prove the real product behavior and system
+  boundaries defined by the canonical tickets. It has one worker implementation
+  mode: `default` or `tdd`.
+- `prototype` — implement an **E2E interactive prototype** of the selected core
+  product journey, from entry point through the user's value/outcome. It is not
+  limited to a component, screen, or isolated feature, and it does not require
+  real backend, persistence, authentication, renderer, integrations, or
+  production reliability. Fake data, hardcoded/in-memory state, fake
+  loading/error states, scripted responses, and simulated side effects are
+  allowed when the boundary is explicit.
+
+Prototype scope is the core value journey, not the entire product. The host,
+worker, reviewer, and QA must preserve the distinction between a simulated
+journey and a production claim.
+
+Acceptance checklists are purpose-specific:
+
+- production completion uses `- [x]`;
+- prototype completion uses `- [P]`.
+
+`[P]` means the criterion is implemented and verified as part of the E2E
+prototype; it never means production completion. Do not convert `[P]` to `[x]`
+in a prototype run.
 
 ## 1. Trigger boundary and interface
 
@@ -45,7 +74,9 @@ Accept:
 
 - an explicit path to one canonical `_xzy-ai/sprints/<backlog>/tickets.md`;
 - a resume request naming an existing non-terminal `run_id`;
-- a worker mode, `default` or `tdd`, supplied before admission;
+- a purpose, `production` or `prototype`, supplied before admission;
+- a worker implementation mode, `default` or `tdd`, only when purpose is
+  `production`;
 - explicit user instructions for cleanup or escalation resolution.
 
 If no ticket path is supplied, discover canonical `tickets.md` files only when
@@ -55,14 +86,17 @@ an unrelated conversation assumption.
 
 The canonical ticket set is the product and work contract. The host may derive
 runtime profiles and evidence plans from it, but may not silently change its
-behavior, scope, dependencies, or acceptance criteria.
+behavior, scope, dependencies, or acceptance criteria. Purpose selects which
+completion marker is authoritative for this run; it does not weaken the ticket
+contract or turn prototype evidence into production evidence.
 
 ### Outputs
 
 The run produces:
 
 - controlled changes in the active target branch of the resolved project;
-- canonical ticket acceptance criteria checked only after ticket-level `DONE`;
+- immutable canonical ticket contract digests plus a generated run-linked
+  `summaries/acceptance-status.yaml` projection after ticket-level `DONE`;
 - durable run state, operations, transitions, role reports, QA evidence,
   remediation records, and history under:
 
@@ -70,10 +104,110 @@ The run produces:
 _xzy-ai/sprints/<backlog>/orchestration/<run-id>/
 ```
 
-- compact milestone and final summaries with pointers to durable evidence.
+- a typed final summary with pointers to durable evidence; milestone reporting is
+  a read-only host status projection, not an unimplemented artifact command.
 
 Do not publish to an external issue tracker. Do not delete durable execution
 artifacts as a hidden completion side effect.
+
+## Operator map: follow this path first
+
+This is the host's normal execution path. For exact command syntax and JSON
+outputs, use [Host workflow commands](./references/WORKFLOW-COMMANDS.md). For
+write authority and digest-safe YAML primitives, use
+[YAML state tools](./references/YAML-STATE-TOOLS.md). The host invokes typed workflow
+commands; the commands write and verify durable state. Do not hand-edit YAML or
+copy SHA values between artifacts during routine execution.
+
+| Phase | Host action | Durable state/result | Next action |
+|---|---|---|---|
+| Admit | Resolve source/project/target; run `migrate-run` for an older run; run `environment-profile`, `analyze-ownership`, and `preflight` | Admission checkpoint, environment fingerprint, ownership report | Provision the canonical worktree |
+| Dispatch worker | `prepare --role worker` → `validate-handoff` → `bind-agent` → spawn the worker | `READY → ASSIGNED`, validated worker handoff, `PREPARED/EXECUTING` operation | Wait for the agent system and worker acknowledgement |
+| Acknowledge worker | When the worker has started, `acknowledge-agent <job-id> --state <state.yaml> --operation <operation.yaml>` | Committed `ASSIGNED → IMPLEMENTING` transition | Queued/unstarted jobs are not acknowledgements |
+| Handoff worker | Worker writes `IMPLEMENTED` report; host runs `complete-worker` | `IMPLEMENTING → AWAITING_REVIEW`, exact revision/report, active handoff archived | Prepare the reviewer |
+| Dispatch reviewer | `prepare --role reviewer` → `bind-agent` → spawn reviewer | `AWAITING_REVIEW → REVIEWING`, exact implementation revision and generated reviewer context in handoff | Wait for reviewer verdict; missing context blocks preparation |
+| Optional analysis | `prepare --role analysis` → `bind-agent` → spawn analysis; host runs `complete-analysis` | Advisory report is recorded; work-unit lifecycle state does not advance | Host independently validates every recommendation |
+| Accept/reject review | Host runs `complete-review` with the exact reviewer report | `APPROVED → INTEGRATING`, `REJECTED → FIXING`, or `INCONCLUSIVE → BLOCKED` | Integrate, correct, or repair evidence |
+| Correct | From `FIXING`, run `prepare-correction`; repeat worker/report/review gates | New worker/reviewer attempt and operation instances; old evidence retained | Return to review |
+| Reject context | Before product review, `reject-handoff` | `BLOCKED`, operation `SUPERSEDED`, explicit handoff-rejection history | Never call a context rejection `REJECTED` product review |
+| Integrate | `integrate` only after exact approval; run host-owned checks | Fast-forward-only target operation and target-before/after snapshot | Supply durable validation evidence |
+| Complete ticket | `complete-ticket --validation <evidence.yaml>` | `INTEGRATING → DONE`; structured evidence when required; acceptance-status projection refreshed | Identical repeat is idempotent; conflicting evidence remains blocked |
+| Begin run validation | `transition-run <run-id> --from EXECUTING --to RUN_VALIDATING --reason ...` after every unit is `DONE` | Durable run transition ledger | Prepare typed run-level QA |
+| Dispatch run QA | `prepare-qa --run <run.yaml>` → `bind-agent` → spawn QA | `RUN_VALIDATING → QA`, validated run-level QA handoff and operation | Wait for QA report |
+| Accept QA | `complete-qa --run <run.yaml> --report <report.yaml>` | `PASSED → COMPLETING`; `FAILED`/`INCONCLUSIVE → BLOCKED` with explicit blocker | Attribute/remediate or repair evidence |
+| Complete run | `complete-run --run <run.yaml>` then `verify-run --final` | `COMPLETING → RUN_COMPLETED` only after final preflight and summary | Retain artifacts; cleanup is outside this package |
+
+### State-to-command matrix
+
+Use the current durable state, not an agent message, to choose the next action.
+`status <run-id> --ticket <unit> --explain` is the read-only way to inspect the
+state, blocker, legal destinations, active handoff, operation, and next action.
+
+| Current state | Legal normal action | Do not infer |
+|---|---|---|
+| `PENDING` | Resolve dependencies/source, then transition to `READY` when admitted | Readiness from a ticket label alone |
+| `READY` | `prepare --role worker` | Worker progress before dispatch |
+| `ASSIGNED` | Wait for system start; then `transition ... ASSIGNED IMPLEMENTING` | `ASSIGNED` means running; queued is not progress |
+| `IMPLEMENTING` | Wait for worker report; then `complete-worker` | Worker termination means implementation success |
+| `AWAITING_REVIEW` | `prepare --role reviewer` | Worker `IMPLEMENTED` means approval |
+| `REVIEWING` | `complete-review` with exact report | Silence or a different revision means approval |
+| `FIXING` | `prepare-correction` | A correction must produce a new revision and fresh approval |
+| `INTEGRATING` | `integrate`, host validation, then `complete-ticket` | Merge exit code alone means `DONE` |
+| `DONE` | Include in run-level QA and final verification | All units `DONE` means only eligible for run validation |
+| `BLOCKED` | Inspect blocker, reconcile, repair context, or `resume-ticket` | `BLOCKED` means restart or success |
+| `ESCALATED` | Present the decision package and wait for user/authority input | Escalation can be silently bypassed |
+
+### Authority and file ownership
+
+| Actor/entrypoint | May write | Must not write |
+|---|---|---|
+| Host workflow `squad.mjs` | Run/work-unit state, operations, transitions, integration target, projections | Role reports, another worktree, canonical contract scope |
+| Host primitive `squad-host-state.mjs` | Low-level host YAML paths with expected digests | Routine lifecycle decisions without typed command validation |
+| Worker/reviewer/QA/analysis report helper | That role's report, incremental log, permitted evidence | Shared state, another report, target branch |
+| Agent system | Job scheduling/status | Host lifecycle state or capacity policy |
+| Reviewer | Read-only review; explicitly permitted uncommitted Trivial/Minor fix | Approval of a different/uncommitted revision, integration |
+
+Agents never mutate lifecycle state. The host owns the outcome, but it does not
+own implementation details that belong in the worker worktree.
+
+### Work-unit versus run-level state
+
+The command examples above operate on a work unit. Run-level states
+(`EXECUTING`, `RUN_VALIDATING`, `QA`, `REMEDIATING`, `COMPLETING`,
+`RUN_COMPLETED`, `BLOCKED`, `PAUSED`, `RUN_CANCELLED`, and `RUN_ABORTED`) use a
+separate host projection and transition ledger. Use `transition-run` for an
+explicit run transition; use `prepare-qa`, `complete-qa`, and `complete-run`
+for the guarded QA and terminal paths. If a run transition write is interrupted,
+use `reconcile-run-transition` before creating another transition. Do not use a
+work-unit `transition` to fake a run state. `verify-run --final` is read-only:
+it validates a run already marked `RUN_COMPLETED` and never commits that state
+itself. `squad.mjs` does not
+provision admission worktrees or delete retained artifacts; the host must keep
+those responsibilities explicit and must not claim they happened without
+separate evidence.
+
+### When a command fails
+
+Stop at the reported error code. Preserve the previous authoritative state and
+artifacts. Use `status`, inspect the operation/transition ledger, and follow the
+matching recovery row in [the workflow runbook](./references/WORKFLOW-COMMANDS.md).
+Do not repair by manually clearing pointers, resetting a worktree, repeating an
+unknown side effect, or selecting the first matching job ID.
+
+### Recovery decision table
+
+| Observation | Host response | Terminal meaning |
+|---|---|---|
+| Agent stops before a conclusive report | `reconcile-agent`; inspect effect; `resume-ticket` when safe | Old operation becomes `SUPERSEDED` only after a successor is durable; never `IMPLEMENTED` by termination |
+| Job ID matches multiple operations | Stop and supply the exact `--operation` after inspecting candidates | `AMBIGUOUS_AGENT_JOB`; no mutation from implicit lookup |
+| Operation is `UNKNOWN`/`RECONCILING` | Inspect actual Git/report/effect; reconcile before retry | Uncertainty remains explicit until terminal ledger classification |
+| Run transition is `PREPARED`/`COMMITTING` after interruption | `reconcile-run-transition`; commit only the observed source/destination result | Create another run transition while the prior ledger is unresolved || Worktree is dirty on recovery | Preserve it; classify prior effects and attribute them in the next handoff | Never stash, reset, clean, or absorb unexplained changes |
+| Reviewer `REJECTED` | `complete-review` → `FIXING` → `prepare-correction`; produce a new revision and review | Old approval is invalid for any changed revision |
+| Reviewer `INCONCLUSIVE` | Repair missing capability/context/evidence; resume the saved review state | Not a product pass or failure |
+| Target HEAD/branch/checkout changes | Stop target mutation; reconcile checkpoint and active handoffs; preflight again | Never rebase or overwrite silently |
+| Canonical ticket/proposal changes | Stop dispatch/mutation; re-admit affected graph and invalidate stale context | A source revision barrier, not a routine retry |
+| QA `FAILED` | Host attributes the finding; admitted remediation controller creates only in-scope `REM-*`; revalidate affected outcome | QA observes; it does not create remediation or mark completion |
+| QA `INCONCLUSIVE` or missing required capability | Preserve evidence boundary and repair capability/environment | Never downgrade the criterion to a weaker claim |
 
 ## 2. Hard invariants
 
@@ -177,37 +311,50 @@ repository identity, branch, baseline, and ownership in the work-unit state
 and every relevant handoff.
 
 Provision each worktree only after the admission checkpoint is persisted and
-verified:
+verified. The Squad command package does not create Git worktrees or branches;
+the host's admission/provisioning layer must perform and durably record this
+explicit operation:
 
 ```text
-prepare CREATE_WORKTREE operation with the canonical path
-→ persist and read back the operation
+record CREATE_WORKTREE intent with the canonical path and baseline
 → create the branch/worktree from the recorded baseline
 → verify `git worktree list --porcelain`, repository identity, branch, and HEAD
-→ persist and verify the worktree record
-→ dispatch the worker
+→ persist/read back the worktree record through the host's admitted state path
+→ run `squad.mjs preflight --run <run.yaml>`
+→ dispatch the worker with `squad.mjs prepare`
 ```
+
+If that host provisioning layer is unavailable, stop at admission; do not claim
+an isolated worktree exists and do not use `squad-host-state.mjs` as a substitute
+for the missing Git operation.
 
 The same per-work-unit path remains attached through normal correction and
 review attempts; an attempt does not create an ad hoc sibling path. If the
 canonical path becomes unusable and recovery requires a replacement, use an
 explicitly recorded `recovery-<NNN>` child under the same run namespace only
 after the original worktree and its effects are reconciled. Retain every
-worktree until the explicit cleanup operation after terminalization.
+worktree and its evidence after terminalization; this package has no cleanup
+command.
 
-### 3.4 Resolve worker mode
+### 3.4 Resolve purpose and worker implementation mode
 
-Resolve one run-level worker mode before admission:
+Resolve one run-level purpose before admission:
 
-- `default` — worker implements, tests, validates, reports, and commits;
-- `tdd` — worker follows Red → Green → Refactor and preserves meaningful TDD
-  commits.
+- `production` — the worker implements real product behavior. Resolve one
+  worker implementation mode: `default` or `tdd`.
+- `prototype` — the worker implements the selected E2E interactive prototype
+  journey. Do not resolve a production implementation mode; prototype work
+  follows the E2E journey contract and may use explicit fake boundaries.
 
-An explicit ticket or `REM-*` override is allowed only when recorded in the
-handoff and run state. Never change a mode silently after implementation has
-started.
+Persist the purpose in the run admission record and every generated handoff.
+For production, persist the selected `worker_mode` as `default` or `tdd`. For
+prototype, leave the production worker mode unset rather than relabeling the
+prototype as TDD or production default. A ticket- or `REM-*`-specific
+production worker-mode override is allowed only when recorded in the handoff
+and run state; it cannot introduce a mode into prototype work. Never change
+the purpose or implementation mode silently after implementation has started.
 
-### 3.4 Validate the complete graph
+### 3.5 Validate the complete graph
 
 Build the full dependency representation and validate:
 
@@ -227,18 +374,30 @@ host from determining an executable graph is a run admission blocker.
 
 Do not partially dispatch an invalid or materially ambiguous graph.
 
-### 3.5 Persist the admission checkpoint
+### 3.6 Persist the admission checkpoint
 
 Create the run record and preflight checkpoint only after source, project,
-target, mode, and graph validation have passed. Persist and read back the
-checkpoint before creating a worktree or dispatching an agent. The first
-worktree path must be the canonical `<cwd>/worktrees/squad/<backlog>/<run-id>/<work-unit-id>/`
-location defined above.
+target, purpose, applicable implementation mode, and graph validation have
+passed. Persist and read back the
+checkpoint before creating a worktree or dispatching an agent. Capture a
+run-level environment profile and initial ownership analysis before first
+dispatch. A new `control_plane_version: 2` run requires a profile path and
+digest by default; set `environment_profile_required: false` only when the run
+explicitly records an advisory profile policy. Legacy migration writes that
+non-required policy safely, defaults a missing purpose to `production` with
+worker mode `default`, and reports `LEGACY_ENVIRONMENT_PROFILE_MISSING` when no
+profile exists. A migrated `prototype` run keeps its production worker mode
+unset. Cache environment blockers only while the profile/tool fingerprint,
+source digest, and affected scope remain unchanged.
+Record exact revisions/file digests for every external reference used by active
+work. The first worktree path must be the canonical
+`<cwd>/worktrees/squad/<backlog>/<run-id>/<work-unit-id>/` location defined above.
 
 A run admission record includes at least:
 
 ```yaml
 run_id: RUN-042
+control_plane_version: 2
 source:
   tickets_path: _xzy-ai/sprints/example/tickets.md
   backlog: example
@@ -247,11 +406,21 @@ project:
   root: <resolved project root>
   target_branch: main
   initial_head: abc123
-worker_mode: default
+purpose: production
+worker_mode: default # required for production; omit for prototype
+proposal_required: false
+environment_profile_required: true
+validation_evidence_required: true
 preflight:
   status: VALIDATED
   graph_digest: sha256:...
   outcome_coverage: VALIDATED
+environment:
+  profile_path: <run-dir>/environment/profile.yaml
+  fingerprint: sha256:...
+ownership_analysis:
+  path: <run-dir>/analysis/ownership.yaml
+  status: SAFE | CONDITIONAL | UNCERTAIN
 ```
 
 ## 4. Durable artifact contract
@@ -264,7 +433,7 @@ change.
 _xzy-ai/sprints/<backlog>/orchestration/<run-id>/
 ├── run.yaml                         # current run projection
 ├── history/events.md                # host-owned append-only chronology
-├── operations/<operation-id>.yaml   # side-effect ledger
+├── operations/<operation-instance-id>.yaml # side-effect ledger
 ├── transitions/<transition-id>.yaml # lifecycle transaction ledger
 ├── work-units/<unit-id>/
 │   ├── state.yaml
@@ -300,14 +469,21 @@ lifecycle transitions. A role may write only its own designated report,
 evidence, and permitted worktree changes. No role may mutate `tickets.md`,
 shared state, or the target branch.
 
+Current state stores at most one `active_handoff`; completed handoffs are never
+rewritten and are retained in `handoff_history` with report digests, revisions,
+and outcome pointers. Active preflight validates only the active handoff. A
+historical handoff is verified against its recorded target/worktree snapshot,
+not against a later target HEAD.
+
 ### 4.1 Operation ledger
 
-Every side-effecting action has a stable logical operation identity and a
-separate attempt identity:
+Every side-effecting action has a stable logical operation identity, a unique
+operation instance, and a role-scoped attempt identity:
 
 ```yaml
 operation_id: RUN-042:TICKET-012:INTEGRATE
-attempt_id: RUN-042:TICKET-012:INTEGRATE:attempt-002
+operation_instance_id: RUN-042:TICKET-012:INTEGRATE:attempt-002
+attempt_id: RUN-042:TICKET-012:reviewer:attempt-002
 type: INTEGRATE
 status: PREPARED
 input:
@@ -320,8 +496,12 @@ Operation status is one of:
 
 ```text
 PREPARED → EXECUTING → SUCCEEDED | FAILED | UNKNOWN
-UNKNOWN   → RECONCILING
+UNKNOWN   → RECONCILING → RECONCILED | SUPERSEDED
 ```
+
+`RECONCILED` and `SUPERSEDED` mean the side effect was inspected and linked to
+retained evidence or a successor attempt. They never mean implementation,
+approval, integration, or product success.
 
 When an operation result is uncertain, inspect the actual effect before
 creating a new attempt. Do not repeat a non-idempotent action merely because
@@ -381,17 +561,24 @@ appropriate blocker/reconciliation path.
 Use the host-only workflow entrypoint in
 [`references/WORKFLOW-COMMANDS.md`](./references/WORKFLOW-COMMANDS.md) for
 normal execution. It provides `validate-handoff`, `manifest`, `handoff`,
-`prepare`/`dispatch`, `preflight`, `transition`, `reconcile-agent`,
-`resume-ticket`, `bind-agent`, `status`, and `verify-run`. The commands compose the
-responsibility-specific YAML primitives with Git identity and cross-artifact
-checks; they do not spawn agents, manage capacity, mutate the target branch,
-or delete retained evidence.
+`prepare`/`dispatch`, `preflight`, `transition`, `transition-run`,
+`acknowledge-agent`, `reject-handoff`, `reconcile-agent`, `resume-ticket`,
+`bind-agent`, `complete-worker`, `complete-review`, `complete-analysis`,
+`prepare-correction`, `integrate`, `complete-ticket`, `prepare-qa`,
+`complete-qa`, `complete-run`, `environment-profile`,
+`reference-snapshot`, `analyze-ownership`, `migrate-run`, `status`, and
+`verify-run`. The commands compose the responsibility-specific YAML primitives
+with Git identity and cross-artifact checks; they do not spawn agents, manage
+capacity, or delete retained evidence. Only the typed `integrate` command may
+mutate the target, and it does so through a durable, fast-forward-only,
+reconcilable operation.
 
 A typed handoff is generated from one immutable per-ticket execution manifest.
 The manifest derives source/state/report/evidence paths, SHA digests, branch,
 worktree, baseline, current HEAD, target HEAD, operation identity, attempt
 identity, and dependency snapshots from the latest durable artifacts. The host
-supplies substantive decisions such as role, mode, scope, authority, and
+supplies substantive decisions such as role, purpose, applicable implementation
+mode, scope, authority, and
 acceptance context; it does not manually duplicate identifiers across YAML
 files. A manifest or handoff with a conflicting immutable snapshot is rejected
 rather than overwritten.
@@ -411,14 +598,17 @@ artifacts back. Generic JSON Pointer updates remain available in
 `squad-host-state.mjs` as low-level primitives, not as the operator's primary
 workflow.
 
-Interruption follows one durable path: `reconcile-agent` inspects the actual
-report, commit, branch, HEAD, and dirty worktree, records `UNKNOWN`/
-`RECONCILING` operation state and an `AGENT_UNAVAILABLE` blocker, and preserves
-all effects. `resume-ticket` creates a fresh attempt and generated handoff,
-reuses the same worktree when safe, or requires a pre-provisioned
-`recovery-<NNN>` child without destructive reset. `status` and `verify-run`
-expose the next legal action, latest operation/transition, reviewer/QA proof,
-dependency readiness, dirty state, and unresolved uncertainty.
+Interruption follows one durable path: `reconcile-agent` resolves exactly one
+external job binding, inspects the actual report, commit, branch, HEAD, and
+dirty worktree, records `UNKNOWN`/`RECONCILING` operation state and an
+`AGENT_UNAVAILABLE` blocker, and preserves all effects. Ambiguous job IDs fail
+before mutation. `resume-ticket` creates a fresh operation instance and
+attempt, reuses the same worktree when safe, or requires a pre-provisioned
+`recovery-<NNN>` child without destructive reset; a successful successor marks
+the old operation `SUPERSEDED`. `status` and `verify-run` expose the next legal
+action, active versus historical handoffs, exact reviewer proof, findings,
+environment/reference evidence, dependency readiness, dirty state, and
+unresolved uncertainty.
 
 ## 5. Work-unit lifecycle and scheduling
 
@@ -512,8 +702,11 @@ UNCERTAIN
 - `UNCERTAIN` work is serialized.
 
 `Blocked by: None` is a behavioral dependency statement, not proof of file or
-module independence. Use host inspection or the optional analysis specialist
-when the codebase is large.
+module independence. `squad.mjs analyze-ownership` records declared scope,
+observed changed scope, pairwise classification, and its conservative
+parallel/serialization recommendation. Missing scope or drift is
+`UNCERTAIN`, never an invitation to guess. Use host inspection or the optional
+analysis specialist when the codebase is large.
 
 When actual scope drifts into another worker's footprint:
 
@@ -530,7 +723,22 @@ persist overlap finding
 Do not blind-cancel an active worker unless continued execution is unsafe or
 unauthorized.
 
-### 5.5 Deterministic integration order
+### 5.5 Environment and reference evidence
+
+Before first dispatch, capture `environment/profile.yaml` with runtime,
+package-manager, repository, dependency-lock, and declared generated-artifact
+presence/digests. Verification results use `PASS`, `PRODUCT_FAIL`,
+`ENVIRONMENT_BLOCKED`, or `NOT_EXERCISED`; a cached baseline blocker is reusable
+only when the environment fingerprint, canonical revision, and affected scope
+match. Never fabricate generated artifacts merely to make a check collect.
+
+For each external reference repository, run `reference-snapshot` and record the
+exact repository revision plus file digests. A later reference update creates a
+new snapshot and requires impact analysis for active handoffs that cite the old
+snapshot. Reference evidence is read-only and never silently broadens ticket
+scope.
+
+### 5.6 Deterministic integration order
 
 When several approved work units wait for integration, select one at a time in
 this order:
@@ -572,8 +780,9 @@ assigned worktree and branch
 baseline/base revision
 dependencies and external prerequisites
 effective ownership boundary
-worker mode
-expected deliverable and acceptance criteria
+purpose: production or prototype
+worker implementation mode: default or tdd for production; omitted for prototype
+expected deliverable, E2E journey (when prototype), and acceptance criteria
 report path/schema
 permission and credential boundary
 ```
@@ -586,7 +795,7 @@ replacement for the ticket contract.
 A worker result may enter `AWAITING_REVIEW` only after the host verifies:
 
 - report schema and digest;
-- worker identity, work-unit identity, attempt, and mode;
+- worker identity, work-unit identity, attempt, purpose, and applicable mode;
 - worktree/branch ownership;
 - baseline and commit identity;
 - changed scope against the declared/effective footprint;
@@ -596,6 +805,9 @@ A worker result may enter `AWAITING_REVIEW` only after the host verifies:
 - the expected deliverable is actually committed in the ticket worktree.
 
 A worker's `IMPLEMENTED` status is handoff-ready, not approval or completion.
+The host records it with `complete-worker`, which verifies the exact report,
+operation instance, clean worktree, and final revision before moving
+`IMPLEMENTING → AWAITING_REVIEW` and archiving the active handoff.
 
 ### 6.3 Reviewer dispatch and completion gate
 
@@ -633,7 +845,10 @@ Before `INTEGRATING`, the host verifies:
 - review is fresh for the current canonical contract and worktree.
 
 Approval attaches to a specific final revision. Any later code change requires
-another review result.
+another review result. The host records the result with `complete-review`; it
+moves `APPROVED` to `INTEGRATING`, `REJECTED` to `FIXING`, and
+`INCONCLUSIVE` to a structured review blocker. It never reuses a latest report
+by filesystem order when an exact accepted report pointer exists.
 
 ### 6.4 Review correction policy
 
@@ -656,12 +871,13 @@ Major/Critical findings return to the same worker whenever possible. A reviewer
 problem is repaired. No reviewer silence, timeout, termination, or "looks
 good" message counts as approval.
 
-### 6.5 Worker implementation modes
+### 6.5 Worker purpose and implementation modes
 
-For `default` mode, the worker performs the normal implementation loop and
-preserves behavior-focused validation.
+For `production` + `default` mode, the worker performs the normal
+implementation loop, builds the real product behavior, validates it, reports
+it, and commits it.
 
-For `tdd` mode, the worker:
+For `production` + `tdd` mode, the worker:
 
 1. writes a focused Red test that fails for the missing behavior;
 2. commits the Red state;
@@ -669,8 +885,31 @@ For `tdd` mode, the worker:
 4. refactors while preserving behavior and records any fix commits;
 5. hands the final refactored revision to the reviewer.
 
-Do not squash meaningful TDD commits. Reviewer gating happens after the final
-TDD cycle, not after an intermediate Red or Green state.
+For `prototype` purpose, there is no production implementation mode. The worker
+must:
+
+1. identify the core E2E journey, its entry point, value/outcome, states,
+   transitions, and supported happy/error/loading paths;
+2. implement a runnable, navigable experience through the full journey rather
+   than stopping at a polished screen or isolated component;
+3. use fake data, hardcoded/in-memory state, fake loading, scripted responses,
+   and simulated side effects only where the boundary is explicit;
+4. avoid building or implying real backend, persistence, authentication,
+   renderer, or production reliability;
+5. verify the journey at the strongest usable interactive seam and report the
+   fake boundaries and remaining production gaps.
+
+Do not squash meaningful production TDD commits. Reviewer gating happens after
+the final production TDD cycle or complete prototype journey, not after an
+intermediate state.
+
+Commit messages are durable implementation context because tickets may later be
+edited or removed. Every worker commit must use a compact, clear, imperative
+description of what was delivered. Never include ticket IDs, run IDs,
+phase/feature numbers, attempt numbers, backlog names, or other mutable workflow
+identifiers in the commit subject. Production TDD may retain only `[red]`,
+`[green]`, `[red-fix]`, or `[green-fix]` state markers when needed to preserve
+history.
 
 ## 7. Integration and ticket completion
 
@@ -680,19 +919,36 @@ worker artifact, review artifact, and target HEAD digests.
 
 The host then:
 
-1. persists and verifies an integration operation;
-2. integrates the exact approved revision into the active target branch;
-3. records the target HEAD and operation result;
-4. runs or validates the strongest applicable project-native combined checks;
-5. confirms the ticket outcome still holds in the target state;
-6. verifies all material operations are conclusive;
-7. persists and verifies the canonical ticket acceptance-criteria update;
-8. persists and verifies the work-unit `DONE` transition.
+1. runs the typed `integrate` operation with the exact accepted revision;
+2. checks target branch, cleanliness, and expected target HEAD before mutation;
+3. performs only the guarded fast-forward merge and records target-before/target-after;
+4. updates the run target checkpoint and work-unit integration snapshot;
+5. runs or validates the strongest applicable project-native combined checks;
+6. confirms the ticket outcome still holds in the target state;
+7. runs `complete-ticket` with durable host validation evidence. When
+   `validation_evidence_required: true`, use the structured
+   `squad-host-validation` schema bound to the exact integration operation and
+   target before/after;
+8. commits the work-unit `DONE` transition and refreshes the generated acceptance-status projection. The projection records the run purpose and completion marker (`x` for production, `P` for prototype). Repeating the same evidence is idempotent; conflicting evidence cannot change `DONE`.
 
-If merge, target validation, checks, canonical update, or checkpoint persistence
-fails, the ticket remains incomplete. Preserve unaffected integrations,
-attribute the failure, and route correction to the owning worker. Any changed
-revision must pass review again before reintegration.
+Integration is reconcilable, not a pretend multi-file atomic transaction. The
+host serializes only the target-mutating operation; it does not reserve the
+whole worker/reviewer pipeline. If the reviewer target checkpoint differs from
+the current run checkpoint, integration returns `APPROVAL_STALE` and requires a
+fresh reviewer handoff. If the approved source is not a fast-forward descendant,
+it returns `INTEGRATION_NOT_FAST_FORWARD`; it never silently rebases or creates
+a new merge revision. If Git succeeds but a checkpoint write fails, the
+operation result remains authoritative for reconciliation; rerunning must
+inspect the actual target before attempting anything again. Historical worktree baselines and handoffs are retained rather
+than rewritten to follow a later target HEAD. Canonical ticket contract files
+are not mutated merely to display completion status; the run-linked
+`acceptance-status.yaml` projection carries that mutable execution metadata.
+
+If merge, target validation, checks, projection, or checkpoint persistence
+fails, the ticket remains incomplete or explicitly marked for reconciliation.
+Preserve unaffected integrations, attribute the failure, and route correction
+to the owning worker. Any changed revision must pass review again before
+reintegration.
 
 If no relevant project-native or behavioral verification seam can establish the
 functional outcome, pause that work with a verification blocker and request
@@ -700,14 +956,43 @@ user guidance. Do not treat compilation or an unrelated check as proof.
 
 ## 8. Run-level outcome verification
 
-When all currently in-scope work units are `DONE`, enter `RUN_VALIDATING`. QA
-is universal at the outcome level; its execution strategy follows the actual
+When all currently in-scope work units are `DONE`, commit the typed run
+transition to `RUN_VALIDATING`:
+
+```text
+squad.mjs transition-run <run-id> --run <run.yaml> \
+  --from EXECUTING --to RUN_VALIDATING \
+  --reason "All in-scope work units are DONE; begin outcome validation"
+```
+
+Then create and validate the dedicated QA handoff through the host workflow:
+
+```text
+squad.mjs prepare-qa --run <run.yaml>
+squad.mjs validate-handoff <run-dir>/qa/QA-001/handoff.yaml
+squad.mjs bind-agent <job-id> --operation <run-dir>/operations/<qa-operation>.yaml
+```
+
+`prepare-qa` is the typed run-level controller path. It requires every
+work-unit state to be `DONE`, a clean target, and the run to be
+`RUN_VALIDATING`; it commits `RUN_VALIDATING → QA` and writes an immutable
+run-level handoff. On a reconciled QA interruption or inconclusive evidence,
+the same command resumes only from a `BLOCKED` run whose blocker has
+`resume_state: QA` and an allowed recovery code; a proven QA failure must be
+attributed/remediated before another QA attempt.
+
+QA is universal at the outcome level; its execution strategy follows the actual
 observable surfaces of the project. Never bypass run QA merely because ticket
 reviews passed.
 
-Create one dedicated run-level QA handoff containing:
+The handoff contains:
 
 ```text
+Purpose Profile
+- purpose: production | prototype
+- completion marker: [x] | [P]
+- prototype core E2E journey, entry point, user outcome, and explicit fake boundaries when applicable
+
 Run-Level Outcome Profile
 - core success criteria
 - user journeys
@@ -736,9 +1021,12 @@ that authority envelope. Strategies may include browser, mobile, CLI/TUI,
 service/API, embedded, library consumer, desktop, infrastructure, or multiple
 cross-surface strategies.
 
-A mock or test double may replace a real dependency only when the criterion's
-evidence boundary explicitly permits it. QA must state what that proves and
-what stronger claim remains unproven.
+For `production`, a mock or test double may replace a real dependency only when
+the criterion's evidence boundary explicitly permits it. For `prototype`, fake
+data, fake loading, hardcoded state, scripted responses, and simulated
+side-effects are expected when declared by the purpose profile. QA must state
+what the prototype evidence proves, what it does not prove, and what stronger
+production claim remains unproven.
 
 QA may perform bounded, authorized environment preparation such as building,
 starting a test service, installing a test artifact, or launching an emulator.
@@ -767,16 +1055,32 @@ logs/traces/terminal/output evidence for other surfaces
 explicit verdict: PASSED | FAILED | INCONCLUSIVE
 ```
 
-The host validates the report, coverage, provenance, evidence digests, and
-verdict. QA cannot change ticket state or declare the run complete.
+Before calling `complete-qa`, the host must validate the report's coverage,
+provenance, evidence digests, and declared evidence boundary in addition to the
+command's identity/status/revision checks. QA cannot change ticket state or
+declare the run complete.
 
-- `PASSED` enters host final completion validation; it is not automatically
-  `RUN_COMPLETED`.
-- `FAILED` means evidence proves a required outcome is violated; host performs
-  failure attribution and remediation.
+- `PASSED` is consumed by the host with the exact report path:
+  `squad.mjs complete-qa --run <run.yaml> --report <report.yaml>`. This commits
+  `QA → COMPLETING`; it is not automatically `RUN_COMPLETED`.
+- `FAILED` means evidence proves a required outcome is violated; `complete-qa`
+  records a `QA_FAILURE_ATTRIBUTION_REQUIRED` blocker and the host performs
+  attribution/remediation.
 - `INCONCLUSIVE` means evidence is insufficient to prove correctness or failure;
-  the affected run path becomes `BLOCKED` until capability/environment/context
-  recovery succeeds.
+  `complete-qa` records a `QA_INCONCLUSIVE` blocker until
+  capability/environment/context recovery succeeds.
+
+After a passed QA report, the host runs:
+
+```text
+squad.mjs complete-run --run <run.yaml>
+squad.mjs verify-run <run-id> --run <run.yaml> --final
+```
+
+`complete-run` requires `COMPLETING`, all work units `DONE`, a passed QA report,
+valid preflight, and a clean target. It writes the final summary and commits
+`COMPLETING → RUN_COMPLETED`; `verify-run --final` then verifies that terminal
+projection without mutating it.
 
 Missing capability is inconclusive only when it is required for the affected
 criterion. An unavailable mobile device does not block a run that only requires
@@ -799,7 +1103,8 @@ NEW REQUIREMENT
 → behavior expands the agreed outcome; source revision/user decision is needed
 ```
 
-For a `DEFECT`, create a durable first-class `REM-*` record linked to:
+For a `DEFECT`, the host's admitted remediation/provisioning controller must
+create a durable first-class `REM-*` record linked to:
 
 ```text
 run
@@ -811,6 +1116,12 @@ scope boundary
 worker/reviewer ownership
 attempt and evidence history
 ```
+
+The bundled `squad.mjs` command package does not create a new `REM-*` record;
+it only executes an already admitted work-unit state. Do not create a
+remediation by routine raw YAML mutation. If the host remediation controller is
+unavailable, preserve the QA evidence and block/escalate instead of claiming a
+new scope or hidden work unit.
 
 A `REM-*` uses the same work-unit lifecycle and gates. A relevant existing role
 may be reused when trustworthy, but the remediation receives a new attempt and
@@ -944,7 +1255,9 @@ worktrees, agents, operations, and saved context before restoring the prior run
 state.
 
 For user cancellation, perform the same controlled stop and persist
-`RUN_CANCELLED`. Preserve evidence. `RUN_ABORTED` is reserved for an
+`RUN_CANCELLED` with `transition-run`. Preserve evidence. For a pause, after
+tracked jobs are stopped/quiesced, use `resume-run` later; it performs preflight
+before restoring `PAUSED → EXECUTING`. `RUN_ABORTED` is reserved for an
 unrecoverable host/system/integrity failure after recovery is exhausted. Both
 are non-success.
 
@@ -984,13 +1297,17 @@ it.
 The run has a separate lifecycle from work units:
 
 ```text
-EXECUTING
-→ RUN_VALIDATING
-→ QA
-→ REMEDIATING → EXECUTING
-→ COMPLETING
-→ RUN_COMPLETED
+EXECUTING --transition-run--> RUN_VALIDATING --prepare-qa--> QA
+QA --complete-qa(PASSED)--> COMPLETING
+QA --complete-qa(FAILED|INCONCLUSIVE)--> BLOCKED
+REMEDIATING → EXECUTING
+COMPLETING --complete-run--> RUN_COMPLETED
 ```
+
+The typed run commands are deliberately separate from work-unit commands:
+`transition-run` commits an explicitly legal run transition, `prepare-qa`
+creates the run-level operation/handoff, `complete-qa` consumes the exact QA
+report, and `complete-run` is the only normal success terminalization path.
 
 Run-level `BLOCKED`, `PAUSED`, `RUN_CANCELLED`, and `RUN_ABORTED` are distinct.
 Only `RUN_COMPLETED` means success.
@@ -1001,7 +1318,8 @@ Before `RUN_COMPLETED`, the host verifies:
 
 - every original in-scope Required and Optional ticket is `DONE`;
 - every accepted in-scope `REM-*` is `DONE`;
-- every required core criterion is `VERIFIED`;
+- every required core criterion is `VERIFIED` with the selected purpose boundary;
+- every completion record/projection uses `[x]` for production or `[P]` for prototype; the canonical ticket contract remains immutable;
 - QA coverage satisfies every declared evidence boundary;
 - QA revalidation has closed every material finding;
 - no material operation is `UNKNOWN` or an uncommitted transition exists;
@@ -1019,18 +1337,13 @@ transitions, QA evidence, and remediation records. Mark them cleanup-eligible
 only after the terminal snapshot is durable and no recovery path depends on
 them.
 
-Cleanup requires an explicit user-invoked operation:
-
-```text
-prepare cleanup operation
-→ persist and verify intent
-→ inspect eligibility
-→ execute idempotent/reconcilable cleanup
-→ persist and verify result
-```
-
-An unknown cleanup result is reconciled by inspecting actual artifact existence;
-it is never blindly repeated. Cleanup does not alter the run's terminal outcome.
+This package intentionally has **no cleanup command**. It retains worktrees,
+reports, ledgers, transitions, and evidence. If a separate host-level cleanup
+controller is explicitly authorized, that controller must persist intent,
+inspect eligibility, execute an idempotent/reconcilable cleanup, and retain the
+run summary/terminal evidence. An unknown cleanup result is reconciled by
+inspecting actual artifact existence; it is never blindly repeated. Cleanup
+does not alter the run's terminal outcome.
 
 ## 12. User-facing reporting
 
@@ -1063,6 +1376,9 @@ Never hide uncertainty behind a green summary.
 Before claiming a run or a skill execution is complete, verify:
 
 - one canonical ticket source was used;
+- purpose was resolved and persisted before first dispatch;
+- production uses `default`/`tdd` only, while prototype has no production implementation mode;
+- prototype scope covers the selected E2E journey from entry point to user outcome;
 - complete graph admission passed before first dispatch;
 - project root, clean target, branch, and baseline were recorded;
 - system capacity was not managed through a host-side worker cap;
@@ -1070,11 +1386,17 @@ Before claiming a run or a skill execution is complete, verify:
 - overlap was evaluated from declared, topology, and actual scope evidence;
 - every role handoff passed schema and freshness validation;
 - queued versus running agent state was not confused with progress;
-- every side effect has operation identity and reconciliation semantics;
+- every side effect has logical operation identity, unique operation instance, and reconciliation semantics;
+- every external agent job binding is attributable to run, unit, operation instance, provider, and attempt;
 - every lifecycle change has a committed transition identity;
+- active handoffs are separated from immutable historical evidence;
 - every reviewer approval is explicit, authorized, fresh, and exact-revision;
-- every ticket `DONE` passed integration and canonical checklist gates;
+- every ticket `DONE` passed exact integration and host validation evidence gates;
+- acceptance status records the purpose and uses `[x]` for production or `[P]` for prototype;
+- acceptance status is a projection and canonical contract digests remain attributable;
+- environment blockers and reference snapshots have precise fingerprints/provenance;
 - run-level QA used the appropriate outcome/evidence boundary;
+- prototype QA exercised the complete declared E2E journey and recorded fake boundaries;
 - every QA failure was attributed before remediation;
 - no hidden scope was created;
 - all routine recovery happened autonomously;

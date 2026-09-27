@@ -16,17 +16,21 @@ flowchart TD
     selectTicket -->|Yes| active["Select ticket in dependency order"]
     selectTicket -->|Blocked| pauseBlocked["Stop and report unfinished blockers"]
     selectTicket -->|None| complete["Stop: source already complete"]
-    selectPlan --> mode["Ask mode once unless explicit"]
-    active --> mode
-    mode --> clean{"Project tree clean?"}
+    selectPlan --> purpose["Resolve purpose once unless explicit"]
+    active --> purpose
+    purpose --> mode["For production: resolve default/tdd"]
+    purpose --> clean{"Project tree clean?"}
+    mode --> clean
     clean -->|No| pauseClean["Ask: commit, stash, or stop"]
     pauseClean --> clean
     clean -->|Yes| inspect["Read active unit and explore codebase"]
-    inspect --> implement{"Mode?"}
-    implement -->|default| default["Implement and test"]
-    implement -->|tdd| tdd["Red, Green, Refactor"]
+    inspect --> implement{"Purpose / mode?"}
+    implement -->|production/default| default["Implement and test"]
+    implement -->|production/tdd| tdd["Red, Green, Refactor"]
+    implement -->|prototype| prototype["Implement E2E journey"]
     default --> verify["Run normal verification"]
     tdd --> verify
+    prototype --> verify
     verify -->|Failure, attempts < 3| fix["Host fixes and retries"]
     fix --> verify
     verify -->|Third failure| pauseVerify["Pause and ask user"]
@@ -48,7 +52,7 @@ flowchart TD
     verifyUpdate -->|Third failure| pauseUpdate["Pause; preserve code commit"]
     verifyUpdate -->|Verified| more{"More unfinished units?"}
     more -->|Yes| next["Select next phase or executable ticket"]
-    next --> mode
+    next --> purpose
     more -->|No| done["Stop: every unit approved and complete"]
 ```
 
@@ -71,16 +75,21 @@ Do not silently combine a plan and ticket set. If both exist and the user did no
 1. Read `_xzy-ai/sprints/<backlog>/plans/features/<NNN>/plan.md`.
 2. Extract the feature identity, architectural decisions, phase order, user stories, `What to build`, and acceptance criteria.
 3. Select the explicitly named phase or the first unfinished phase.
-4. Skip a phase only when all of its acceptance criteria are checked.
+4. Skip a phase only when all of its acceptance criteria use the selected
+   purpose marker: `[x]` for `production` or `[P]` for `prototype`.
 5. If all phases are complete, stop without a commit.
 
 ### Ticket mode
 
 1. Read `_xzy-ai/sprints/<backlog>/tickets.md`.
 2. Resolve every ticket link under `_xzy-ai/sprints/<backlog>/tickets/` and validate that IDs, titles, filenames, traceability, `Blocked by`, `Unblocks`, scope, and acceptance criteria agree with the index.
-3. Select the explicitly named `TNNN` or the first unfinished ticket in the index's dependency order whose ticket blockers all have checked acceptance criteria and whose external prerequisites are explicitly satisfied.
+3. Select the explicitly named `TNNN` or the first unfinished ticket in the
+   index's dependency order whose ticket blockers all use the selected purpose
+   marker (`[x]` for `production`, `[P]` for `prototype`) and whose external
+   prerequisites are explicitly satisfied.
 4. Do not bypass an unfinished blocker or assume an external prerequisite is satisfied. If tickets remain but none is executable, stop and report the blocker IDs or external prerequisites.
-5. If all ticket acceptance criteria are checked, stop without a commit.
+5. If all ticket acceptance criteria use the selected purpose marker, stop
+   without a commit.
 6. A ticket may be small even when the ticket set is long. Never combine multiple tickets into one implementation unit.
 
 ## Implementation-unit cycle
@@ -88,23 +97,50 @@ Do not silently combine a plan and ticket set. If both exist and the user did no
 For each selected phase or ticket, work only on that unit until it is approved and complete:
 
 1. Resolve the unit and record the baseline SHA before changing code.
-2. Ask for `default` or `tdd` once at the start of the run when no mode was explicitly supplied. Apply it to every unit unless a unit-specific override is explicit.
+2. Resolve `production` or `prototype` once at the start of the run when no
+   purpose was explicitly supplied. If the purpose is `production`, ask for
+   `default` or `tdd` when no implementation mode was supplied. Prototype runs
+   do not resolve a production implementation mode. Apply the selected purpose
+   and mode to every unit unless a unit-specific override is explicit.
 3. Inspect `git status`. Existing project-root changes must be handled by asking the user to commit, stash, or stop. Begin only with a clean project-root tree; pre-existing workspace `_xzy-ai/` artifacts are excluded.
 4. Read the unit's complete contract:
    - plan mode: user stories, `What to build`, architectural decisions, and acceptance criteria;
    - ticket mode: `What to build`, proposal traceability, scope boundary, `Blocked by`, and acceptance criteria.
 5. Read architecture guidance, repository instructions, source patterns, relevant tests, and normal verification commands.
-6. Implement directly in the project-root checkout.
-7. For functional units, add or update behavior-focused tests with an oracle independent from the implementation; tautological tests do not count. Name every new or renamed project-owned test file for the subject and behavior it verifies, following the repository's convention. Never use phase, feature, ticket, review, TDD-state, or attempt metadata in that filename (for example, do not create `phase3-events.test.ts` or `phase13-review010.test.ts`); extend an existing semantic test file when appropriate. Reviewer-isolated audit tests are the only exception and use `attempt-<NN>-<semantic-slug>.<ext>` so the slug remains behavior-oriented. Where the contract promises a stable shape or type, vary same-type/category values and assert type-preserving structural invariance without requiring exact dynamic values, including but not limited to IDs, salted/randomized hashes, or randomized encryption/ciphertext. For scaffolding, run applicable syntax/build/config checks.
+6. Implement directly in the project-root checkout. In prototype purpose,
+   implement the complete selected E2E journey from entry point to user outcome
+   and document fake data/state/loading/error/integration boundaries.
+7. For functional production units, add or update behavior-focused tests with
+   an oracle independent from the implementation; prototype units must have a
+   falsifiable interactive verification path for the complete E2E journey.
+   Tautological tests do not count. Name every new or renamed project-owned
+   test file for the subject and behavior it verifies, following the
+   repository's convention. Never use phase, feature, ticket, review,
+   TDD-state, or attempt metadata in that filename (for example, do not create
+   `phase3-events.test.ts` or `phase13-review010.test.ts`); extend an existing
+   semantic test file when appropriate. Reviewer-isolated audit tests are the
+   only exception and use `attempt-<NN>-<semantic-slug>.<ext>` so the slug
+   remains behavior-oriented. Where the contract promises a stable shape or
+   type, vary same-type/category values and assert type-preserving structural
+   invariance without requiring exact dynamic values, including but not limited
+   to IDs, salted/randomized hashes, or randomized encryption/ciphertext. For
+   scaffolding, run applicable syntax/build/config checks.
 8. Run normal project verification. If no command is identifiable, try build, lint, typecheck, then a user-defined command. Ask if none applies.
 9. Retry a failing normal verification up to three self-fix attempts. Do not commit failing work.
-10. Run `impl-reviewer` before committing the unit. Pass `baseline_sha`, `project_root`, `source_kind`, absolute `source_path`, `backlog`, `feature` (`none` for ticket mode), `unit_id`, `mode`, previous progress, and current progress/status. Do not pass a direct contract or report path.
+10. Run `impl-reviewer` before committing the unit. Pass `baseline_sha`,
+    `project_root`, `source_kind`, absolute `source_path`, `backlog`, `feature`
+    (`none` for ticket mode), `unit_id`, `purpose`, `completion_marker`, `mode`
+    (only for production), previous progress, and current progress/status. Do not pass a
+    direct contract or report path.
 11. If the reviewer returns `REJECTED`, fix every remaining finding, rerun normal verification, and resume the same reviewer agent ID for a new review attempt. Repeat until it explicitly returns `verdict: APPROVED`.
 12. If the reviewer is interrupted, resume the same agent ID and same report up to three times. If it still stops, pause and ask the user. If report persistence fails after the reviewer's three write/read-back retries, pause and ask the user; never use an inline-only approval.
 13. After `APPROVED`, commit the unit code/TDD changes, including reviewer direct fixes. Reviewer reports remain workspace-local and are not committed.
 14. Update the source artifact separately:
-    - plan mode: check the completed phase criteria/status in `plan.md`;
-    - ticket mode: check every completed acceptance criterion in the selected ticket file without changing dependency edges or scope.
+    - plan mode: update the completed phase criteria/status in `plan.md` with
+      `[x]` for production or `[P]` for prototype;
+    - ticket mode: update every completed acceptance criterion in the selected
+      ticket file with the same purpose-specific marker without changing
+      dependency edges or scope.
 15. Read back and verify the source update. Retry it up to three times; if it remains unsuccessful, preserve the code commit, do not advance, and ask the user.
 16. Begin the next phase or executable ticket only after both the code commit and source update succeed.
 

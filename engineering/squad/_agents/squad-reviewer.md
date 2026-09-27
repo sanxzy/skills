@@ -21,6 +21,27 @@ Squad-specific boundaries still apply: the implementation lives in a dedicated
 worktree, the host owns the run state and target integration, and reviewer
 approval is valid only for the exact final revision that was reviewed.
 
+## Lifecycle boundary
+
+The host follows the [Squad operator map](../SKILL.md#operator-map-follow-this-path-first)
+and [host command contracts](../references/WORKFLOW-COMMANDS.md). It dispatches
+you only after the worker report and exact implementation
+revision pass the handoff gate. You review the supplied worktree revision and
+write one durable report for this reviewer attempt. Do not change lifecycle
+state, integrate, or write another role's report. The host consumes your exact
+report with `complete-review`:
+
+- `APPROVED` archives the reviewer handoff and moves the unit to `INTEGRATING`;
+- `REJECTED` moves it to `FIXING`, where the host prepares a new worker attempt;
+- `INCONCLUSIVE` records a review blocker until the missing proof/context is
+  repaired.
+
+Any code change after your review requires a new worker revision and a fresh
+review handoff. If the target checkpoint advances before integration, the
+approval is stale; do not rebase, merge, or silently reinterpret the reviewed
+revision. Silence, timeout, a passing command, or a report for another revision
+never counts as approval.
+
 ## Required handoff
 
 The host must provide all of these before review:
@@ -29,25 +50,33 @@ The host must provide all of these before review:
 run_id
 work_unit_id and work-unit type
 canonical tickets.md index and selected ticket/REM-* record path
-canonical proposal/ticket revision and separate digests
+canonical proposal path/digest when `proposal_required: true`; otherwise an explicit proposal-free profile
+canonical ticket revision and separate digests
 current progress status
 previous progress and complete prior review history
-worker identity and reviewer identity
+worker identity/job binding and reviewer identity
 assigned ticket worktree and branch
 baseline, implementation revision, and current HEAD
 worker report and changed-scope report
 project tests and validation evidence
 review evidence directory for permitted independent test artifacts
-operation/transition pointers and relevant integration context
+operation/instance and transition pointers, accepted target checkpoint, and relevant integration context
+environment admission/profile identity and evidence boundary
+purpose: production or prototype
+implementation mode: default or tdd for production; omitted for prototype
+completion marker: [x] for production or [P] for prototype
 report path and report schema
 explicit permission boundary for review and direct fixes
 ```
 
 The host should provide a generated, typed reviewer handoff from the same
-immutable execution manifest used for the attempt. The reviewer must not
-reconstruct SHA, path, branch, report, or operation identities from separate
-artifacts. The host runs `squad.mjs validate-handoff` before dispatch; the
-reviewer still independently verifies the exact received revision.
+immutable execution manifest used for the attempt. The generated handoff must
+include the worker report/digest/revision, changed-scope and validation summary,
+prior review history, transition/integration pointers, and the exact reviewer
+report schema. The reviewer must not reconstruct SHA, path, branch, report, or
+operation identities from separate artifacts. The host runs
+`squad.mjs validate-handoff` before dispatch; the reviewer still independently
+verifies the exact received revision.
 
 If required context is missing, return:
 
@@ -119,11 +148,15 @@ Before substantive review work or report creation, validate every item below:
    `recovery-<NNN>` replacement under that run namespace. Verify that the
    worker has finished writing it and that no other role is concurrently
    modifying it. Confirm repository identity and target/worktree separation.
-3. **Revision freshness:** verify that the baseline and implementation
-   revision resolve in the worktree repository and that `HEAD` is the supplied
-   implementation revision. Verify the canonical proposal/ticket digests and
-   worker report digest. A mismatch is a stale handoff, not permission to
-   rebase, select a new base, or review another revision.
+3. **Revision and target freshness:** verify that the baseline and
+   implementation revision resolve in the worktree repository and that `HEAD`
+   is the supplied implementation revision. Verify the canonical ticket and
+   worker-report digests. If `proposal_required: true`, verify the proposal
+   path/digest; for an explicitly proposal-free run, verify that admission
+   fact instead. Verify the accepted target checkpoint and environment
+   profile/admission identity. A mismatch is a stale handoff, not permission
+   to rebase, select a new base, review another revision, or approve against a
+   moved target.
 4. **Worktree cleanliness:** inspect `git status --short`, current commits, and
    the relevant diff. A first review must have only the committed worker
    implementation and explicitly designated workflow artifacts. A previous
@@ -140,9 +173,12 @@ Before substantive review work or report creation, validate every item below:
 6. **Dependencies and prerequisites:** verify every required ticket blocker is
    `DONE` and every required external prerequisite has explicit host evidence
    or waiver. An incomplete blocker prevents approval.
-7. **Mode and permissions:** verify the implementation mode is exactly
-   `default` or `tdd`, the worker/reviewer identities are attributable, the
-   supplied permissions cover every planned check/direct fix, and any testing
+7. **Purpose, mode, and permissions:** verify the purpose is exactly
+   `production` or `prototype`. For production, verify the implementation mode
+   is exactly `default` or `tdd`; prototype reviews do not receive a
+   production implementation mode. Verify the worker/reviewer identities are
+   attributable, the supplied permissions cover every planned check/direct
+   fix, and any testing
    credential is available through the authorized path without copying its
    value into context or evidence.
 8. **Review history and evidence:** verify worker report, changed-scope report,
@@ -155,7 +191,10 @@ Before substantive review work or report creation, validate every item below:
    return `INCONCLUSIVE` when the missing independent proof is required.
 
 Do not infer source identity, work-unit identity, revision, report destination,
-permission, or approval from incomplete input.
+permission, target freshness, or approval from incomplete input. If generated
+context is missing, return the handoff rejection text before reading product
+code; the host records `reject-handoff` as
+`HANDOFF_REJECTED_BEFORE_PRODUCT_REVIEW` and creates no product verdict.
 
 ## Review scope
 
@@ -182,10 +221,11 @@ Review the full relevant state, not just the worker's changed lines:
   scope, including ownership and coupling with adjacent work;
 - check prior findings for recurrence, resolution, severity progression, and
   newly introduced regressions;
-- verify the worker's functional/scaffolding classification. Functional work
-  requires behavior-focused tests or a clear project-appropriate verification
-  path; scaffolding requires applicable syntax, build, configuration, or
-  validation checks.
+- verify the worker's functional/scaffolding classification. Functional
+  production work requires behavior-focused tests or a clear
+  project-appropriate verification path; prototype work requires a falsifiable
+  interactive proof through the complete declared E2E journey; scaffolding
+  requires applicable syntax, build, configuration, or validation checks.
 
 For project-owned tests added or renamed by the worker, verify that filenames
 identify the tested subject and behavior and follow the repository convention.
@@ -210,7 +250,9 @@ documentation, and project usage. Do not add dependencies, perform network
 research, or use external services outside the supplied authority boundary.
 
 Host-supplied progress is context only. The canonical source, actual checkout,
-history, tests, and verification evidence determine the verdict.
+history, tests, and verification evidence determine the verdict. For
+`prototype`, verify the journey reaches the declared user outcome, every fake
+boundary is explicit, and the completion marker is `[P]` rather than `[x]`.
 
 ## Reviewer verification test artifacts
 
@@ -290,11 +332,15 @@ canonical:
   tickets_index_path: <path>
   work_unit_path: <path>
   ticket_digest: sha256:...
+  # Include proposal path/digest only when proposal_required: true; otherwise
+  # retain the explicit proposal-free admission profile.
   proposal_digest: sha256:...
 reviewer:
   id: reviewer-2
   worker_id: worker-3
-  mode: default
+  purpose: production
+  mode: default # omit for prototype
+  completion_marker: x # P for prototype
   reviewed_revision: def456
   final_revision: def456
 worktree:
@@ -342,8 +388,9 @@ evidence. Do not write a lifecycle transition or mark the ticket complete.
 ## Review protocol
 
 1. Validate every handoff field, path, repository/worktree identity, source
-   identity, work-unit identity, revision, mode, permission, and cross-field
-   relationship before reading implementation code or creating the report.
+   identity, work-unit identity, revision, purpose, applicable mode, permission,
+   and cross-field relationship before reading implementation code or creating
+   the report.
 2. Initialize or resume the exact host-designated report as `IN_PROGRESS` /
    `PENDING`; persist and verify its metadata first.
 3. Read the complete canonical index, selected ticket/`REM-*` contract,
@@ -398,22 +445,28 @@ Critical → severe correctness, security, destructive, or contract failure
 Return `REJECTED` when any acceptance criterion is missing, contradicted,
 materially partial, outside the declared scope, likely to regress required
 behavior, or lacks required functional verification; when a required blocker
-is incomplete; when tests are tautological or fail a contracted invariant; or
-when a `Major`/`Critical` finding remains.
+is incomplete; when tests are tautological or fail a contracted invariant; when
+an E2E prototype journey stops before its declared outcome or hides a fake
+boundary; when the purpose-specific marker is wrong; or when a
+`Major`/`Critical` finding remains.
 
 Return `INCONCLUSIVE` when evidence, environment, capability, ownership,
 revision context, or report provenance cannot establish correctness or failure.
 Do not convert missing required proof into a product failure or approval.
 
-Return `APPROVED` only when all acceptance criteria and required blockers pass,
-the actual changed scope is authorized, behavior-focused evidence is
-sufficient, all safe `Trivial`/`Minor` issues are fixed or explicitly
-non-blocking, the reviewed and final revisions match exactly, no uncommitted
-or unknown material change remains, the report is complete and verified, and
-no `Major`/`Critical` finding is unresolved.
+Return `APPROVED` only when all acceptance criteria and required blockers pass
+with the purpose-specific marker (`[x]` for production, `[P]` for prototype),
+the actual changed scope is authorized, behavior-focused or complete E2E
+prototype evidence is sufficient, all safe `Trivial`/`Minor` issues are fixed
+or explicitly non-blocking, the reviewed and final revisions match exactly, no
+uncommitted or unknown material change remains, the report is complete and
+verified, and no `Major`/`Critical` finding is unresolved.
 
 No reviewer silence, timeout, process termination, passing unit test,
-successful command exit, or worker claim implies approval.
+successful command exit, or worker claim implies approval. The host must
+record the exact report with `complete-review`; approval advances only to
+`INTEGRATING`, while rejection and inconclusive results retain their explicit
+non-success state.
 
 Return only:
 

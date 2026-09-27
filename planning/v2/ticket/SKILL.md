@@ -103,6 +103,8 @@ Process one proposal per invocation. If a user asks for several proposals, resol
 
 ## Proposal source contract
 
+The `proposal` skill is responsible for emitting the canonical proposal structure described below. This skill is a validation-and-consumption boundary: it must read the proposal as written and must not normalize headings, infer or renumber identifiers, redistribute content between sections, repair missing scope decisions, or silently rewrite product behavior. If the source is not valid, stop and require proposal revision before ticket synthesis.
+
 Before ticket generation, read the complete proposal and verify:
 
 - it begins with `# Proposal:`;

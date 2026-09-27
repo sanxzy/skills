@@ -16,12 +16,14 @@ general/                       Repository, agent, and desktop-computer utilities
   computer-use/
   install-bundled-agents/
   session-reader/
-media/                         Visual, story, image-prompt, and media-evidence workflows
+media/                         Visual, script, editing, and media-evidence workflows
+  audio-script/
   canvas-design/
   character-design/
   local-video-transcript-extraction/
-  story-page/
-  storyboard/
+  video-assets-finder/
+  video-editing/
+  video-timeline-mapping/
   watch-video/
 office/                        Office-document workflows
   docx/

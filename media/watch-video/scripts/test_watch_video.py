@@ -24,8 +24,9 @@ from media_cache import AUDIO_NAME, ensure_audio, ensure_video, load_video, medi
 from resolve_media import YtDlpTool, find_yt_dlp, normalize_metadata, resolve_media  # noqa: E402
 from timeline import focus_ranges_from_matches, search_transcript  # noqa: E402
 from translate_transcript import translate_segments  # noqa: E402
-from transcript import _subtitle_choices, acquire_subtitles, choose_subtitle_track, normalize_segments, parse_caption_text, segments_from_artifact, TranscriptSegment  # noqa: E402
+from transcript import _subtitle_choices, acquire_subtitles, choose_subtitle_track, normalize_segments, parse_caption_text, segments_from_artifact, SubtitleChoice, SubtitleResult, TranscriptSegment, TranscriptQuality  # noqa: E402
 from watch_video import WatchConfig, _parser, run_watch  # noqa: E402
+from youtube_caption_fallback import YoutubeCaptionData, YoutubeCaptionTrack, acquire_youtube_subtitles, fetch_youtube_captions, youtube_video_id  # noqa: E402
 
 
 class WatchVideoHelpersTest(unittest.TestCase):
@@ -869,6 +870,155 @@ class WatchVideoHelpersTest(unittest.TestCase):
             for path in task_files:
                 if path.is_file():
                     self.assertRegex(path.name, r"^\d{3}-", path)
+
+    def test_youtube_caption_fallback_keeps_existing_artifact_contract(self):
+        from io import BytesIO
+
+        class Response(BytesIO):
+            headers = {}
+
+        url = "https://www.youtube.com/watch?v=WXPtmgqkuLo"
+        signed_url = "https://www.youtube.com/api/timedtext?v=WXPtmgqkuLo&token=private"
+        player = {
+            "playabilityStatus": {"status": "OK"},
+            "videoDetails": {
+                "videoId": "WXPtmgqkuLo", "title": "Blogger Case",
+                "author": "Kamar Film", "lengthSeconds": "12",
+            },
+            "captions": {"playerCaptionsTracklistRenderer": {"captionTracks": [
+                {"languageCode": "en", "baseUrl": "https://www.youtube.com/api/timedtext?lang=en", "kind": "asr"},
+                {"languageCode": "id", "baseUrl": signed_url, "kind": "asr"},
+            ]}},
+        }
+        requests = []
+
+        def opener(request, **kwargs):
+            requests.append((request.full_url, kwargs["timeout"]))
+            if request.full_url.startswith("https://www.youtube.com/watch?"):
+                return Response(b'<script>"INNERTUBE_API_KEY":"api-key"</script>')
+            if "/youtubei/v1/player?" in request.full_url:
+                self.assertEqual(json.loads(request.data)["videoId"], "WXPtmgqkuLo")
+                return Response(json.dumps(player).encode())
+            if request.full_url == signed_url:
+                return Response(b'<transcript><text start="1" dur="2">Halo &amp; dunia</text>'
+                                b'<text start="3" dur="2">kata kedua</text></transcript>')
+            self.fail(f"unexpected request: {request.full_url}")
+
+        self.assertEqual(youtube_video_id(url), "WXPtmgqkuLo")
+        self.assertIsNone(youtube_video_id("https://youtube.com.evil.test/watch?v=WXPtmgqkuLo"))
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            data = fetch_youtube_captions(url, opener=opener)
+            self.assertEqual(data.info["title"], "Blogger Case")
+            self.assertNotIn("token", json.dumps(data.info))
+            result = acquire_youtube_subtitles(
+                data, root / "001-subtitles", preferred_languages=("id",),
+                max_attempts=1, opener=opener,
+            )
+            self.assertEqual(result.status, "usable")
+            self.assertEqual(result.choice.language, "id")
+            self.assertEqual(result.choice.source, "automatic")
+            self.assertEqual([s.text for s in result.segments], ["Halo & dunia", "kata kedua"])
+            self.assertTrue(result.path.is_file())
+            self.assertIn("WEBVTT", result.path.read_text())
+            self.assertEqual(len(requests), 3)
+            self.assertNotIn("private", " ".join(result.warnings))
+
+            with patch("watch_video.ensure_video", side_effect=WatchVideoError("page needs to be reloaded", status="source_unavailable")), \
+                 patch("watch_video.resolve_media", side_effect=WatchVideoError("page needs to be reloaded", status="source_unavailable")), \
+                 patch("watch_video.fetch_youtube_captions", return_value=data), \
+                 patch("watch_video.acquire_youtube_subtitles", return_value=result), \
+                 patch("watch_video.acquire_subtitles", side_effect=AssertionError("yt-dlp subtitle must not retry")):
+                context = run_watch(WatchConfig(
+                    url=url, workspace=root, media_cache_root=root / "media-cache",
+                    visual="never", cache="off", task_name="fallback-test",
+                ))
+            self.assertEqual(context["status"], "complete")
+            self.assertEqual(context["content"]["transcript_source"], "automatic")
+            self.assertEqual(context["source"]["title"], "Blogger Case")
+            self.assertNotIn("private", json.dumps(context))
+            for key in ("metadata", "transcript", "transcript_markdown", "timeline", "context"):
+                path = root / context["artifacts"][key]
+                self.assertTrue(path.is_file(), key)
+                self.assertRegex(path.name, r"^\d{3}-")
+            saved = json.loads((root / context["artifacts"]["transcript"]).read_text())
+            self.assertEqual(saved["segments"][0]["text"], "Halo & dunia")
+            self.assertIn("Halo & dunia", (root / context["artifacts"]["transcript_markdown"]).read_text())
+
+    def test_youtube_caption_fallback_rejects_mismatched_video_and_signed_url(self):
+        from io import BytesIO
+
+        class Response(BytesIO):
+            headers = {}
+
+        def opener(request, **kwargs):
+            if "/watch?" in request.full_url:
+                return Response(b'"INNERTUBE_API_KEY":"key"')
+            return Response(json.dumps({
+                "playabilityStatus": {"status": "OK"},
+                "videoDetails": {"videoId": "abcdefghijk", "title": "Wrong video"},
+                "captions": {"playerCaptionsTracklistRenderer": {"captionTracks": [
+                    {"languageCode": "id", "baseUrl": "https://attacker.example/caption?token=private"},
+                ]}},
+            }).encode())
+
+        with self.assertRaisesRegex(WatchVideoError, "different video"):
+            fetch_youtube_captions("https://youtu.be/WXPtmgqkuLo", opener=opener)
+
+    def test_youtube_caption_fallback_runs_after_unusable_yt_dlp_subtitles(self):
+        url = "https://www.youtube.com/watch?v=WXPtmgqkuLo"
+        unavailable = SubtitleResult("unavailable", None, None, (), None, None, ("primary caption unavailable",))
+        quality = TranscriptQuality(True, 1, 1, 0, 0, 1.0, "timestamped caption cues are usable", True, "high")
+        available = SubtitleResult(
+            "usable", SubtitleChoice("id", "automatic"), None,
+            (TranscriptSegment(0.5, 2.0, "Halo dunia"),), quality, None,
+            ("direct YouTube caption-track fallback was used",),
+        )
+        data = YoutubeCaptionData(
+            "WXPtmgqkuLo", {"extractor_key": "Youtube", "id": "WXPtmgqkuLo"},
+            (YoutubeCaptionTrack("id", "automatic", "https://www.youtube.com/api/timedtext"),),
+        )
+        resolved = SimpleNamespace(
+            source={"url": url, "platform": "youtube", "id": "WXPtmgqkuLo", "duration": 5},
+            info={"automatic_captions": {"id": [{"ext": "vtt"}]}}, tool="yt-dlp",
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            with patch("watch_video.ensure_video", side_effect=WatchVideoError("download unavailable")), \
+                 patch("watch_video.resolve_media", return_value=resolved), \
+                 patch("watch_video.acquire_subtitles", return_value=unavailable) as primary, \
+                 patch("watch_video.fetch_youtube_captions", return_value=data) as fallback, \
+                 patch("watch_video.acquire_youtube_subtitles", return_value=available) as captions:
+                context = run_watch(WatchConfig(
+                    url=url, workspace=root, media_cache_root=root / "media-cache",
+                    cache="off", visual="never", task_name="failed-primary-caption",
+                ))
+            primary.assert_called_once()
+            fallback.assert_called_once()
+            captions.assert_called_once()
+            self.assertEqual(context["status"], "complete")
+            self.assertEqual(context["content"]["transcript_source"], "automatic")
+            self.assertEqual(context["source"]["id"], "WXPtmgqkuLo")
+            self.assertEqual(
+                json.loads((root / context["artifacts"]["transcript"]).read_text())["segments"][0]["text"],
+                "Halo dunia",
+            )
+
+    def test_youtube_caption_fallback_does_not_relabel_missing_or_locked_video(self):
+        url = "https://www.youtube.com/watch?v=WXPtmgqkuLo"
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            config = WatchConfig(
+                url=url, workspace=root, media_cache_root=root / "media-cache",
+                visual="never", cache="off", task_name="locked-video",
+            )
+            with patch("watch_video.ensure_video", side_effect=WatchVideoError("not downloaded", status="source_unavailable")), \
+                 patch("watch_video.resolve_media", side_effect=WatchVideoError("page unavailable", status="source_unavailable")), \
+                 patch("watch_video.fetch_youtube_captions", side_effect=WatchVideoError("login required", status="authentication_required")):
+                context = run_watch(config)
+            self.assertEqual(context["status"], "authentication_required")
+            self.assertFalse(context["content"]["transcript_available"])
+            self.assertNotIn("transcript", context["artifacts"])
 
     def test_persistent_wav_cache_is_created_reused_and_invalidated_on_refresh(self):
         with tempfile.TemporaryDirectory() as temporary:

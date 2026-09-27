@@ -29,7 +29,9 @@ The host must provide every input below:
 | `backlog` | Backlog name from the canonical source path. |
 | `feature` | Feature number from the plan path, or `none` in ticket mode. |
 | `unit_id` | Current phase number in plan mode, or ticket ID such as `T003` in ticket mode. |
-| `mode` | `default` or `tdd`. |
+| `purpose` | `production` or `prototype`. |
+| `mode` | `default` or `tdd` for `production`; omitted for `prototype`. |
+| `completion_marker` | `x` for `production`, `P` for `prototype`. |
 | `previous_progress` | Previous host progress as text, or `None` on the first attempt. Context only. |
 | `current_progress_status` | Current host progress/status as text. Context only. |
 
@@ -63,17 +65,21 @@ Before review work:
 - In ticket mode, require `feature=none`, require `unit_id` to match `T[0-9]{3,}`, require the source index to link an existing ticket with that ID, and require every ticket blocker to be complete before reviewing it as executable. An `External prerequisite` blocker is not complete unless the host supplies explicit evidence that the prerequisite is satisfied.
 - Treat the derived workspace root as `<cwd>` for reviewer test-artifact paths and test execution.
 - Verify that `baseline_sha` resolves in the project-root repository.
-- Accept only `default` or `tdd` for `mode`.
+- Accept only `production` or `prototype` for `purpose`.
+- Require `completion_marker` to match purpose (`x` for production, `P` for
+  prototype).
+- Accept `default` or `tdd` for `mode` only when `purpose=production`; prototype
+  reviews must not receive a production implementation mode.
 - Require `previous_progress` and `current_progress_status` to be text or `None` where specified.
 
 Do not infer a source kind, feature, ticket, phase, or report path from incomplete input.
 
 ## Review scope
 
-- Read the canonical source artifact and identify the selected unit's complete behavior contract and Acceptance Criteria.
-- In plan mode, read the phase's user stories, `What to build`, architectural decisions, and Acceptance Criteria.
-- In ticket mode, read the ticket's proposal traceability, `What to build`, `Why this slice exists`, `Scope boundary`, `Blocked by`, `Unblocks`, Acceptance Criteria, Verification notes, and Out of scope.
-- Verify the full relevant project state in `project_root` against that unit contract.
+- Read the canonical source artifact and identify the selected unit's complete behavior contract, purpose marker, and Acceptance Criteria.
+- In plan mode, read the phase's user stories, `What to build`, architectural decisions, purpose, and Acceptance Criteria.
+- In ticket mode, read the ticket's proposal traceability, `What to build`, `Why this slice exists`, `Scope boundary`, `Blocked by`, `Unblocks`, Acceptance Criteria, Verification notes, Out of scope, and the required `[x]`/`[P]` completion marker.
+- Verify the full relevant project state in `project_root` against that unit contract. For `prototype`, verify the complete selected E2E journey from entry point to user outcome and that every fake boundary is explicit.
 - Inspect `git diff <baseline_sha>...HEAD` for committed unit work.
 - Inspect the uncommitted `git diff` for current host work and reviewer direct fixes.
 - Inspect `git log --oneline <baseline_sha>..HEAD` to see how the implementation evolved.
@@ -147,7 +153,9 @@ Use this report structure, keeping the incremental evidence log when the final s
 **Backlog:** `<backlog>`
 **Feature:** `<feature | none>`
 **Unit:** `<phase number or TNNN>`
-**Mode:** `<default | tdd>`
+**Purpose:** `<production | prototype>`
+**Mode:** `<default | tdd | omitted for prototype>`
+**Completion marker:** `<x | P>`
 **Baseline:** `<baseline_sha>`
 **Project root:** `<project_root>`
 **Source:** `<source_path>`
@@ -242,7 +250,7 @@ You must never commit, amend, or rewrite history. The host commits the implement
 
 ## Verdict rules
 
-Return `REJECTED` if any Acceptance Criterion is missing, contradicted, partially implemented in a material way, untested when functional behavior requires tests, covered only by tautological tests, missing a specified type-preserving structural invariant, blocked by an incomplete ticket or unverified external prerequisite, or likely to regress required behavior.
+Return `REJECTED` if any Acceptance Criterion is missing, contradicted, partially implemented in a material way, untested when functional behavior requires tests, covered only by tautological tests, missing a specified type-preserving structural invariant, blocked by an incomplete ticket or unverified external prerequisite, or likely to regress required behavior. In `prototype`, reject a journey that stops before its declared user outcome, a fake boundary that is hidden or misleading, or a completion claim using `[x]` instead of `[P]`.
 
 A tautological test does not satisfy the gate when it mirrors production algorithms/control flow, compares a result with itself or the same implementation, asserts only private/internal state, or verifies mock calls solely because the implementation makes them. Interaction assertions are acceptable when the interaction itself is part of the observable contract.
 
@@ -250,7 +258,7 @@ When structural invariance is part of the contract, a test that checks only one 
 
 If only Minor or Trivial issues exist, fix them directly in `project_root`, recheck the affected criteria, record the fixes, and return `APPROVED` when all criteria remain satisfied.
 
-Return `APPROVED` only when all Acceptance Criteria are satisfied, all listed blockers are complete, all safe Minor/Trivial findings are fixed or explicitly recorded as not safely fixable, the final report is persisted and verified, and the final report status is `COMPLETE`.
+Return `APPROVED` only when all Acceptance Criteria are satisfied with the selected purpose marker (`[x]` for `production`, `[P]` for `prototype`), all listed blockers are complete, all safe Minor/Trivial findings are fixed or explicitly recorded as not safely fixable, the final report is persisted and verified, and the final report status is `COMPLETE`.
 
 Return `REJECTED` when Blocker, Critical, or Major findings exist, a required blocker is incomplete, or report persistence cannot be completed.
 
@@ -264,7 +272,7 @@ Return `REJECTED` when Blocker, Critical, or Major findings exist, a required bl
 
 ## Process
 
-1. Validate every required input and all path, repository, source identity, unit identity, mode, and cross-field relationships before reviewing code or creating a report.
+1. Validate every required input and all path, repository, source identity, unit identity, purpose, mode, and cross-field relationships before reviewing code or creating a report.
 2. Derive the workspace-local report directory and select the next report number, or resume the existing report for an interrupted invocation.
 3. Create or resume the report as `IN_PROGRESS`/`PENDING`, writing metadata before substantive review work.
 4. Read the canonical plan or ticket index and the selected unit's complete contract and Acceptance Criteria.
