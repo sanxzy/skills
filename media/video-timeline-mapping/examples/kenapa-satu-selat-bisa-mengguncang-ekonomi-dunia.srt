@@ -1,419 +1,865 @@
 1
-00:00:00,000 --> 00:00:06,200
-Pada Agustus dua ribu dua puluh enam, ribuan pelaut masih belum bisa meninggalkan Teluk Persia dengan aman.
+00:00:00,000 --> 00:00:03,550
+Pada Agustus dua ribu dua puluh enam,
+ribuan pelaut
 
 2
-00:00:06,200 --> 00:00:14,200
-Organisasi Maritim Internasional menyebut sekitar enam ribu orang berada di kapal-kapal yang tertahan sejak konflik dimulai.
+00:00:03,550 --> 00:00:07,400
+masih belum bisa meninggalkan
+Teluk Persia dengan aman.
 
 3
-00:00:14,200 --> 00:00:17,700
-Kapal mereka ada, tetapi perjalanan keluar belum aman.
+00:00:07,400 --> 00:00:11,900
+Organisasi Maritim Internasional
+menyebut sekitar enam ribu orang
 
 4
-00:00:17,700 --> 00:00:24,429
-Persoalan di sebuah selat membuat awak kapal menunggu, sementara rantai pengiriman di berbagai negara ikut terganggu.
+00:00:11,900 --> 00:00:16,000
+berada di kapal-kapal yang tertahan
+sejak konflik dimulai.
 
 5
-00:00:26,429 --> 00:00:30,129
-Selat itu adalah Hormuz, di antara Iran dan Oman.
+00:00:16,000 --> 00:00:19,800
+Kapal mereka ada,
+tetapi perjalanan keluar belum aman.
 
 6
-00:00:30,129 --> 00:00:34,729
-Jalur ini menghubungkan Teluk Persia dengan Teluk Oman, lalu Laut Arab.
+00:00:19,800 --> 00:00:23,500
+Persoalan di sebuah selat
+membuat awak kapal menunggu,
 
 7
-00:00:34,729 --> 00:00:41,729
-Kapal yang membawa minyak dari banyak pelabuhan di dalam teluk harus melewatinya untuk mencapai laut di luar.
+00:00:23,500 --> 00:00:27,800
+sementara rantai pengiriman
+di berbagai negara ikut terganggu.
 
 8
-00:00:41,729 --> 00:00:47,429
-Dari sini, perjalanan bisa berlanjut ke pembeli yang berada ribuan kilometer jauhnya.
+00:00:28,200 --> 00:00:31,600
+Selat itu adalah Hormuz,
+di antara Iran dan Oman.
 
 9
-00:00:48,429 --> 00:00:54,429
-Pada bagian tersempit, jarak antara kedua sisi selat sekitar tiga puluh sembilan kilometer.
+00:00:31,600 --> 00:00:36,500
+Jalur ini menghubungkan Teluk Persia
+dengan Teluk Oman, lalu Laut Arab.
 
 10
-00:00:54,429 --> 00:00:59,429
-Tetapi kapal tidak memakai seluruh lebarnya sebagai jalur lalu lintas.
+00:00:36,500 --> 00:00:40,800
+Kapal yang membawa minyak
+dari banyak pelabuhan di dalam teluk
 
 11
-00:00:59,429 --> 00:01:07,429
-Ada jalur masuk dan jalur keluar, masing-masing selebar sekitar tiga koma tujuh kilometer, dengan ruang pemisah di antaranya.
+00:00:40,800 --> 00:00:44,000
+harus melewatinya untuk
+mencapai laut di luar.
 
 12
-00:01:07,429 --> 00:01:12,429
-Memisahkan arah perjalanan membantu kapal yang datang dan pergi melewati kawasan ini dengan lebih teratur.
+00:00:44,000 --> 00:00:46,500
+Dari sini, perjalanan
+bisa berlanjut
 
 13
-00:01:13,429 --> 00:01:21,429
-Pembagian jalur itu diusulkan Iran dan Oman, lalu diadopsi Organisasi Maritim Internasional pada seribu sembilan ratus enam puluh delapan.
+00:00:46,500 --> 00:00:50,000
+ke pembeli yang berada
+ribuan kilometer jauhnya.
 
 14
-00:01:21,429 --> 00:01:25,429
-Tujuannya mengurangi risiko tabrakan dan meningkatkan keselamatan.
+00:00:50,400 --> 00:00:54,000
+Pada bagian tersempit,
+jarak antara kedua sisi selat
 
 15
-00:01:25,429 --> 00:01:29,429
-Jadi, Hormuz tidak semata-mata berupa celah air pada peta.
+00:00:54,000 --> 00:00:56,700
+sekitar tiga puluh sembilan kilometer.
 
 16
-00:01:29,429 --> 00:01:35,286
-Ada aturan perjalanan yang membantu banyak kapal menggunakan ruang yang sama, dengan arah yang sudah dipisahkan.
+00:00:56,700 --> 00:01:01,600
+Tetapi kapal tidak memakai seluruh
+lebarnya sebagai jalur lalu lintas.
 
 17
-00:01:37,286 --> 00:01:43,286
-Muatan yang lewat membuat jalur ini penting jauh di luar kedua negara di tepinya.
+00:01:01,600 --> 00:01:05,950
+Ada jalur masuk dan jalur keluar,
+masing-masing selebar sekitar
 
 18
-00:01:43,286 --> 00:01:49,286
-Pada dua ribu dua puluh lima, sekitar seperempat minyak yang diperdagangkan melalui laut melewati Hormuz.
+00:01:05,950 --> 00:01:10,200
+tiga koma tujuh kilometer,
+dengan ruang pemisah di antaranya.
 
 19
-00:01:49,286 --> 00:01:54,286
-Bayangkan seluruh pengiriman minyak lewat laut dibagi menjadi empat bagian yang sama besar.
+00:01:10,200 --> 00:01:14,600
+Memisahkan arah perjalanan
+membantu kapal yang datang dan pergi
 
 20
-00:01:54,286 --> 00:01:57,786
-Kira-kira satu bagian melewati selat ini.
+00:01:14,600 --> 00:01:17,600
+melewati kawasan ini
+dengan lebih teratur.
 
 21
-00:01:57,786 --> 00:02:01,286
-Gangguan di sini dapat menahan banyak pasokan sekaligus.
+00:01:18,000 --> 00:01:21,100
+Pembagian jalur itu diusulkan
+Iran dan Oman,
 
 22
-00:02:02,286 --> 00:02:06,286
-Sebagian muatannya berupa minyak mentah yang masih harus diolah.
+00:01:21,100 --> 00:01:24,300
+lalu diadopsi Organisasi
+Maritim Internasional
 
 23
-00:02:06,286 --> 00:02:12,286
-Di kilang, minyak itu diubah menjadi bahan seperti bensin, solar, dan bahan bakar pesawat.
+00:01:24,300 --> 00:01:27,500
+pada seribu sembilan ratus
+enam puluh delapan.
 
 24
-00:02:12,286 --> 00:02:15,786
-Muatan lainnya sudah berupa produk hasil pengolahan.
+00:01:27,500 --> 00:01:32,100
+Tujuannya mengurangi risiko tabrakan
+dan meningkatkan keselamatan.
 
 25
-00:02:15,786 --> 00:02:25,000
-Artinya, perjalanan melalui Hormuz berhubungan dengan beberapa tahap pasokan: bahan yang diperlukan kilang, maupun bahan bakar yang akan dipakai setelah sampai di tujuan.
+00:01:32,100 --> 00:01:36,100
+Jadi, Hormuz tidak semata-mata
+berupa celah air pada peta.
 
 26
-00:02:26,000 --> 00:02:29,000
-Banyak pembelinya berada di Asia.
+00:01:36,100 --> 00:01:39,400
+Ada aturan perjalanan yang
+membantu banyak kapal
 
 27
-00:02:29,000 --> 00:02:37,000
-Dalam data dua ribu dua puluh empat, China, India, Jepang, dan Korea Selatan termasuk tujuan utama minyak mentah yang melalui Hormuz.
+00:01:39,400 --> 00:01:43,700
+menggunakan ruang yang sama,
+dengan arah yang sudah dipisahkan.
 
 28
-00:02:37,000 --> 00:02:40,500
-Jarak yang jauh tidak memutus ketergantungan itu.
+00:01:44,100 --> 00:01:47,100
+Muatan yang lewat membuat
+jalur ini penting
 
 29
-00:02:40,500 --> 00:02:47,857
-Kilang di negara pembeli tetap membutuhkan muatan datang sesuai kebutuhan, sementara pelabuhan asalnya berada di sisi dalam teluk.
+00:01:47,100 --> 00:01:49,700
+jauh di luar kedua negara
+di tepinya.
 
 30
-00:02:49,857 --> 00:02:54,357
-Kapal lain membawa gas alam cair, yang sering disebut LNG.
+00:01:49,700 --> 00:01:53,500
+Pada dua ribu dua puluh lima,
+sekitar seperempat minyak
 
 31
-00:02:54,357 --> 00:03:02,357
-Gas didinginkan hingga menjadi cair agar mengambil ruang jauh lebih kecil dan bisa dibawa dalam tangki kapal.
+00:01:53,500 --> 00:01:57,000
+yang diperdagangkan melalui laut
+melewati Hormuz.
 
 32
-00:03:02,357 --> 00:03:06,357
-Di pelabuhan tujuan, cairan itu diubah kembali menjadi gas.
+00:01:57,000 --> 00:02:00,200
+Bayangkan seluruh pengiriman
+minyak lewat laut
 
 33
-00:03:06,357 --> 00:03:11,357
-Setelah itu, gas dapat dialirkan ke pembangkit listrik, pabrik, atau pengguna lain.
+00:02:00,200 --> 00:02:03,300
+dibagi menjadi empat bagian
+yang sama besar.
 
 34
-00:03:11,357 --> 00:03:15,143
-Pengiriman laut menghubungkan produksi gas dengan tempat yang membutuhkannya.
+00:02:03,300 --> 00:02:06,200
+Kira-kira satu bagian
+melewati selat ini.
 
 35
-00:03:16,143 --> 00:03:24,143
-Pada dua ribu dua puluh lima, hampir seperlima perdagangan LNG dunia melewati Hormuz, terutama dari Qatar dan Uni Emirat Arab.
+00:02:06,200 --> 00:02:10,000
+Gangguan di sini dapat menahan
+banyak pasokan sekaligus.
 
 36
-00:03:24,143 --> 00:03:30,143
-Ini jalur pasokan yang berbeda dari minyak, tetapi memakai selat yang sama.
+00:02:10,400 --> 00:02:14,900
+Sebagian muatannya berupa minyak mentah
+yang masih harus diolah.
 
 37
-00:03:30,143 --> 00:03:36,143
-Jika pengirimannya terganggu, pembeli gas juga harus mencari cara memenuhi kebutuhan.
+00:02:14,900 --> 00:02:17,800
+Di kilang, minyak itu diubah
+menjadi bahan
 
 38
-00:03:36,143 --> 00:03:41,857
-Kapal minyak dan kapal gas membuat satu kawasan sempit terhubung dengan banyak jenis penggunaan energi.
+00:02:17,800 --> 00:02:21,100
+seperti bensin, solar,
+dan bahan bakar pesawat.
 
 39
-00:03:43,857 --> 00:03:47,857
-Keterhubungan itu terlihat ketika arus pengiriman berubah.
+00:02:21,100 --> 00:02:24,700
+Muatan lainnya sudah berupa
+produk hasil pengolahan.
 
 40
-00:03:47,857 --> 00:03:59,857
-EIA, lembaga informasi energi Amerika Serikat, memperkirakan rata-rata minyak yang melewati Hormuz pada April hingga Juni dua ribu dua puluh enam tinggal kurang dari seperempat jumlah pada akhir tahun sebelumnya.
+00:02:24,700 --> 00:02:27,100
+Artinya, perjalanan melalui Hormuz
 
 41
-00:03:59,857 --> 00:04:04,857
-Sebagian besar volume pengiriman sebelumnya tidak lagi melewati jalur ini.
+00:02:27,100 --> 00:02:30,100
+berhubungan dengan beberapa
+tahap pasokan:
 
 42
-00:04:04,857 --> 00:04:10,000
-Gangguan yang dibicarakan dunia sudah terlihat dalam perubahan arus minyak yang nyata.
+00:02:30,100 --> 00:02:32,200
+bahan yang diperlukan kilang,
 
 43
-00:04:11,000 --> 00:04:16,500
-Kapal tidak harus menghadapi penghalang yang menutup seluruh lebar selat agar perdagangan terganggu.
+00:02:32,200 --> 00:02:36,400
+maupun bahan bakar yang akan dipakai
+setelah sampai di tujuan.
 
 44
-00:04:16,500 --> 00:04:19,500
-Ancaman terhadap keselamatan sudah dapat menghambat perjalanan.
+00:02:36,800 --> 00:02:39,100
+Banyak pembelinya berada di Asia.
 
 45
-00:04:19,500 --> 00:04:26,500
-Pada Juli dua ribu dua puluh enam, proses evakuasi kapal sempat dihentikan karena keselamatan tidak lagi dapat dipastikan.
+00:02:39,100 --> 00:02:44,300
+Dalam data dua ribu dua puluh empat,
+China, India, Jepang, dan Korea Selatan
 
 46
-00:04:26,500 --> 00:04:33,714
-Di laut yang masih terbuka secara fisik, awak kapal tetap membutuhkan jalan keluar yang aman.
+00:02:44,300 --> 00:02:48,300
+termasuk tujuan utama minyak mentah
+yang melalui Hormuz.
 
 47
-00:04:34,714 --> 00:04:37,114
-Risiko itu juga muncul dalam biaya.
+00:02:48,300 --> 00:02:51,700
+Jarak yang jauh tidak memutus
+ketergantungan itu.
 
 48
-00:04:37,114 --> 00:04:42,714
-Pada bulan yang sama, Organisasi Maritim Internasional memperingatkan mahalnya asuransi laut di kawasan ini.
+00:02:51,700 --> 00:02:53,800
+Kilang di negara pembeli tetap
 
 49
-00:04:42,714 --> 00:04:47,214
-Asuransi merupakan perlindungan keuangan terhadap kerugian yang ditanggung sesuai perjanjian.
+00:02:53,800 --> 00:02:56,800
+membutuhkan muatan datang
+sesuai kebutuhan,
 
 50
-00:04:47,214 --> 00:04:51,714
-Ketika biaya perlindungan meningkat, pemilik dan operator kapal menghadapi beban tambahan.
+00:02:56,800 --> 00:03:00,800
+sementara pelabuhan asalnya
+berada di sisi dalam teluk.
 
 51
-00:04:51,714 --> 00:04:58,285
-Mengirim muatan lewat jalur berisiko dapat menjadi lebih mahal, bahkan ketika perjalanan masih memungkinkan.
+00:03:01,200 --> 00:03:05,300
+Kapal lain membawa gas alam cair,
+yang sering disebut LNG.
 
 52
-00:05:00,285 --> 00:05:03,285
-Dari pelayaran, dampaknya bergerak menuju harga energi.
+00:03:05,300 --> 00:03:10,300
+Gas didinginkan hingga menjadi cair
+agar mengambil ruang jauh lebih kecil
 
 53
-00:05:03,285 --> 00:05:07,285
-Pembeli masih membutuhkan minyak, sementara pasokan yang bisa tiba berkurang.
+00:03:10,300 --> 00:03:12,800
+dan bisa dibawa dalam tangki kapal.
 
 54
-00:05:07,285 --> 00:05:12,285
-Di pasar minyak dunia, keadaan seperti itu dapat mendorong harga naik.
+00:03:12,800 --> 00:03:16,900
+Di pelabuhan tujuan, cairan itu
+diubah kembali menjadi gas.
 
 55
-00:05:12,285 --> 00:05:16,285
-Negara yang membeli dari kawasan lain pun bisa terdampak,
+00:03:16,900 --> 00:03:20,700
+Setelah itu, gas dapat dialirkan
+ke pembangkit listrik,
 
 56
-00:05:16,285 --> 00:05:22,142
-karena pembeli yang kehilangan pasokan mencari pengganti dalam pasar yang juga digunakan negara-negara tersebut.
+00:03:20,700 --> 00:03:22,600
+pabrik, atau pengguna lain.
 
 57
-00:05:23,142 --> 00:05:26,642
-Harga juga dapat bergerak sebelum kekurangan benar-benar dirasakan.
+00:03:22,600 --> 00:03:27,800
+Pengiriman laut menghubungkan produksi
+gas dengan tempat yang membutuhkannya.
 
 58
-00:05:26,642 --> 00:05:34,642
-Pelaku pasar mempertimbangkan risiko pengiriman berikutnya, persediaan yang masih ada, dan kemampuan produsen lain menambah pasokan.
+00:03:28,200 --> 00:03:32,500
+Pada dua ribu dua puluh lima,
+hampir seperlima perdagangan LNG
 
 59
-00:05:34,642 --> 00:05:40,142
-Jika mereka khawatir pasokan akan makin sulit, harga dapat berubah lebih awal.
+00:03:32,500 --> 00:03:36,900
+dunia melewati Hormuz, terutama
+dari Qatar dan Uni Emirat Arab.
 
 60
-00:05:40,142 --> 00:05:45,428
-Karena itu, berita tentang keamanan Hormuz bisa berpengaruh pada pasar meskipun sebuah pengiriman tertentu belum terlambat.
+00:03:36,900 --> 00:03:42,100
+Ini jalur pasokan yang berbeda dari
+minyak, tetapi memakai selat yang sama.
 
 61
-00:05:46,428 --> 00:05:48,428
-Mencari pengganti membutuhkan waktu.
+00:03:42,100 --> 00:03:44,100
+Jika pengirimannya terganggu,
 
 62
-00:05:48,428 --> 00:05:53,428
-Kilang membutuhkan bahan baku, sementara kapal dan fasilitas pengiriman memiliki kapasitas terbatas.
+00:03:44,100 --> 00:03:48,000
+pembeli gas juga harus mencari
+cara memenuhi kebutuhan.
 
 63
-00:05:53,428 --> 00:05:57,428
-Produksi baru tidak bisa ditambah sesuka hati dalam satu hari.
+00:03:48,000 --> 00:03:51,700
+Kapal minyak dan kapal gas
+membuat satu kawasan sempit
 
 64
-00:05:57,428 --> 00:06:00,928
-Pengguna juga tidak selalu bisa segera mengganti bahan bakarnya.
+00:03:51,700 --> 00:03:55,100
+terhubung dengan banyak jenis
+penggunaan energi.
 
 65
-00:06:00,928 --> 00:06:07,857
-Ketika pengiriman terganggu, penyesuaian pasokan dan kebutuhan harus berlangsung bersama, dan prosesnya bisa menimbulkan biaya.
+00:03:55,500 --> 00:03:59,500
+Keterhubungan itu terlihat
+ketika arus pengiriman berubah.
 
 66
-00:06:09,857 --> 00:06:13,857
-Bagi perusahaan, energi adalah biaya untuk menjalankan pekerjaan.
+00:03:59,500 --> 00:04:03,000
+EIA, lembaga informasi energi
+Amerika Serikat,
 
 67
-00:06:13,857 --> 00:06:19,357
-Bahan bakar menggerakkan pengangkutan barang, sementara gas dan listrik menopang berbagai kegiatan industri.
+00:04:03,000 --> 00:04:06,600
+memperkirakan rata-rata minyak
+yang melewati Hormuz
 
 68
-00:06:19,357 --> 00:06:28,357
-Dana Moneter Internasional, atau IMF, menjelaskan bahwa kenaikan biaya energi dapat menekan keuntungan perusahaan dan kemudian ikut mendorong harga barang.
+00:04:06,600 --> 00:04:09,700
+pada April hingga Juni
+dua ribu dua puluh enam
 
 69
-00:06:28,357 --> 00:06:35,571
-Gangguan pelayaran yang jauh dari sebuah pabrik bisa sampai ke pabrik itu melalui biaya yang harus dibayarnya.
+00:04:09,700 --> 00:04:14,200
+tinggal kurang dari seperempat jumlah
+pada akhir tahun sebelumnya.
 
 70
-00:06:36,571 --> 00:06:39,071
-Dampaknya bahkan dapat mencapai pertanian.
+00:04:14,200 --> 00:04:16,400
+Sebagian besar volume pengiriman
 
 71
-00:06:39,071 --> 00:06:43,571
-Gas alam berperan besar dalam biaya pembuatan pupuk seperti urea.
+00:04:16,400 --> 00:04:19,300
+sebelumnya tidak lagi
+melewati jalur ini.
 
 72
-00:06:43,571 --> 00:06:52,071
-Pada Mei dua ribu dua puluh enam, Bank Dunia menjelaskan bahwa gangguan ekspor dan produksi di kawasan Hormuz menekan pasokan pupuk.
+00:04:19,300 --> 00:04:22,500
+Gangguan yang dibicarakan dunia
+sudah terlihat
 
 73
-00:06:52,071 --> 00:06:57,071
-Di India, berkurangnya pasokan LNG turut membatasi produksi urea dan amonia.
+00:04:22,500 --> 00:04:25,300
+dalam perubahan arus minyak
+yang nyata.
 
 74
-00:06:57,071 --> 00:07:01,428
-Pengiriman energi dan pengiriman bahan pertanian ternyata saling berhubungan.
+00:04:25,700 --> 00:04:28,400
+Kapal tidak harus menghadapi
+penghalang
 
 75
-00:07:02,428 --> 00:07:06,928
-Untuk petani, pupuk yang lebih mahal dapat menambah biaya menanam.
+00:04:28,400 --> 00:04:32,600
+yang menutup seluruh lebar selat
+agar perdagangan terganggu.
 
 76
-00:07:06,928 --> 00:07:11,128
-Sementara itu, rumah tangga menghadapi pengeluaran energi yang lebih tinggi.
+00:04:32,600 --> 00:04:37,000
+Ancaman terhadap keselamatan
+sudah dapat menghambat perjalanan.
 
 77
-00:07:11,128 --> 00:07:18,628
-IMF mengingatkan bahwa kenaikan harga bahan bakar dan listrik mengurangi kemampuan keluarga membeli kebutuhan lain.
+00:04:37,000 --> 00:04:42,100
+Pada Juli dua ribu dua puluh enam,
+proses evakuasi kapal sempat dihentikan
 
 78
-00:07:18,628 --> 00:07:25,571
-Dampaknya tidak merata: negara yang banyak mengimpor energi, dan memiliki persediaan terbatas, lebih mudah menghadapi tekanan pasokan.
+00:04:42,100 --> 00:04:45,400
+karena keselamatan tidak lagi
+dapat dipastikan.
 
 79
-00:07:27,571 --> 00:07:30,171
-Mengapa kapal tidak mengambil jalan lain saja?
+00:04:45,400 --> 00:04:48,200
+Di laut yang masih terbuka
+secara fisik,
 
 80
-00:07:30,171 --> 00:07:34,571
-Kapal dari dalam Teluk Persia tetap harus keluar melalui Hormuz.
+00:04:48,200 --> 00:04:51,800
+awak kapal tetap membutuhkan
+jalan keluar yang aman.
 
 81
-00:07:34,571 --> 00:07:39,171
-Memilih perjalanan laut yang lebih panjang tidak menghindari masalah itu.
+00:04:52,200 --> 00:04:54,700
+Risiko itu juga muncul dalam biaya.
 
 82
-00:07:39,171 --> 00:07:44,171
-Untuk sebagian besar muatan, jalan alternatif perlu dimulai sebelum minyak dimuat
+00:04:54,700 --> 00:04:58,450
+Pada bulan yang sama, Organisasi
+Maritim Internasional
 
 83
-00:07:44,171 --> 00:07:46,857
-di pelabuhan yang bergantung pada selat ini.
+00:04:58,450 --> 00:05:02,200
+memperingatkan mahalnya asuransi
+laut di kawasan ini.
 
 84
-00:07:47,857 --> 00:07:53,857
-Arab Saudi dan Uni Emirat Arab memiliki jalur pipa yang membantu melakukan itu.
+00:05:02,200 --> 00:05:05,600
+Asuransi merupakan perlindungan
+keuangan terhadap
 
 85
-00:07:53,857 --> 00:08:01,857
-Minyak dapat dibawa melintasi daratan menuju pelabuhan di luar Hormuz: Yanbu di Laut Merah dan Fujairah di Teluk Oman.
+00:05:05,600 --> 00:05:08,600
+kerugian yang ditanggung
+sesuai perjanjian.
 
 86
-00:08:01,857 --> 00:08:05,357
-Kapal kemudian mengambil muatan dari sana.
+00:05:08,600 --> 00:05:11,100
+Ketika biaya perlindungan meningkat,
 
 87
-00:08:05,357 --> 00:08:09,714
-Dengan mengubah tempat minyak mencapai laut, sebagian pengiriman dapat menghindari selat yang bermasalah.
+00:05:11,100 --> 00:05:14,800
+pemilik dan operator kapal
+menghadapi beban tambahan.
 
 88
-00:08:10,714 --> 00:08:15,214
-Namun, jalur tersebut belum menggantikan seluruh pengiriman yang terganggu.
+00:05:14,800 --> 00:05:19,100
+Mengirim muatan lewat jalur berisiko
+dapat menjadi lebih mahal,
 
 89
-00:08:15,214 --> 00:08:23,214
-Dalam analisis Juli dua ribu dua puluh enam, IMF menyebut pengalihan pasokan hanya menutupi sebagian kehilangan dari Hormuz.
+00:05:19,100 --> 00:05:22,200
+bahkan ketika perjalanan
+masih memungkinkan.
 
 90
-00:08:23,214 --> 00:08:29,214
-Sebagian muatan bisa keluar melalui pelabuhan lain, tetapi jumlahnya belum cukup menggantikan arus sebelumnya.
+00:05:22,600 --> 00:05:26,500
+Dari pelayaran, dampaknya
+bergerak menuju harga energi.
 
 91
-00:08:29,214 --> 00:08:33,000
-Memiliki jalan alternatif membantu; kemampuan mengalihkan pengiriman tetap terbatas.
+00:05:26,500 --> 00:05:28,800
+Pembeli masih membutuhkan minyak,
 
 92
-00:08:35,000 --> 00:08:39,000
-Respons lain datang dari minyak yang sudah disimpan.
+00:05:28,800 --> 00:05:31,800
+sementara pasokan yang bisa
+tiba berkurang.
 
 93
-00:08:39,000 --> 00:08:48,000
-Pada sebelas Maret dua ribu dua puluh enam, negara-negara anggota Badan Energi Internasional sepakat menyediakan sebagian cadangan darurat mereka untuk pasar.
+00:05:31,800 --> 00:05:36,600
+Di pasar minyak dunia, keadaan
+seperti itu dapat mendorong harga naik.
 
 94
-00:08:48,000 --> 00:08:52,000
-Minyak itu disediakan melalui jadwal masing-masing negara.
+00:05:36,600 --> 00:05:40,500
+Negara yang membeli dari kawasan
+lain pun bisa terdampak,
 
 95
-00:08:52,000 --> 00:08:58,571
-Cadangan membantu menghadapi kekurangan sementara; keputusan bersama tersebut tidak berarti seluruh minyaknya tiba di pasar pada hari yang sama.
+00:05:40,500 --> 00:05:44,300
+karena pembeli yang kehilangan
+pasokan mencari pengganti
 
 96
-00:08:59,571 --> 00:09:05,571
-Persediaan memberi waktu untuk menyesuaikan pasokan, tetapi persediaan juga berkurang ketika digunakan.
+00:05:44,300 --> 00:05:48,200
+dalam pasar yang juga digunakan
+negara-negara tersebut.
 
 97
-00:09:05,571 --> 00:09:10,071
-IMF pada Juli mencatat bahwa stok minyak membantu menutup kekurangan selama krisis.
+00:05:48,600 --> 00:05:53,300
+Harga juga dapat bergerak sebelum
+kekurangan benar-benar dirasakan.
 
 98
-00:09:10,071 --> 00:09:16,071
-Untuk memulihkan pengiriman, yang diperlukan bukan hanya laut yang bisa dilalui.
+00:05:53,300 --> 00:05:57,400
+Pelaku pasar mempertimbangkan
+risiko pengiriman berikutnya,
 
 99
-00:09:16,071 --> 00:09:21,071
-Kapal harus dapat beroperasi dengan aman, dan perusahaan perlu kembali yakin untuk menjalankan perjalanan.
+00:05:57,400 --> 00:05:59,300
+persediaan yang masih ada,
 
 100
-00:09:21,071 --> 00:09:23,571
-Pemulihan perdagangan dapat berlangsung bertahap.
+00:05:59,300 --> 00:06:02,400
+dan kemampuan produsen lain
+menambah pasokan.
 
 101
-00:09:24,571 --> 00:09:26,971
-Inilah yang membuat Hormuz penting bagi dunia.
+00:06:02,400 --> 00:06:05,600
+Jika mereka khawatir pasokan
+akan makin sulit,
 
 102
-00:09:26,971 --> 00:09:31,571
-Banyak pengiriman energi bergantung pada jalur yang sama, sementara kemampuan menggantikannya terbatas.
+00:06:05,600 --> 00:06:07,800
+harga dapat berubah lebih awal.
 
 103
-00:09:31,571 --> 00:09:37,571
-Ketika perjalanan terhambat, persoalan meluas ke pasokan, biaya, dan kebutuhan sehari-hari.
+00:06:07,800 --> 00:06:12,600
+Karena itu, berita tentang keamanan
+Hormuz bisa berpengaruh pada pasar
 
 104
-00:09:37,571 --> 00:09:43,571
-Bagi pelaut yang menunggu di dalam teluk, dampaknya langsung terasa sebagai perjalanan yang belum aman.
+00:06:12,600 --> 00:06:16,200
+meskipun sebuah pengiriman
+tertentu belum terlambat.
 
 105
-00:09:43,571 --> 00:09:51,142
-Bagi orang jauh dari sana, dampaknya dapat muncul pada biaya bekerja, mengirim barang, atau memenuhi kebutuhan rumah.
+00:06:16,600 --> 00:06:19,100
+Mencari pengganti membutuhkan waktu.
+
+106
+00:06:19,100 --> 00:06:21,200
+Kilang membutuhkan bahan baku,
+
+107
+00:06:21,200 --> 00:06:26,000
+sementara kapal dan fasilitas pengiriman
+memiliki kapasitas terbatas.
+
+108
+00:06:26,000 --> 00:06:30,300
+Produksi baru tidak bisa ditambah
+sesuka hati dalam satu hari.
+
+109
+00:06:30,300 --> 00:06:34,700
+Pengguna juga tidak selalu bisa
+segera mengganti bahan bakarnya.
+
+110
+00:06:34,700 --> 00:06:39,000
+Ketika pengiriman terganggu,
+penyesuaian pasokan dan kebutuhan
+
+111
+00:06:39,000 --> 00:06:43,400
+harus berlangsung bersama,
+dan prosesnya bisa menimbulkan biaya.
+
+112
+00:06:43,800 --> 00:06:48,300
+Bagi perusahaan, energi adalah
+biaya untuk menjalankan pekerjaan.
+
+113
+00:06:48,300 --> 00:06:51,400
+Bahan bakar menggerakkan
+pengangkutan barang,
+
+114
+00:06:51,400 --> 00:06:55,800
+sementara gas dan listrik menopang
+berbagai kegiatan industri.
+
+115
+00:06:55,800 --> 00:06:59,300
+Dana Moneter Internasional,
+atau IMF, menjelaskan
+
+116
+00:06:59,300 --> 00:07:03,600
+bahwa kenaikan biaya energi
+dapat menekan keuntungan perusahaan
+
+117
+00:07:03,600 --> 00:07:06,500
+dan kemudian ikut mendorong
+harga barang.
+
+118
+00:07:06,500 --> 00:07:09,800
+Gangguan pelayaran yang jauh
+dari sebuah pabrik
+
+119
+00:07:09,800 --> 00:07:14,100
+bisa sampai ke pabrik itu
+melalui biaya yang harus dibayarnya.
+
+120
+00:07:14,500 --> 00:07:17,500
+Dampaknya bahkan dapat
+mencapai pertanian.
+
+121
+00:07:17,500 --> 00:07:22,000
+Gas alam berperan besar dalam
+biaya pembuatan pupuk seperti urea.
+
+122
+00:07:22,000 --> 00:07:26,300
+Pada Mei dua ribu dua puluh enam,
+Bank Dunia menjelaskan bahwa
+
+123
+00:07:26,300 --> 00:07:31,100
+gangguan ekspor dan produksi
+di kawasan Hormuz menekan pasokan pupuk.
+
+124
+00:07:31,100 --> 00:07:33,500
+Di India, berkurangnya pasokan LNG
+
+125
+00:07:33,500 --> 00:07:36,300
+turut membatasi produksi
+urea dan amonia.
+
+126
+00:07:36,300 --> 00:07:41,500
+Pengiriman energi dan pengiriman bahan
+pertanian ternyata saling berhubungan.
+
+127
+00:07:41,900 --> 00:07:46,500
+Untuk petani, pupuk yang lebih mahal
+dapat menambah biaya menanam.
+
+128
+00:07:46,500 --> 00:07:51,700
+Sementara itu, rumah tangga menghadapi
+pengeluaran energi yang lebih tinggi.
+
+129
+00:07:51,700 --> 00:07:56,100
+IMF mengingatkan bahwa kenaikan
+harga bahan bakar dan listrik
+
+130
+00:07:56,100 --> 00:07:59,900
+mengurangi kemampuan keluarga
+membeli kebutuhan lain.
+
+131
+00:07:59,900 --> 00:08:04,000
+Dampaknya tidak merata:
+negara yang banyak mengimpor energi,
+
+132
+00:08:04,000 --> 00:08:08,900
+dan memiliki persediaan terbatas,
+lebih mudah menghadapi tekanan pasokan.
+
+133
+00:08:09,300 --> 00:08:12,500
+Mengapa kapal tidak
+mengambil jalan lain saja?
+
+134
+00:08:12,500 --> 00:08:17,000
+Kapal dari dalam Teluk Persia
+tetap harus keluar melalui Hormuz.
+
+135
+00:08:17,000 --> 00:08:22,100
+Memilih perjalanan laut yang lebih
+panjang tidak menghindari masalah itu.
+
+136
+00:08:22,100 --> 00:08:25,200
+Untuk sebagian besar muatan,
+jalan alternatif
+
+137
+00:08:25,200 --> 00:08:27,700
+perlu dimulai sebelum
+minyak dimuat
+
+138
+00:08:27,700 --> 00:08:30,700
+di pelabuhan yang bergantung
+pada selat ini.
+
+139
+00:08:31,100 --> 00:08:36,600
+Arab Saudi dan Uni Emirat Arab memiliki
+jalur pipa yang membantu melakukan itu.
+
+140
+00:08:36,600 --> 00:08:41,400
+Minyak dapat dibawa melintasi daratan
+menuju pelabuhan di luar Hormuz:
+
+141
+00:08:41,400 --> 00:08:44,700
+Yanbu di Laut Merah
+dan Fujairah di Teluk Oman.
+
+142
+00:08:44,700 --> 00:08:47,600
+Kapal kemudian mengambil
+muatan dari sana.
+
+143
+00:08:47,600 --> 00:08:50,700
+Dengan mengubah tempat minyak
+mencapai laut,
+
+144
+00:08:50,700 --> 00:08:54,900
+sebagian pengiriman dapat menghindari
+selat yang bermasalah.
+
+145
+00:08:55,300 --> 00:09:00,500
+Namun, jalur tersebut belum menggantikan
+seluruh pengiriman yang terganggu.
+
+146
+00:09:00,500 --> 00:09:04,500
+Dalam analisis Juli dua ribu
+dua puluh enam, IMF menyebut
+
+147
+00:09:04,500 --> 00:09:09,000
+pengalihan pasokan hanya menutupi
+sebagian kehilangan dari Hormuz.
+
+148
+00:09:09,000 --> 00:09:12,500
+Sebagian muatan bisa keluar
+melalui pelabuhan lain,
+
+149
+00:09:12,500 --> 00:09:16,600
+tetapi jumlahnya belum cukup
+menggantikan arus sebelumnya.
+
+150
+00:09:16,600 --> 00:09:19,000
+Memiliki jalan alternatif membantu;
+
+151
+00:09:19,000 --> 00:09:22,300
+kemampuan mengalihkan pengiriman
+tetap terbatas.
+
+152
+00:09:22,700 --> 00:09:26,400
+Respons lain datang dari
+minyak yang sudah disimpan.
+
+153
+00:09:26,400 --> 00:09:29,500
+Pada sebelas Maret dua ribu
+dua puluh enam,
+
+154
+00:09:29,500 --> 00:09:33,400
+negara-negara anggota
+Badan Energi Internasional sepakat
+
+155
+00:09:33,400 --> 00:09:37,300
+menyediakan sebagian cadangan
+darurat mereka untuk pasar.
+
+156
+00:09:37,300 --> 00:09:41,400
+Minyak itu disediakan melalui
+jadwal masing-masing negara.
+
+157
+00:09:41,400 --> 00:09:44,900
+Cadangan membantu menghadapi
+kekurangan sementara;
+
+158
+00:09:44,900 --> 00:09:47,700
+keputusan bersama tersebut
+tidak berarti
+
+159
+00:09:47,700 --> 00:09:51,200
+seluruh minyaknya tiba di pasar
+pada hari yang sama.
+
+160
+00:09:51,600 --> 00:09:55,200
+Persediaan memberi waktu
+untuk menyesuaikan pasokan,
+
+161
+00:09:55,200 --> 00:09:58,700
+tetapi persediaan juga
+berkurang ketika digunakan.
+
+162
+00:09:58,700 --> 00:10:01,600
+IMF pada Juli mencatat
+bahwa stok minyak
+
+163
+00:10:01,600 --> 00:10:04,600
+membantu menutup kekurangan
+selama krisis.
+
+164
+00:10:04,600 --> 00:10:06,600
+Untuk memulihkan pengiriman,
+
+165
+00:10:06,600 --> 00:10:10,100
+yang diperlukan bukan hanya
+laut yang bisa dilalui.
+
+166
+00:10:10,100 --> 00:10:13,000
+Kapal harus dapat beroperasi
+dengan aman,
+
+167
+00:10:13,000 --> 00:10:17,400
+dan perusahaan perlu kembali yakin
+untuk menjalankan perjalanan.
+
+168
+00:10:17,400 --> 00:10:20,800
+Pemulihan perdagangan
+dapat berlangsung bertahap.
+
+169
+00:10:21,200 --> 00:10:24,500
+Inilah yang membuat Hormuz
+penting bagi dunia.
+
+170
+00:10:24,500 --> 00:10:28,400
+Banyak pengiriman energi bergantung
+pada jalur yang sama,
+
+171
+00:10:28,400 --> 00:10:31,600
+sementara kemampuan
+menggantikannya terbatas.
+
+172
+00:10:31,600 --> 00:10:34,300
+Ketika perjalanan terhambat,
+persoalan
+
+173
+00:10:34,300 --> 00:10:37,900
+meluas ke pasokan, biaya,
+dan kebutuhan sehari-hari.
+
+174
+00:10:37,900 --> 00:10:40,800
+Bagi pelaut yang menunggu
+di dalam teluk,
+
+175
+00:10:40,800 --> 00:10:45,000
+dampaknya langsung terasa sebagai
+perjalanan yang belum aman.
+
+176
+00:10:45,000 --> 00:10:49,700
+Bagi orang jauh dari sana, dampaknya
+dapat muncul pada biaya bekerja,
+
+177
+00:10:49,700 --> 00:10:52,900
+mengirim barang, atau memenuhi
+kebutuhan rumah.

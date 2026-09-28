@@ -4,9 +4,9 @@ This complete eight-minute example is a **voice-direction exercise**, not indepe
 
 Read the bundled files in order:
 
-1. [Full SRT timeline](giethoorn-full.srt) — a copy of the manually authored 55-cue subtitle timeline (53 short spoken cues and two visible `♪ ♪` video-track cues). The hook and subject introduction are separate cues.
+1. [Full SRT timeline](giethoorn-full.srt) — a copy of the manually authored 102-cue subtitle timeline (100 short spoken cues and two visible `♪ ♪` video-track cues). The hook and subject introduction are separate cues.
 2. [Full hand-directed working draft](giethoorn-full.work.txt) — every spoken cue has its own anchor; local focus and delivery are written manually. `<!-- beat -->` marks a few meaningful topic changes, not one per cue.
-3. [Complete `.voice.md`](giethoorn-full.voice.md) — 14 short Eleven v3 segments, with the author's manually directed utterances intact. No source timecodes or `♪ ♪` enter TTS.
+3. [Complete `.voice.md`](giethoorn-full.voice.md) — 15 short Eleven v3 segments, with the author's manually directed utterances intact. No source timecodes or `♪ ♪` enter TTS.
 4. [Complete `.voice.map.md`](giethoorn-full.voice.map.md) — source passage mapping, editorial checks, and the two unvoiced video-track intervals.
 
 ## Hand-scored direction plan

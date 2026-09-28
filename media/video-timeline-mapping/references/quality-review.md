@@ -14,6 +14,7 @@ Use after drafting **and after revisions**. Read [SKILL.md](../SKILL.md) for the
 - Does visual order follow viewer knowledge and source chronology? Check reveal points and compare setup/payoff. A late name reveal cannot be spoiled by a premature portrait or text label.
 - Are maps, documents, diagrams, captions and subtitles legible together? Is there enough time to inspect complex information? Does the chosen style preserve important text from distracting shake, zoom, grain or overlays?
 - Are there repetitive filler shots, mechanical B-roll-to-graphic alternation, excessive cuts, or a succession of unsupported archival demands? Conversely, does a hold last without purpose?
+- For each B-roll, is the connection to the spoken line deliberate — direct, suggestive, atmospheric, or wallpaper — and can you name what the viewer loses if that picture is removed? Where stills are used, is that a genuinely static subject, a long readability hold, an archival record, or a diagram/animation need, rather than the default reaching for a frozen frame? Does the plan prefer real moving footage over an illustration wherever both could serve the line, without implying that footage was obtained?
 
 ## Audio and connections
 

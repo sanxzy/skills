@@ -9,50 +9,69 @@ Giethoorn adalah sebuah desa kuno penuh sejarah di Provinsi Overijssel, Belanda.
 Desa ini memiliki populasi sekitar 2.795 jiwa.
 
 [deliberate]
-Sebagai tujuan wisata Belanda yang populer baik di dalam maupun di luar negeri,
+Sebagai tujuan wisata Belanda
 
-Giethoorn sering disebut sebagai Venesia Belanda atau Venesia dari Utara.
+yang populer baik di dalam maupun di luar negeri,
+
+Giethoorn sering disebut sebagai
+
+Venesia Belanda atau Venesia dari Utara.
 ```
 
 ## Segment 002
 
 ```text
 [calm]
-Menurut sejarah, di masa lampau pada tahun 1230 Masehi, beberapa buronan melarikan diri ke tempat ini.
+Menurut sejarah, di masa lampau pada tahun 1230 Masehi,
+
+beberapa buronan melarikan diri ke tempat ini.
 
 Saat itu desa ini belum mempunyai nama.
 
 [thoughtful]
-Namun orang-orang yang datang ini menemukan tanduk kambing dalam jumlah banyak di sini.
+Namun orang-orang yang datang ini menemukan tanduk kambing
 
-Kebetulan 5 tahun sebelumnya banjir besar telah menyebabkan kambing-kambing ini mati.
+dalam jumlah banyak di sini.
+
+Kebetulan 5 tahun sebelumnya banjir besar telah menyebabkan
+
+kambing-kambing ini mati.
 
 [deliberate]
 Karena kambing disebut geit dalam bahasa Belanda,
 
-lalu mereka menamai tempat ini Geytenhorn yang selanjutnya diubah menjadi Giethoorn.
+lalu mereka menamai tempat ini
+
+Geytenhorn yang selanjutnya diubah menjadi Giethoorn.
 ```
 
 ## Segment 003
 
 ```text
-[calm]
-Dulunya desa Giethoorn tidak mempunyai banyak kanal ataupun aliran sungai seperti sekarang.
+Dulunya desa Giethoorn tidak mempunyai banyak kanal
+
+ataupun aliran sungai seperti sekarang.
 
 Tempat ini adalah tanah berawa yang kaya akan GAMBUT.
 
 [deliberate]
-Gambut adalah bahan vegetatif yang membusuk biasanya di daerah berawa yang terkumpul selama ribuan tahun.
+Gambut adalah bahan vegetatif yang membusuk biasanya di daerah berawa
 
-[calm]
-Para warga setempat menggali gambut ini hingga tercipta pulau-pulau yang dikelilingi genangan air seperti kolam dan parit kecil.
+yang terkumpul selama ribuan tahun.
 ```
 
 ## Segment 004
 
 ```text
+[calm]
+Para warga setempat menggali gambut ini hingga tercipta pulau-pulau
+
+yang dikelilingi genangan air seperti kolam dan parit kecil.
+
 [deliberate]
-Seiring berjalannya waktu, kanal-kanal dibuat untuk menghubungkan genangan air yang sudah ada.
+Seiring berjalannya waktu, kanal-kanal dibuat
+
+untuk menghubungkan genangan air yang sudah ada.
 
 [calm]
 Desa Giethoorn juga kerap dijuluki sebagai negeri dongeng atau Fairy Tale.
@@ -61,30 +80,48 @@ Desa Giethoorn juga kerap dijuluki sebagai negeri dongeng atau Fairy Tale.
 ## Segment 005
 
 ```text
-Dengan keindahan pemandangan di Giethoorn, rasanya julukan tersebut tidak berlebihan.
+Dengan keindahan pemandangan di Giethoorn,
+
+rasanya julukan tersebut tidak berlebihan.
 
 Terdapat kanal yang mengelilingi rumah-rumah penduduk.
 
-Selain itu, hampir setiap rumah memiliki halaman dengan taman yang ditata rapi.
+Selain itu, hampir setiap rumah memiliki halaman dengan taman
 
-Rumput hijau serta aneka bunga berwarna-warni tampak menghiasi rumah-rumah di Giethoorn.
+yang ditata rapi.
+
+Rumput hijau serta aneka bunga
+
+berwarna-warni tampak menghiasi
+
+rumah-rumah di Giethoorn.
 
 [thoughtful]
-Menariknya lagi, mayoritas rumah di Giethoorn beratap jerami yang dibangun pada abad ke-18 dan 19.
+Menariknya lagi, mayoritas rumah
+
+di Giethoorn beratap jerami yang dibangun pada abad ke-18 dan 19.
 ```
 
 ## Segment 006
 
 ```text
-Selain itu, yang membuat desa ini semakin menarik adalah pesona 176 jembatan yang berada di atas kanal.
+Selain itu, yang membuat desa ini semakin menarik adalah
+
+pesona 176 jembatan yang berada di atas kanal.
 
 [calm]
-Dengan fakta ini, tak heran bila Giethoorn dinobatkan sebagai salah satu desa terindah di dunia.
+Dengan fakta ini, tak heran bila
 
-Mungkin suasana di sini adalah salah satu tempat tinggal yang banyak diidam-idamkan orang.
+Giethoorn dinobatkan sebagai salah satu desa terindah di dunia.
+
+Mungkin suasana di sini adalah salah satu tempat tinggal
+
+yang banyak diidam-idamkan orang.
 
 [deliberate]
-Yang membuat Giethoorn berbeda dengan kebanyakan desa lainnya di dunia adalah di bagian desa bersejarahnya...
+Yang membuat Giethoorn berbeda dengan kebanyakan desa lainnya
+
+di dunia adalah di bagian desa bersejarahnya...
 
 KANAL dan jalan setapak menjadi jalur utama untuk berkeliling.
 ```
@@ -93,76 +130,124 @@ KANAL dan jalan setapak menjadi jalur utama untuk berkeliling.
 
 ```text
 [calm]
-Sebagai gantinya, jalur air yang berada di kanal merupakan pilihan utama warga setempat
+Sebagai gantinya, jalur air yang berada di kanal
 
-dan juga wisatawan yang datang dapat mengelilingi Giethoorn menggunakan perahu kecil.
+merupakan pilihan utama warga setempat
 
-Di pinggiran kanal juga tersedia jalan setapak kecil bagi para pejalan kaki.
+dan juga wisatawan yang datang dapat mengelilingi Giethoorn
+
+menggunakan perahu kecil.
+
+Di pinggiran kanal juga tersedia jalan setapak kecil
+
+bagi para pejalan kaki.
 
 Terdapat banyak restoran yang terletak di pusat desa Giethoorn
 
-dengan teras nyaman yang sempurna untuk bersantai di hari musim panas yang hangat.
+dengan teras nyaman yang sempurna untuk bersantai
+
+di hari musim panas yang hangat.
 ```
 
 ## Segment 008
 
 ```text
 [calm]
-Para wisatawan akan menemukan berbagai restoran yang menyajikan segalanya mulai dari makanan laut hingga burger atau makanan ringan.
+Para wisatawan akan menemukan berbagai restoran
 
-Sebagai desa wisata yang populer, Giethoorn juga menyediakan hotel ataupun penginapan bagi para pengunjung.
+yang menyajikan segalanya mulai dari makanan laut
+
+hingga burger atau makanan ringan.
+
+Sebagai desa wisata yang populer, Giethoorn juga menyediakan
+
+hotel ataupun penginapan bagi para pengunjung.
 
 [thoughtful]
 Dulu desa Giethoorn tak seramai saat ini.
 
 [deliberate]
-Pariwisata dimulai pada tahun 1958 ketika film Belanda yang melakukan syuting di Giethoorn.
+Pariwisata dimulai pada tahun 1958
+
+ketika film Belanda yang melakukan syuting di Giethoorn.
 ```
 
 ## Segment 009
 
 ```text
-Sejak saat itu, desa ini mulai diserbu orang-orang yang penasaran dengan keindahan Giethoorn.
+Sejak saat itu, desa ini mulai diserbu
 
-Pada 1990-an, orang dari luar negeri seperti Belgia dan Jerman tiba dan sering mengunjungi desa tersebut hingga saat ini.
+orang-orang yang penasaran dengan keindahan Giethoorn.
+
+Pada 1990-an, orang dari luar negeri seperti Belgia dan Jerman tiba
+
+dan sering mengunjungi desa tersebut hingga saat ini.
 ```
 
 ## Segment 010
 
 ```text
 [calm]
-Awalnya, penduduk setempat tidak begitu senang dengan kehadiran banyak orang di sini.
+Awalnya, penduduk setempat tidak begitu senang
+
+dengan kehadiran banyak orang di sini.
 
 [thoughtful]
-Penduduk khawatir bahwa terlalu banyak wisatawan yang hadir dapat mengganggu privasi mereka.
+Penduduk khawatir bahwa terlalu banyak wisatawan
 
-Selain itu, hal ini juga dapat mengubah tempat mereka yang indah dan tenang menjadi desa yang bising dan kotor.
+yang hadir dapat mengganggu privasi mereka.
+
+Selain itu, hal ini juga dapat mengubah tempat mereka
+
+yang indah dan tenang menjadi desa yang bising dan kotor.
 
 [calm]
-Penduduk Giethoorn hanya bisa duduk santai dan melihat keramaian yang semakin meningkat setiap tahunnya.
+Penduduk Giethoorn hanya bisa duduk santai
+
+dan melihat keramaian yang semakin meningkat setiap tahunnya.
 ```
 
 ## Segment 011
 
 ```text
-Tapi hal ini mungkin tidak dapat dicegah dan mereka yang tinggal di desa lama-kelamaan menyesuaikan diri dengan keadaan ini.
+Tapi hal ini mungkin tidak dapat dicegah
+
+dan mereka yang tinggal di desa lama-kelamaan menyesuaikan diri
+
+dengan keadaan ini.
 
 [deliberate]
-Selanjutnya, warga setempat memanfaatkan keramaian dengan membuka bisnis seperti penyewaan perahu dan mengubah rumah mereka menjadi kafe atau penginapan.
+Selanjutnya, warga setempat memanfaatkan keramaian
+
+dengan membuka bisnis seperti penyewaan perahu
+
+dan mengubah rumah mereka menjadi kafe atau penginapan.
 
 [calm]
-Dengan peluang bisnis seperti itu, mereka, masyarakat Giethoorn, bisa merasakan bahwa segalanya menjadi lebih baik dari sebelumnya.
+Dengan peluang bisnis seperti itu,
+
+mereka, masyarakat Giethoorn, bisa merasakan bahwa segalanya
+
+menjadi lebih baik dari sebelumnya.
 ```
 
 ## Segment 012
 
 ```text
-Giethoorn sangat populer di musim semi saat tumbuhan dan taman menyala penuh warna.
+Giethoorn sangat populer di musim semi
 
-Bunga tulip mekar dengan sempurna dan suhu hangat menyambut pada bulan Juni, Juli, dan Agustus.
+saat tumbuhan dan taman menyala penuh warna.
+
+Bunga tulip mekar dengan sempurna dan suhu hangat menyambut
+
+pada bulan Juni, Juli, dan Agustus.
 
 [thoughtful]
-Namun pada musim dingin, Giethoorn berubah menjadi negeri ajaib dengan es dan salju yang memesona ketika danau dan kanal membeku menjadi area seluncur es.
+Namun pada musim dingin,
+
+Giethoorn berubah menjadi negeri ajaib dengan es dan salju yang memesona
+
+ketika danau dan kanal membeku menjadi area seluncur es.
 
 [deliberate]
 Pada musim dingin yang cukup dingin, air kanal dapat membeku.
@@ -172,16 +257,29 @@ Pada musim dingin yang cukup dingin, air kanal dapat membeku.
 
 ```text
 Ketika itu terjadi, perahu tidak bisa digunakan di kanal yang tertutup es.
-
-Sebaliknya, para wisatawan yang datang biasanya memanfaatkan kanal beku untuk berjalan kaki dan bermain ice skating atau seluncur es.
 ```
 
 ## Segment 014
 
 ```text
+Sebaliknya, para wisatawan yang datang
+
+biasanya memanfaatkan kanal beku untuk berjalan kaki
+
+dan bermain ice skating atau seluncur es.
+```
+
+## Segment 015
+
+```text
 [calm]
-Menurut data yang ada, setiap tahun ada sekitar 1 juta orang mengunjungi desa kecil ini.
+Menurut data yang ada, setiap tahun ada sekitar
+
+1 juta orang mengunjungi desa kecil ini.
 
 [deliberate]
-Apalagi saat liburan tiba di Belanda, aktivitas di Giethoorn bisa terlihat sangat sibuk dan disesaki oleh banyak wisatawan.
+[deliberate]
+Apalagi saat liburan tiba di Belanda, aktivitas di
+
+Giethoorn bisa terlihat sangat sibuk dan disesaki oleh banyak wisatawan.
 ```

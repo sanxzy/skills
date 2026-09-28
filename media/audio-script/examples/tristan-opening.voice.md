@@ -1,11 +1,19 @@
 ## Segment 001
 
 ```text
-[calm] [deliberate]
-Jauh di tengah samudra Atlantik berdiri sebuah pulau yang benar-benar terisolasi dari dunia luar.
-
 [calm]
-Dari kejauhan... daratan ini tampak seperti sebuah bongkahan batu hitam raksasa
+Jauh di tengah samudra Atlantik berdiri
+
+sebuah pulau yang benar-benar terisolasi dari dunia luar.
+```
+
+## Segment 002
+
+```text
+[deliberate]
+Dari kejauhan, daratan ini tampak
+
+seperti sebuah bongkahan batu hitam raksasa
 
 yang membumbung dari kedalaman laut.
 
@@ -13,56 +21,41 @@ Puncak vulkaniknya menembus gumpalan awan rendah,
 
 sementara lereng-lerengnya yang terjal turun langsung ke laut
 
-tanpa garis pantai berpasir yang memisahkan daratan dari ganasnya samudra.
-```
+tanpa garis pantai berpasir yang
 
-## Segment 002
-
-```text
-[short pause]
-[deliberate]
-Inilah TRISTAN, permukiman berpenghuni paling terisolasi di muka bumi.
-
-Terletak sekitar 2.800 km dari daratan utama Afrika yang terdekat,
-
-tempat ini benar-benar terpisah dari dunia luar.
-
-[thoughtful]
-Dan untuk sekadar menginjakkan kaki di daratannya...
-
-manusia harus menyerahkan dirinya pada lautan lepas selama 6 hingga 10 hari penuh mengarungi ribuan kilometer lautan terbuka.
+memisahkan daratan dari ganasnya samudra.
 ```
 
 ## Segment 003
 
 ```text
-[calm]
-Di sepanjang perjalanan yang seolah tanpa akhir ini, sejauh mata memandang hanyalah gulungan ombak
+[wonder]
+Inilah Tristan, permukiman berpenghuni paling terisolasi di muka bumi.
 
-yang membentang menembus garis cakrawala.
+Terletak sekitar 2.800 km dari daratan utama Afrika yang terdekat,
 
-[quietly]
-Tepat di bawah kaki gunung berapi yang masih aktif hingga hari ini,
+tempat ini benar-benar terpisah dari dunia luar.
 
-lebih dari 200 orang telah menjalani kehidupan mereka di pulau terpencil ini sejak abad ke-19.
+Dan untuk sekadar menginjakkan kaki di daratannya,
+
+manusia harus menyerahkan dirinya pada
+
+lautan lepas selama 6 hingga 10 hari
+
+penuh mengarungi ribuan kilometer lautan terbuka.
 ```
 
 ## Segment 004
 
 ```text
 [calm]
-Setiap tahun para peneliti, fotografer, pelaut, dan petualang tetap melakukan perjalanan panjang
+Di sepanjang perjalanan yang seolah tanpa akhir ini,
 
-melintasi ribuan kilometer lautan ganas demi mencapai sebuah tempat yang hampir dilupakan oleh belahan dunia lainnya.
+sejauh mata memandang hanyalah gulungan ombak
 
-[short pause]
-[curious]
-Lantas, seperti apa KEHIDUPAN di tempat sejauh ini?
+yang membentang menembus garis cakrawala.
 
-Bagaimana mereka menjalani hari-hari?
+Tepat di bawah kaki gunung berapi yang masih aktif hingga hari ini,
 
-Apa yang mereka lakukan untuk bertahan hidup?
-
-[deliberate]
-Dan tantangan apa yang harus mereka hadapi di tengah keterasingan ini?
+lebih dari 200 orang telah menjalani
 ```
