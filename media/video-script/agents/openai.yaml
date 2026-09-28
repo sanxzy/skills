@@ -1,0 +1,4 @@
+interface:
+  display_name: "Video Script"
+  short_description: "Researched, verified video narration ready for editing"
+  default_prompt: "Use $video-script to research and write a timestamped video script from my title and topic, with a separate sources file."

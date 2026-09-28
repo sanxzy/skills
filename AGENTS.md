@@ -23,6 +23,7 @@ media/                         Visual, script, editing, and media-evidence workf
   local-video-transcript-extraction/
   video-assets-finder/
   video-editing/
+  video-script/
   video-timeline-mapping/
   watch-video/
 office/                        Office-document workflows

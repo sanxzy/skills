@@ -112,6 +112,7 @@ flowchart LR
 | `local-video-transcript-extraction` | `media/local-video-transcript-extraction/` | Extract local video/audio into timestamped Faster Whisper JSON with durable recovery and subtitle projections. |
 | `video-assets-finder` | `media/video-assets-finder/` | Coordinate parallel visual asset research, acquire verified source media, and track provenance, rights and unresolved timeline requirements in a resumable asset package. |
 | `video-editing` | `media/video-editing/` | Plan, render, inspect, and verify original MoviePy/Manim/Pillow editorial explainer videos with project-local auto-provisioning, keyframed motion, compositing, data/map adapters, transitions, and audio. |
+| `video-script` | `media/video-script/` | Research, verify, and write original documentary or educational video narration as an editor-ready timestamped timeline with a separate claim-to-source record. |
 | `video-timeline-mapping` | `media/video-timeline-mapping/` | Plan a self-contained, style-aware editorial blueprint from timestamped narration, without acquiring or editing media. |
 | `watch-video` | `media/watch-video/` | Resolve remote video URLs into structured, timestamp-grounded context with persistent per-URL media/transcript caching, adaptive frames, timelines, and explicit limitations. |
 

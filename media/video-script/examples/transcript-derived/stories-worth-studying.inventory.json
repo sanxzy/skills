@@ -1,0 +1,248 @@
+{
+  "scope": "Bundled transcript examples and companions. All file paths resolve within this directory. Input hashes record provenance without referencing original extraction files.",
+  "date": "2026-09-26",
+  "markdown_inputs": 16,
+  "video_ids": 15,
+  "items": [
+    {
+      "sha256": "e64366570e575489ec0f7feb590eb421316464765805ebba64893f445b83b703",
+      "example": "bagaimana-rockefeller-palsu-menipu-kaum-elite-amerika-id.srt",
+      "source": "bagaimana-rockefeller-palsu-menipu-kaum-elite-amerika-id.source.md",
+      "video_id": "vn-lC0eBArw",
+      "language": "id",
+      "title": "Bagaimana Rockefeller Palsu Menipu Kaum Elite Amerika?",
+      "packaging": {
+        "audience": "Penonton investigasi dan kisah identitas palsu",
+        "curiosity_loop": "Nama keluarga kaya dipercaya, tetapi identitas pemakainya palsu.",
+        "payoff": "Ikuti perubahan identitas, penerimaan sosial, konsekuensi, dan pengungkapan.",
+        "thumbnail_concept": "Potret tokoh dan identitas Rockefeller sebagai ilustrasi; jangan mengarang dokumen resmi.",
+        "performance_status": "Untested editorial candidate; no outlier or audience-test data supplied."
+      }
+    },
+    {
+      "sha256": "072b559172c4919b8438747eed198662eaf74293ce667671b7350f5aa06fc2bb",
+      "example": "a-fake-rockefeller-fooled-americas-elite-how-en-us.srt",
+      "source": "a-fake-rockefeller-fooled-americas-elite-how-en-us.source.md",
+      "video_id": "vn-lC0eBArw",
+      "language": "en-US",
+      "title": "A Fake Rockefeller Fooled America’s Elite. How?",
+      "packaging": {
+        "audience": "Viewers interested in impostors and social trust",
+        "curiosity_loop": "A false identity gains acceptance among wealthy people.",
+        "payoff": "Follow the successive identities, social access, consequences, and discovery.",
+        "thumbnail_concept": "The subject’s portrait and a simple identity contrast; no invented official record.",
+        "performance_status": "Untested editorial candidate; no outlier or audience-test data supplied."
+      }
+    },
+    {
+      "sha256": "9fc3e8612392b53fac4b1674b4b0adf6565a37cacfbd98a4aa676c3f504a2bbf",
+      "example": "cia-mencari-pengkhianat-di-dalam-markasnya-sendiri-id.srt",
+      "source": "cia-mencari-pengkhianat-di-dalam-markasnya-sendiri-id.source.md",
+      "video_id": "RiB4stBa9yU",
+      "language": "id",
+      "title": "CIA Mencari Pengkhianat di Dalam Markasnya Sendiri",
+      "packaging": {
+        "audience": "Penonton spionase dan kegagalan keamanan",
+        "curiosity_loop": "Orang yang memiliki akses sah justru menjadi sumber kebocoran.",
+        "payoff": "Ikuti akses, pembayaran, petunjuk yang terlewat, penyelidikan, dan penangkapan.",
+        "thumbnail_concept": "Ames dan lambang CIA; satu petunjuk keuangan dapat melengkapi judul.",
+        "performance_status": "Untested editorial candidate; no outlier or audience-test data supplied."
+      }
+    },
+    {
+      "sha256": "15ad505714e9f2c4178454dadf788aede6023db27d114efdf377de8ecd11bf0d",
+      "example": "kasus-terungkap-setelah-tersangkanya-meninggal-id.srt",
+      "source": "kasus-terungkap-setelah-tersangkanya-meninggal-id.source.md",
+      "video_id": "ENCS5MIWe2Y",
+      "language": "id",
+      "title": "Kasus Terungkap Setelah Tersangkanya Meninggal",
+      "packaging": {
+        "audience": "Penonton investigasi kriminal",
+        "curiosity_loop": "Identifikasi terlambat membuka jawaban, tetapi menghalangi proses peradilan biasa.",
+        "payoff": "Ikuti bukti digital, kronologi kematian, dan batas hasil hukum tanpa menyatakan putusan bersalah.",
+        "thumbnail_concept": "Potret korban dan kamera sebagai petunjuk; hindari gambar korban grafis atau rekonstruksi palsu.",
+        "performance_status": "Untested editorial candidate; no outlier or audience-test data supplied."
+      }
+    },
+    {
+      "sha256": "bc74a81dffe3c2ec8e4733e5cfa451ddf2824ecccc02ee78b1e5bb3c84a8de7b",
+      "example": "gurun-dan-salju-dalam-satu-negara-inilah-spanyol-id.srt",
+      "source": "gurun-dan-salju-dalam-satu-negara-inilah-spanyol-id.source.md",
+      "video_id": "OZEgBPgTlFs",
+      "language": "id",
+      "title": "Gurun dan Salju dalam Satu Negara: Inilah Spanyol",
+      "packaging": {
+        "audience": "Penonton perjalanan dan bentang alam",
+        "curiosity_loop": "Dua lanskap yang terasa berjauhan berada dalam negara yang sama.",
+        "payoff": "Tunjukkan kontras geografis dan perjalanan antardaerah dalam naskah.",
+        "thumbnail_concept": "Dua lanskap nyata dengan konteks lokasi yang akurat, tanpa menyiratkan tempat yang sama.",
+        "performance_status": "Untested editorial candidate; no outlier or audience-test data supplied."
+      }
+    },
+    {
+      "sha256": "aa63576991a013762c0521d1f8a65ab96dbced555f0a76b44ef5207614f46a34",
+      "example": "kota-megah-di-tengah-padang-kosong-inilah-kazakhstan-id.srt",
+      "source": "kota-megah-di-tengah-padang-kosong-inilah-kazakhstan-id.source.md",
+      "video_id": "nARX-cM8nWI",
+      "language": "id",
+      "title": "Kota Megah di Tengah Padang Kosong: Inilah Kazakhstan",
+      "packaging": {
+        "audience": "Penonton perjalanan dan kota yang belum akrab",
+        "curiosity_loop": "Bentang sepi bertemu pusat kota yang mencolok.",
+        "payoff": "Hubungkan luas wilayah, stepa, kota, dan perjalanan ke alam.",
+        "thumbnail_concept": "Bangunan kota dan stepa sebagai dua fokus; jangan menghilangkan permukiman dari foto.",
+        "performance_status": "Untested editorial candidate; no outlier or audience-test data supplied."
+      }
+    },
+    {
+      "sha256": "ae90ef2b68deb3ed1e466983279b67cb8b826cd57e7a7e85f85eeb0c9f92edf3",
+      "example": "bagaimana-islandia-mengubah-alam-yang-keras-jadi-penghasilan-id.srt",
+      "source": "bagaimana-islandia-mengubah-alam-yang-keras-jadi-penghasilan-id.source.md",
+      "video_id": "RQ068brGWLA",
+      "language": "id",
+      "title": "Bagaimana Islandia Mengubah Alam yang Keras Jadi Penghasilan?",
+      "packaging": {
+        "audience": "Penonton geografi dan hubungan alam dengan ekonomi",
+        "curiosity_loop": "Kondisi yang menyulitkan kehidupan juga menyediakan sumber penghasilan.",
+        "payoff": "Ikuti energi, kegiatan ekonomi, dan wisata; bedakan panas bumi dari tenaga air.",
+        "thumbnail_concept": "Lanskap vulkanik dan fasilitas energi yang benar konteksnya; tanpa ledakan yang direka.",
+        "performance_status": "Untested editorial candidate; no outlier or audience-test data supplied."
+      }
+    },
+    {
+      "sha256": "66a471e968ca97933bc7e38b24ab0446c23517219f0cea96894da3815e4afc84",
+      "example": "pulau-tanpa-bandara-bagaimana-warganya-bertahan-id.srt",
+      "source": "pulau-tanpa-bandara-bagaimana-warganya-bertahan-id.source.md",
+      "video_id": "sKlN8EMhbw4",
+      "language": "id",
+      "title": "Pulau Tanpa Bandara: Bagaimana Warganya Bertahan?",
+      "packaging": {
+        "audience": "Penonton kehidupan terpencil",
+        "curiosity_loop": "Kebutuhan sehari-hari tetap harus terpenuhi ketika akses bergantung pada laut.",
+        "payoff": "Ikuti pelayaran, pasokan, layanan kesehatan, pekerjaan, dan kehidupan komunitas.",
+        "thumbnail_concept": "Permukiman kecil di tengah laut dengan kapal sebagai fokus pendukung.",
+        "performance_status": "Untested editorial candidate; no outlier or audience-test data supplied."
+      }
+    },
+    {
+      "sha256": "e3a54f78dc3945f5d71f54494cbda1044f2d106da7f400e955aa34867a1d02b2",
+      "example": "bagaimana-hidup-ketika-kanal-menjadi-jalan-id.srt",
+      "source": "bagaimana-hidup-ketika-kanal-menjadi-jalan-id.source.md",
+      "video_id": "FUt0Y7ntULk",
+      "language": "id",
+      "title": "Bagaimana Hidup Ketika Kanal Menjadi Jalan?",
+      "packaging": {
+        "audience": "Penonton kehidupan dan tempat unik",
+        "curiosity_loop": "Perjalanan sehari-hari memakai jalur air di kawasan bersejarah.",
+        "payoff": "Jelaskan pembentukan kanal dan cara warga serta wisatawan menggunakannya; jangan mengklaim seluruh desa tanpa jalan.",
+        "thumbnail_concept": "Perahu di depan rumah tepi kanal pada lokasi yang tepat.",
+        "performance_status": "Untested editorial candidate; no outlier or audience-test data supplied."
+      }
+    },
+    {
+      "sha256": "d85efb504157fc48c08d86b5fcabf79423cafcd3d9ebdb5bf488bdea36a12a4e",
+      "example": "pasar-musim-dingin-yang-tak-butuh-kulkas-id.srt",
+      "source": "pasar-musim-dingin-yang-tak-butuh-kulkas-id.source.md",
+      "video_id": "QpHRtRSAg-k",
+      "language": "id",
+      "title": "Pasar Musim Dingin yang Tak Butuh Kulkas",
+      "packaging": {
+        "audience": "Penonton kebutuhan sehari-hari dalam iklim ekstrem",
+        "curiosity_loop": "Daging dan ikan dipajang di udara terbuka karena dingin musimnya.",
+        "payoff": "Jelaskan kondisi pasar pada musim dingin; pembekuan tidak berarti sterilisasi.",
+        "thumbnail_concept": "Barang dagangan beku di pasar terbuka; kondisi musim harus terlihat.",
+        "performance_status": "Untested editorial candidate; no outlier or audience-test data supplied."
+      }
+    },
+    {
+      "sha256": "4e6de65f63080056ac1e1e1e00afc3bad3f2aece9040bdffc0524f9663a9e047",
+      "example": "kenapa-orang-memburu-madu-yang-bisa-meracuni-mereka-id.srt",
+      "source": "kenapa-orang-memburu-madu-yang-bisa-meracuni-mereka-id.source.md",
+      "video_id": "wtYNu-9avlg",
+      "language": "id",
+      "title": "Kenapa Orang Memburu Madu yang Bisa Meracuni Mereka?",
+      "packaging": {
+        "audience": "Penonton tradisi, pekerjaan berisiko, dan pangan",
+        "curiosity_loop": "Madu bernilai justru mengandung racun dan sulit dipanen.",
+        "payoff": "Ikuti panen, penghidupan, tradisi, dan risiko; jangan memberi klaim dosis aman.",
+        "thumbnail_concept": "Pemburu di tebing dan sarang sebagai dua fokus; jangan menambah bahaya yang tidak terdokumentasi.",
+        "performance_status": "Untested editorial candidate; no outlier or audience-test data supplied."
+      }
+    },
+    {
+      "sha256": "18eff11318e33651d1df75812a540dac41c3d2e4aaadc23c7c12776b2b65abb5",
+      "example": "kota-di-tepi-es-bagaimana-warganya-hidup-id.srt",
+      "source": "kota-di-tepi-es-bagaimana-warganya-hidup-id.source.md",
+      "video_id": "R2yj-EbQsXI",
+      "language": "id",
+      "title": "Kota di Tepi Es: Bagaimana Warganya Hidup?",
+      "packaging": {
+        "audience": "Penonton kehidupan masyarakat Arktik",
+        "curiosity_loop": "Kota menjalankan kehidupan modern dekat lingkungan es dan musim panjang.",
+        "payoff": "Ikuti sejarah, bangunan, transportasi, dan musim; jangan menyatakan laut selalu beku.",
+        "thumbnail_concept": "Rumah berwarna dan lanskap es dengan konteks musim yang akurat.",
+        "performance_status": "Untested editorial candidate; no outlier or audience-test data supplied."
+      }
+    },
+    {
+      "sha256": "97f3c2c7963d488640d13305af689be36b9570beacfda4f6707a0e571fe3e7cb",
+      "example": "alone-in-the-jungle-how-does-a-young-orangutan-survive-en.srt",
+      "source": "alone-in-the-jungle-how-does-a-young-orangutan-survive-en.source.md",
+      "video_id": "Ap8jTCMK3c4",
+      "language": "en",
+      "title": "Alone in the Jungle: How Does a Young Orangutan Survive?",
+      "packaging": {
+        "audience": "Wildlife viewers drawn to an individual facing a concrete task",
+        "curiosity_loop": "An inexperienced orangutan must find food in a changing forest.",
+        "payoff": "Follow the orangutan’s needs and the wider seasonal ecosystem.",
+        "thumbnail_concept": "The documented orangutan in its forest; no invented threatening predator.",
+        "performance_status": "Untested editorial candidate; no outlier or audience-test data supplied."
+      }
+    },
+    {
+      "sha256": "0b287b1f19607149088e0990da835ee7e5d6787aef93311d4017d42969658438",
+      "example": "which-snake-is-actually-the-most-dangerous-en.srt",
+      "source": "which-snake-is-actually-the-most-dangerous-en.source.md",
+      "video_id": "WGvH11I6Rnk",
+      "language": "en",
+      "title": "Which Snake Is Actually the Most Dangerous?",
+      "packaging": {
+        "audience": "Viewers interested in wildlife risk and comparisons",
+        "curiosity_loop": "Venom alone does not settle practical danger.",
+        "payoff": "Compare the episode’s criteria, exposure, and outcomes without claiming a universal scientific ranking.",
+        "thumbnail_concept": "One or two identifiable snakes; avoid a fake strike or exaggerated size.",
+        "performance_status": "Untested editorial candidate; no outlier or audience-test data supplied."
+      }
+    },
+    {
+      "sha256": "5d9d99882fbfed13f993acdca87cf09617ba3217918e546eb17b46a076754df6",
+      "example": "why-does-this-bird-seal-itself-inside-a-tree-en.srt",
+      "source": "why-does-this-bird-seal-itself-inside-a-tree-en.source.md",
+      "video_id": "bbOmdbJdMa8",
+      "language": "en",
+      "title": "Why Does This Bird Seal Itself Inside a Tree?",
+      "packaging": {
+        "audience": "Wildlife viewers curious about unusual parenting",
+        "curiosity_loop": "A nesting bird becomes dependent on food arriving through a small opening.",
+        "payoff": "Explain nest protection and provisioning, then the wider forest relationships.",
+        "thumbnail_concept": "The documented hornbill nest opening and feeding bird; no invented entrapment.",
+        "performance_status": "Untested editorial candidate; no outlier or audience-test data supplied."
+      }
+    },
+    {
+      "sha256": "9806a390cb55bc89189420ad9784c7a403c6f29a4dcaacf0989fd3c08e5cafaf",
+      "example": "why-some-animals-escape-and-others-dont-en.srt",
+      "source": "why-some-animals-escape-and-others-dont-en.source.md",
+      "video_id": "tEFUNLFwPoM",
+      "language": "en",
+      "title": "Why Some Animals Escape—and Others Don’t",
+      "packaging": {
+        "audience": "Wildlife viewers interested in pursuit and survival",
+        "curiosity_loop": "Similar danger produces different outcomes.",
+        "payoff": "Show the compilation’s varied encounters and the abilities or constraints that affect them; do not imply a controlled experiment.",
+        "thumbnail_concept": "One documented pursuit encounter; do not combine unrelated animals into a fabricated fight.",
+        "performance_status": "Untested editorial candidate; no outlier or audience-test data supplied."
+      }
+    }
+  ]
+}
